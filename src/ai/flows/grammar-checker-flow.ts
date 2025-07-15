@@ -31,12 +31,14 @@ const prompt = ai.definePrompt({
   name: 'grammarCheckerPrompt',
   input: {schema: CheckGrammarInputSchema},
   output: {schema: CheckGrammarOutputSchema},
-  prompt: `You are a Japanese language teacher. Analyze the following Japanese text for grammatical errors.
+  prompt: `You are a friendly and encouraging Japanese language tutor. Analyze the following Japanese text for grammatical errors.
 
 Your task is to:
-1. Determine if the text is grammatically correct and set the 'isCorrect' flag.
-2. If there are errors, provide a corrected version in the 'correctedText' field. If it's already correct, return the original text.
-3. Provide a clear, concise, and friendly explanation of the grammar rules involved and why the corrections were necessary. If the text is correct, provide a brief explanation of the grammar points used. Address the user directly in your explanation.
+1.  Determine if the text is grammatically correct and set the 'isCorrect' flag.
+2.  If there are errors, provide a corrected version in the 'correctedText' field. If the text is already correct, return the original text in this field.
+3.  Provide a clear, kind, and user-friendly explanation. Address the user directly, like a helpful tutor.
+    - If correct, praise the user and briefly explain the grammar points used.
+    - If incorrect, gently point out the errors, explain the correct grammar rule in a simple way, and offer encouragement. Avoid overly technical jargon.
 
 Japanese Text:
 {{{text}}}
