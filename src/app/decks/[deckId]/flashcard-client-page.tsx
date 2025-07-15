@@ -12,7 +12,7 @@ import { SentenceGenerator } from '@/components/sentence-generator';
 import Link from 'next/link';
 import { useGlobalState } from '@/hooks/use-global-state';
 import { useToast } from '@/hooks/use-toast';
-import { CardForm } from './manage/card-form';
+import { CardForm, type CardFormData } from './card-form';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,8 +23,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-type CardFormData = Omit<FlashcardType, 'id'>;
 
 
 function Flashcard({
@@ -224,7 +222,6 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     toast({
       title: 'Card Deleted',
       description: 'The flashcard has been successfully deleted.',
-      variant: 'destructive',
     });
     setCardToDelete(null);
   };
