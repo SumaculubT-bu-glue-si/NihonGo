@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Volume2, Loader2, Square } from 'lucide-react';
+import { Volume2, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,7 +32,6 @@ export function PronunciationButton({ text }: { text: string }) {
     const utterance = new SpeechSynthesisUtterance(text);
     utteranceRef.current = utterance;
 
-    // Find a Japanese voice
     const voices = window.speechSynthesis.getVoices();
     const japaneseVoice = voices.find(voice => voice.lang.startsWith('ja'));
 
@@ -72,10 +71,18 @@ export function PronunciationButton({ text }: { text: string }) {
   };
   
   useEffect(() => {
-    // Ensure voices are loaded
+    const handleVoicesChanged = () => {
+      // Re-check for voices when they are loaded
+    };
+    
+    window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+    
+    // Ensure voices are loaded on component mount
     window.speechSynthesis.getVoices();
+    
     // Cleanup on unmount
     return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
       if (isPlaying) {
         window.speechSynthesis.cancel();
       }

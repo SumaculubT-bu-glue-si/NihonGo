@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -10,7 +11,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { generateExampleSentence } from '@/ai/flows/generate-example-sentence';
-import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 import { Loader2, Wand2, Volume2, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Flashcard } from '@/lib/data';
@@ -18,53 +18,82 @@ import type { Flashcard } from '@/lib/data';
 type ProficiencyLevel = 'beginner' | 'intermediate' | 'advanced';
 
 function SentencePronunciationButton({ sentence }: { sentence: string }) {
-  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const { toast } = useToast();
 
-  const handlePlayback = async (e: React.MouseEvent) => {
+  const handlePlayback = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (audio?.src) {
-      if (audio.paused) {
-        audio.play();
-      } else {
-        audio.pause();
-        audio.currentTime = 0;
-      }
+    if (!('speechSynthesis' in window)) {
+      toast({
+        title: 'Unsupported Browser',
+        description: 'Your browser does not support text-to-speech.',
+        variant: 'destructive',
+      });
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const { audioDataUri } = await textToSpeech(sentence);
-      const newAudio = new Audio(audioDataUri);
-      setAudio(newAudio);
-      newAudio.play();
-      newAudio.onended = () => setAudio(null);
-    } catch (error) {
-      console.error('TTS error:', error);
+    if (isPlaying) {
+      window.speechSynthesis.cancel();
+      setIsPlaying(false);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(sentence);
+    const voices = window.speechSynthesis.getVoices();
+    const japaneseVoice = voices.find(voice => voice.lang.startsWith('ja'));
+
+    if (!japaneseVoice) {
       toast({
-        title: 'Pronunciation Error',
-        description: 'Could not generate audio for the sentence.',
+        title: 'No Japanese Voice Pack',
+        description: 'Could not find a Japanese voice pack on your device.',
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
+      return;
     }
-  };
 
-  const Icon = isLoading ? Loader2 : audio && !audio.paused ? Square : Volume2;
+    utterance.voice = japaneseVoice;
+    utterance.lang = 'ja-JP';
+    utterance.rate = 0.9;
+
+    utterance.onstart = () => setIsPlaying(true);
+    utterance.onend = () => setIsPlaying(false);
+    utterance.onerror = (event) => {
+      console.error('Speech synthesis error', event);
+      toast({
+        title: 'Pronunciation Error',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+      setIsPlaying(false);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+  
+  useEffect(() => {
+    const handleVoicesChanged = () => {};
+    window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+    window.speechSynthesis.getVoices(); // Pre-load voices
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+      if (isPlaying) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [isPlaying]);
+
+
+  const Icon = isPlaying ? Square : Volume2;
 
   return (
     <Button
       size="icon"
       variant="ghost"
       onClick={handlePlayback}
-      disabled={isLoading}
       className="h-6 w-6"
     >
-      <Icon className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+      <Icon className="h-4 w-4" />
     </Button>
   );
 }
