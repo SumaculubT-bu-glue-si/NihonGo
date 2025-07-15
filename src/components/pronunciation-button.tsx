@@ -25,18 +25,21 @@ export function PronunciationButton({ text }: { text: string }) {
 
     setIsLoading(true);
     try {
-      const { media } = await aiPronunciation({ text });
+      const { media, error } = await aiPronunciation({ text });
+      if (error) {
+        throw new Error(error);
+      }
       if (media && audioRef.current) {
         audioRef.current.src = media;
         audioRef.current.play();
       } else {
         throw new Error('No audio data received.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Pronunciation error:', error);
       toast({
         title: "Pronunciation Error",
-        description: "Could not generate audio for this word.",
+        description: error.message || "Could not generate audio for this word.",
         variant: "destructive",
       });
     } finally {

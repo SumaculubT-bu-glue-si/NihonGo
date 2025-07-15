@@ -20,7 +20,8 @@ const AiPronunciationInputSchema = z.object({
 export type AiPronunciationInput = z.infer<typeof AiPronunciationInputSchema>;
 
 const AiPronunciationOutputSchema = z.object({
-  media: z.string().describe('The audio data in WAV format as a data URI.'),
+  media: z.string().describe('The audio data in WAV format as a data URI.').optional(),
+  error: z.string().describe('An error message if audio generation failed.').optional(),
 });
 export type AiPronunciationOutput = z.infer<typeof AiPronunciationOutputSchema>;
 
@@ -35,28 +36,36 @@ const aiPronunciationFlow = ai.defineFlow(
     outputSchema: AiPronunciationOutputSchema,
   },
   async (input) => {
-    const {media} = await ai.generate({
-      model: googleAI.model('gemini-2.5-flash-preview-tts'),
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: {voiceName: 'Algenib'},
+    try {
+      const {media} = await ai.generate({
+        model: googleAI.model('gemini-2.5-flash-preview-tts'),
+        config: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {voiceName: 'Algenib'},
+            },
           },
         },
-      },
-      prompt: input.text,
-    });
-    if (!media) {
-      throw new Error('no media returned');
+        prompt: input.text,
+      });
+
+      if (!media) {
+         return { error: 'No audio data was returned from the service.' };
+      }
+
+      const audioBuffer = Buffer.from(
+        media.url.substring(media.url.indexOf(',') + 1),
+        'base64'
+      );
+      
+      return {
+        media: 'data:audio/wav;base64,' + (await toWav(audioBuffer)),
+      };
+    } catch (e: any) {
+        console.error('Error in aiPronunciationFlow', e);
+        return { error: e.message || 'An unexpected error occurred during audio generation.' };
     }
-    const audioBuffer = Buffer.from(
-      media.url.substring(media.url.indexOf(',') + 1),
-      'base64'
-    );
-    return {
-      media: 'data:audio/wav;base64,' + (await toWav(audioBuffer)),
-    };
   }
 );
 

@@ -139,7 +139,7 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Vocabulary">Vocabulary</SelectItem>
@@ -162,7 +162,7 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a level" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Beginner">Beginner</SelectItem>
