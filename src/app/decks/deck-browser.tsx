@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState } from 'react';
-import { decks as initialDecks, type Deck } from '@/lib/data';
+import type { Deck } from '@/lib/data';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,10 +24,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { DeckForm } from './deck-form';
-import { useToast } from '@/hooks/use-toast';
 
 function DeckCard({
   deck,
@@ -135,13 +134,18 @@ function DeckCard({
   );
 }
 
-export function DeckBrowser() {
-  const [decks, setDecks] = useState<Deck[]>(initialDecks);
+interface DeckBrowserProps {
+  decks: Deck[];
+  onSave: (deckData: Deck, editingDeck: Deck | null) => void;
+  onDelete: (id: string) => void;
+}
+
+
+export function DeckBrowser({ decks, onSave, onDelete }: DeckBrowserProps) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState('All');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
-  const { toast } = useToast();
 
   const toggleFavorite = (id: string) => {
     setFavorites((prev) => {
@@ -165,31 +169,8 @@ export function DeckBrowser() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setDecks(decks.filter(d => d.id !== id));
-    toast({
-        title: "Deck Deleted",
-        description: "The deck has been successfully deleted.",
-    });
-  };
-
   const handleSaveDeck = (deckData: Deck) => {
-    if (editingDeck) {
-      // Update existing deck
-      setDecks(decks.map(d => d.id === editingDeck.id ? {...d, ...deckData} : d));
-      toast({
-        title: "Deck Updated",
-        description: "The deck has been successfully updated.",
-      });
-    } else {
-      // Add new deck
-      const newDeck = { ...deckData, id: `deck-${Date.now()}`, cards: [] };
-      setDecks([newDeck, ...decks]);
-      toast({
-        title: "Deck Created",
-        description: "A new deck has been successfully created.",
-      });
-    }
+    onSave(deckData, editingDeck);
     setIsFormOpen(false);
     setEditingDeck(null);
   }
@@ -235,7 +216,7 @@ export function DeckBrowser() {
             isFavorite={favorites.has(deck.id)}
             onToggleFavorite={toggleFavorite}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={onDelete}
           />
         ))}
       </div>

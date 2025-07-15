@@ -1,13 +1,14 @@
+
 'use client';
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
-import { userStats, type StatsData } from '@/lib/data';
+import { type StatsData } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
-export function StatsView({ fullPage = false }: { fullPage?: boolean}) {
-  const chartData = userStats.map(stat => ({
+export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; stats: StatsData[] }) {
+  const chartData = stats.map(stat => ({
     name: stat.topic,
-    progress: Math.round((stat.progress / stat.total) * 100),
+    progress: stat.total > 0 ? Math.round((stat.progress / stat.total) * 100) : 0,
   }));
 
   return (
