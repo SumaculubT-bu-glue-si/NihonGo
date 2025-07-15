@@ -77,7 +77,8 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
 
   // Save session to localStorage whenever state changes
   useEffect(() => {
-    if (cardsToShow.length > 0 || masteredCount > 0) {
+    // Only save if there's an active session
+    if (cardsToShow.length > 0) {
         try {
             const sessionData = JSON.stringify({
                 savedCards: cardsToShow,
@@ -101,16 +102,20 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       // Update global stats
       updateStats(deck.title, newMasteredCount);
     } else if (difficulty === 'medium') {
+      // Place card in the middle of the remaining deck
       const halfway = Math.ceil(newCardsToShow.length / 2);
       newCardsToShow.splice(halfway, 0, cardToMove);
     } else { // 'hard'
-      const position = Math.max(newCardsToShow.length - 2, 0);
+      // Place card a few cards back, or at the end if the deck is short
+      const position = Math.min(currentIndex + 2, newCardsToShow.length);
       newCardsToShow.splice(position, 0, cardToMove);
     }
 
     setCardsToShow(newCardsToShow);
-
+    
+    // After updating, reset flip and manage index
     if (newCardsToShow.length > 0) {
+      // If we removed the last card, loop back to the beginning
       if (currentIndex >= newCardsToShow.length) {
         setCurrentIndex(0);
       }
