@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import type { Flashcard } from '@/lib/data';
+import type { Deck } from '@/lib/data';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -24,21 +25,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useEffect } from 'react';
 
 const formSchema = z.object({
   front: z.string().min(1, 'Front text is required.'),
   back: z.string().min(1, 'Back text is required.'),
   reading: z.string().optional(),
-  type: z.enum(['vocabulary', 'grammar', 'kanji']),
-  level: z.enum(['N1', 'N2', 'N3', 'N4', 'N5']),
+  type: z.enum(['vocabulary', 'grammar', 'kanji']).optional(),
+  level: z.enum(['N1', 'N2', 'N3', 'N4', 'N5']).optional(),
 });
 
 export type CardFormData = z.infer<typeof formSchema>;
@@ -46,40 +40,41 @@ export type CardFormData = z.infer<typeof formSchema>;
 interface CardFormProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSave: (data: CardFormData) => void;
+  onSave: (data: Omit<CardFormData, 'type' | 'level'>) => void;
   card: Flashcard | null;
+  deck: Deck;
 }
 
-export function CardForm({ isOpen, onOpenChange, onSave, card }: CardFormProps) {
+export function CardForm({ isOpen, onOpenChange, onSave, card, deck }: CardFormProps) {
   const form = useForm<CardFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       front: '',
       back: '',
       reading: '',
-      type: 'vocabulary',
-      level: 'N5',
     },
   });
 
   useEffect(() => {
     if (isOpen) {
       if (card) {
-        form.reset(card);
+        form.reset({
+            front: card.front,
+            back: card.back,
+            reading: card.reading,
+        });
       } else {
         form.reset({
           front: '',
           back: '',
           reading: '',
-          type: 'vocabulary',
-          level: 'N5',
         });
       }
     }
   }, [card, form, isOpen]);
 
 
-  const onSubmit = (data: CardFormData) => {
+  const onSubmit = (data: Omit<CardFormData, 'type' | 'level'>) => {
     onSave(data);
     onOpenChange(false);
   };
@@ -139,54 +134,6 @@ export function CardForm({ isOpen, onOpenChange, onSave, card }: CardFormProps) 
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a type" />
-                        </Trigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="vocabulary">Vocabulary</SelectItem>
-                        <SelectItem value="grammar">Grammar</SelectItem>
-                        <SelectItem value="kanji">Kanji</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="level"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Level</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a level" />
-                        </Trigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="N5">N5</SelectItem>
-                        <SelectItem value="N4">N4</SelectItem>
-                        <SelectItem value="N3">N3</SelectItem>
-                        <SelectItem value="N2">N2</SelectItem>
-                        <SelectItem value="N1">N1</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel

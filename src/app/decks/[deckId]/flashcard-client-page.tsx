@@ -226,12 +226,37 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     setCardToDelete(null);
   };
 
-  const handleSaveCard = (data: CardFormData) => {
+  const mapDeckLevelToCardLevel = (level: Deck['level']): FlashcardType['level'] => {
+    // This is a simple mapping. You might need a more complex one.
+    // Assuming 'Beginner' maps to 'N5', 'Intermediate' to 'N3', etc.
+    if (level === 'Beginner') return 'N5';
+    if (level === 'Intermediate') return 'N3';
+    if (level === 'Advanced') return 'N1';
+    return 'N5'; // Default fallback
+  }
+
+  const mapDeckCategoryToCardType = (category: Deck['category']): FlashcardType['type'] => {
+    switch(category) {
+        case 'Vocabulary': return 'vocabulary';
+        case 'Grammar': return 'grammar';
+        case 'Kanji': return 'kanji';
+        case 'Phrases': return 'vocabulary'; // Phrases are treated as vocabulary cards
+        default: return 'vocabulary';
+    }
+  }
+
+  const handleSaveCard = (data: Omit<CardFormData, 'type' | 'level'>) => {
+    const cardData = {
+        ...data,
+        level: mapDeckLevelToCardLevel(deck.level),
+        type: mapDeckCategoryToCardType(deck.category),
+    };
+
     if (editingCard) {
-      updateCard(deck.id, editingCard.id, data);
+      updateCard(deck.id, editingCard.id, cardData);
       
       // Update the card in the local session state as well
-      const updatedCardsToShow = cardsToShow.map(c => c.id === editingCard.id ? { ...c, ...data } : c);
+      const updatedCardsToShow = cardsToShow.map(c => c.id === editingCard.id ? { ...c, ...cardData } : c);
       setCardsToShow(updatedCardsToShow);
 
       toast({
@@ -239,7 +264,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         description: 'The flashcard has been successfully updated.',
       });
     } else {
-      addCard(deck.id, data);
+      addCard(deck.id, cardData);
       toast({
         title: 'Card Created',
         description: 'A new flashcard has been added to the deck.',
@@ -316,6 +341,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
                 onOpenChange={setIsFormOpen}
                 onSave={handleSaveCard}
                 card={editingCard}
+                deck={deck}
             />
         </div>
     );
@@ -377,6 +403,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
           onOpenChange={setIsFormOpen}
           onSave={handleSaveCard}
           card={editingCard}
+          deck={deck}
         />
 
         <AlertDialog open={!!cardToDelete} onOpenChange={() => setCardToDelete(null)}>
