@@ -27,9 +27,12 @@ export function PronunciationButton({ text }: { text: string }) {
     try {
       const { media, error } = await aiPronunciation({ text });
       if (error) {
-        throw new Error(error);
-      }
-      if (media && audioRef.current) {
+        toast({
+          title: "Pronunciation Error",
+          description: error,
+          variant: "destructive",
+        });
+      } else if (media && audioRef.current) {
         audioRef.current.src = media;
         audioRef.current.play();
       } else {
