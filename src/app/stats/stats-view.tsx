@@ -51,7 +51,7 @@ export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; sta
                   tickFormatter={(value) => `${value}%`}
                 />
                 <Tooltip
-                  cursor={{ fill: 'hsla(var(--muted), 0.5)' }}
+                  cursor={{ fill: '#e5e7eb' }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
