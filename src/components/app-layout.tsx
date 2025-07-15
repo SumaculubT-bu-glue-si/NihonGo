@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { NihonGoLogo } from './icons';
-import { Home, BookText, SpellCheck, LogOut, Settings } from 'lucide-react';
+import { Home, BookText, SpellCheck, LogOut, Settings, BarChart3 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
