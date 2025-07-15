@@ -97,8 +97,8 @@ export interface StatsData {
 }
 
 export const userStats: StatsData[] = [
-    { topic: 'N5 Vocabulary', progress: 5, total: 50 },
-    { topic: 'N5 Grammar', progress: 8, total: 50 },
-    { topic: 'N5 Kanji', progress: 12, total: 50 },
-    { topic: 'Daily Phrases', progress: 2, total: 50 },
+    { topic: 'JLPT N5 Vocabulary', progress: 0, total: 50 },
+    { topic: 'N5 Grammar', progress: 0, total: 50 },
+    { topic: 'N5 Kanji List', progress: 0, total: 50 },
+    { topic: 'Common Daily Phrases', progress: 0, total: 50 },
 ];

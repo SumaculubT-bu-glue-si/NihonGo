@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Deck } from '@/lib/data';
+import type { Deck, StatsData } from '@/lib/data';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { DeckForm } from './deck-form';
+import { Progress } from '@/components/ui/progress';
 
 function DeckCard({
   deck,
@@ -34,16 +35,18 @@ function DeckCard({
   onToggleFavorite,
   onEdit,
   onDelete,
+  progress,
 }: {
   deck: Deck;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
   onEdit: (deck: Deck) => void;
   onDelete: (id: string) => void;
+  progress: number;
 }) {
   return (
     <Card className="flex h-full transform flex-col transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl">
-      <CardHeader>
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div>
             <Badge
@@ -123,7 +126,11 @@ function DeckCard({
         </div>
         <CardDescription>{deck.description}</CardDescription>
       </CardHeader>
-      <CardFooter className="mt-auto flex justify-between">
+      <div className="px-6 pb-2">
+        <Progress value={progress} className="h-2" />
+        <p className="mt-1 text-xs text-muted-foreground">{Math.round(progress)}% completed</p>
+      </div>
+      <CardFooter className="mt-auto flex justify-between pt-4">
         <span className="text-sm text-muted-foreground">
           {deck.cards.length} cards
         </span>
@@ -137,12 +144,13 @@ function DeckCard({
 
 interface DeckBrowserProps {
   decks: Deck[];
+  userStats: StatsData[];
   onSave: (deckData: Deck, editingDeck: Deck | null) => void;
   onDelete: (id: string) => void;
 }
 
 
-export function DeckBrowser({ decks, onSave, onDelete }: DeckBrowserProps) {
+export function DeckBrowser({ decks, userStats, onSave, onDelete }: DeckBrowserProps) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState('All');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -210,16 +218,21 @@ export function DeckBrowser({ decks, onSave, onDelete }: DeckBrowserProps) {
       </Tabs>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredDecks.map((deck) => (
-          <DeckCard
-            key={deck.id}
-            deck={deck}
-            isFavorite={favorites.has(deck.id)}
-            onToggleFavorite={toggleFavorite}
-            onEdit={handleEdit}
-            onDelete={onDelete}
-          />
-        ))}
+        {filteredDecks.map((deck) => {
+          const stat = userStats.find(s => s.topic === deck.title);
+          const progress = stat && stat.total > 0 ? (stat.progress / stat.total) * 100 : 0;
+          return (
+            <DeckCard
+              key={deck.id}
+              deck={deck}
+              isFavorite={favorites.has(deck.id)}
+              onToggleFavorite={toggleFavorite}
+              onEdit={handleEdit}
+              onDelete={onDelete}
+              progress={progress}
+            />
+          )
+        })}
       </div>
       {filteredDecks.length === 0 && (
         <div className="col-span-full mt-10 flex flex-col items-center justify-center text-center">

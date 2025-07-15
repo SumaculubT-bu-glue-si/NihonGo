@@ -68,6 +68,7 @@ export default function HomePage() {
             <StatsView stats={userStats} />
             <DeckBrowser 
               decks={decks} 
+              userStats={userStats}
               onSave={handleSaveDeck} 
               onDelete={handleDeleteDeck}
             />
