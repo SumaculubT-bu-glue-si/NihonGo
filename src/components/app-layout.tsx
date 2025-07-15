@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -17,7 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { NihonGoLogo } from './icons';
-import { Home, BookText, SpellCheck, LogOut, Settings, BarChart3, PanelLeft } from 'lucide-react';
+import { Home, BookText, SpellCheck, LogOut, Settings, BarChart3 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -81,7 +82,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                       {user?.displayName?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col items-start">
+                  <div className="flex flex-col items-start transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
                     <span className="font-semibold">{user?.displayName}</span>
                     <span className="text-xs text-muted-foreground">
                       {user?.email}
