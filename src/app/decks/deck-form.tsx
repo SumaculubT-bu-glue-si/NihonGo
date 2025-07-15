@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -61,20 +62,22 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
   });
 
   useEffect(() => {
-    if (deck) {
-      form.reset({
-        title: deck.title,
-        description: deck.description,
-        category: deck.category,
-        level: deck.level,
-      });
-    } else {
-      form.reset({
-        title: '',
-        description: '',
-        category: 'Vocabulary',
-        level: 'Beginner',
-      });
+    if (isOpen) {
+      if (deck) {
+        form.reset({
+          title: deck.title,
+          description: deck.description,
+          category: deck.category,
+          level: deck.level,
+        });
+      } else {
+        form.reset({
+          title: '',
+          description: '',
+          category: 'Vocabulary',
+          level: 'Beginner',
+        });
+      }
     }
   }, [deck, form, isOpen]);
 
