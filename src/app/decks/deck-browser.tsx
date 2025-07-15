@@ -6,7 +6,7 @@ import type { Deck, StatsData } from '@/lib/data';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Star, CheckCircle, MoreVertical, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { Star, CheckCircle, MoreVertical, PlusCircle, Edit, Trash2, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -14,6 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -89,8 +90,15 @@ function DeckCard({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onEdit(deck)}>
                   <Edit className="mr-2 h-4 w-4" />
-                  Edit
+                  Edit Deck Details
                 </DropdownMenuItem>
+                 <Link href={`/decks/${deck.id}/manage`} passHref>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Manage Cards
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem
@@ -98,7 +106,7 @@ function DeckCard({
                       className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      Delete Deck
                     </DropdownMenuItem>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -151,7 +159,13 @@ interface DeckBrowserProps {
 
 
 export function DeckBrowser({ decks, userStats, onSave, onDelete }: DeckBrowserProps) {
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('favorite-decks');
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    }
+    return new Set();
+  });
   const [filter, setFilter] = useState('All');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
@@ -164,6 +178,7 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete }: DeckBrowserP
       } else {
         newFavs.add(id);
       }
+      localStorage.setItem('favorite-decks', JSON.stringify(Array.from(newFavs)));
       return newFavs;
     });
   };

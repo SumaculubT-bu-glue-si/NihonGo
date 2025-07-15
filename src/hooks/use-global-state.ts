@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
-import type { Deck, StatsData } from '@/lib/data';
+import { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import type { Deck, StatsData, Flashcard } from '@/lib/data';
 import { decks as initialDecks, userStats as initialUserStats } from '@/lib/initial-data';
 
 const STORAGE_KEY = 'nihongo-app-data';
@@ -18,6 +18,9 @@ interface GlobalStateContextType {
   addDeck: (deckData: Omit<Deck, 'id' | 'cards'>) => void;
   updateDeck: (deckId: string, deckData: Partial<Deck>) => void;
   deleteDeck: (deckId: string) => void;
+  addCard: (deckId: string, cardData: Omit<Flashcard, 'id'>) => void;
+  updateCard: (deckId: string, cardId: string, cardData: Partial<Flashcard>) => void;
+  deleteCard: (deckId: string, cardId: string) => void;
   updateStats: (topic: string, masteredCount: number) => void;
 }
 
@@ -113,8 +116,18 @@ export const useGlobalStateData = () => {
             let updatedStats = prevData.userStats;
             if (deckData.title && originalDeck.title !== deckData.title) {
                 updatedStats = updatedStats.map(stat =>
-                    stat.topic === originalDeck.title ? { ...stat, topic: deckData.title } : stat
+                    stat.topic === originalDeck.title ? { ...stat, topic: deckData.title ?? originalDeck.title } : stat
                 );
+            }
+            
+            // If the cards are being replaced, update the total count in stats
+            if(deckData.cards){
+                const deck = updatedDecks.find(d => d.id === deckId);
+                if(deck){
+                     updatedStats = updatedStats.map(stat =>
+                        stat.topic === deck.title ? { ...stat, total: deck.cards.length } : stat
+                    );
+                }
             }
 
             return {
@@ -149,12 +162,78 @@ export const useGlobalStateData = () => {
         });
     }, []);
 
+    const addCard = useCallback((deckId: string, cardData: Omit<Flashcard, 'id'>) => {
+        setAppData(prevData => {
+            const newCard: Flashcard = {
+                ...cardData,
+                id: `card-${Date.now()}`
+            };
+            const updatedDecks = prevData.decks.map(deck => {
+                if (deck.id === deckId) {
+                    return { ...deck, cards: [...deck.cards, newCard] };
+                }
+                return deck;
+            });
+            const deck = updatedDecks.find(d => d.id === deckId);
+            const updatedStats = prevData.userStats.map(stat => {
+                if(deck && stat.topic === deck.title){
+                    return {...stat, total: deck.cards.length}
+                }
+                return stat;
+            })
+            return { decks: updatedDecks, userStats: updatedStats };
+        });
+    }, []);
+
+    const updateCard = useCallback((deckId: string, cardId: string, cardData: Partial<Flashcard>) => {
+        setAppData(prevData => ({
+            ...prevData,
+            decks: prevData.decks.map(deck => {
+                if (deck.id === deckId) {
+                    return {
+                        ...deck,
+                        cards: deck.cards.map(card =>
+                            card.id === cardId ? { ...card, ...cardData } : card
+                        )
+                    };
+                }
+                return deck;
+            })
+        }));
+    }, []);
+
+    const deleteCard = useCallback((deckId: string, cardId: string) => {
+        setAppData(prevData => {
+            const updatedDecks = prevData.decks.map(deck => {
+                if (deck.id === deckId) {
+                    return {
+                        ...deck,
+                        cards: deck.cards.filter(card => card.id !== cardId)
+                    };
+                }
+                return deck;
+            });
+            const deck = updatedDecks.find(d => d.id === deckId);
+            const updatedStats = prevData.userStats.map(stat => {
+                if(deck && stat.topic === deck.title){
+                    return {...stat, total: deck.cards.length}
+                }
+                return stat;
+            })
+            return { decks: updatedDecks, userStats: updatedStats };
+        });
+    }, []);
+
+
     return {
         appData,
         isLoading,
         addDeck,
         updateDeck,
         deleteDeck,
+        addCard,
+        updateCard,
+        deleteCard,
         updateStats,
     };
 };

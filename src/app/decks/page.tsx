@@ -36,6 +36,7 @@ export default function HomePage() {
     toast({
         title: "Deck Deleted",
         description: "The deck has been successfully deleted.",
+        variant: "destructive",
     });
   };
 
