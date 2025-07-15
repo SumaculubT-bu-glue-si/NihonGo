@@ -11,12 +11,13 @@ import {
   SidebarMenuButton,
   SidebarInset,
   SidebarTrigger,
+  SidebarRail,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { NihonGoLogo } from './icons';
-import { Home, BookText, SpellCheck, LogOut, Settings, BarChart3 } from 'lucide-react';
+import { Home, BookText, SpellCheck, LogOut, Settings, BarChart3, PanelLeft } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -41,15 +42,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
+      <Sidebar collapsible="icon">
+        <SidebarHeader className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <NihonGoLogo className="h-10 w-10 text-primary" />
             <div className="flex flex-col">
               <span className="text-lg font-headline font-semibold">Nihon GO</span>
             </div>
           </div>
+          <SidebarTrigger className="hidden md:flex" />
         </SidebarHeader>
+        <SidebarRail />
         <SidebarContent>
           <SidebarMenu>
             {menuItems.map((item) => (
