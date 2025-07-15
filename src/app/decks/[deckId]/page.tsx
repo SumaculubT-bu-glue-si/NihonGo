@@ -1,14 +1,32 @@
+'use client';
+
 import { AuthGuard } from '@/components/auth-guard';
 import { AppLayout } from '@/components/app-layout';
-import { decks } from '@/lib/data';
 import { FlashcardClientPage } from './flashcard-client-page';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
+import { useGlobalState } from '@/hooks/use-global-state';
 
-export default function DeckPage({ params }: { params: { deckId: string } }) {
-  const deck = decks.find((d) => d.id === params.deckId);
+export default function DeckPage() {
+  const params = useParams();
+  const deckId = params.deckId as string;
+  const { appData, isLoading } = useGlobalState();
+
+  if (isLoading) {
+    return (
+      <AuthGuard>
+        <AppLayout>
+          <div className="flex h-64 items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        </AppLayout>
+      </AuthGuard>
+    );
+  }
+
+  const deck = appData.decks.find((d) => d.id === deckId);
 
   if (!deck) {
-    notFound();
+    return notFound();
   }
 
   return (
