@@ -50,6 +50,9 @@ const grammarCheckerFlow = ai.defineFlow(
     name: 'grammarCheckerFlow',
     inputSchema: CheckGrammarInputSchema,
     outputSchema: CheckGrammarOutputSchema,
+    flow: {
+      retries: 3,
+    },
   },
   async (input) => {
     const {output} = await prompt(input);
