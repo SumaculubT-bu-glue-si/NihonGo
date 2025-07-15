@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -47,6 +48,9 @@ const generateExampleSentenceFlow = ai.defineFlow(
     name: 'generateExampleSentenceFlow',
     inputSchema: GenerateExampleSentenceInputSchema,
     outputSchema: GenerateExampleSentenceOutputSchema,
+    flow: {
+      retries: 3,
+    },
   },
   async input => {
     const {output} = await prompt(input);
