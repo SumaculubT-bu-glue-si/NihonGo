@@ -68,39 +68,36 @@ export function PronunciationButton({ text }: { text: string }) {
 
     if (!text || isLoading) return;
     
-    // 1. Check cache first
-    const cachedAudio = getCachedAudio(text);
-    if (cachedAudio) {
-      audio.src = cachedAudio;
-      audio.play();
-      setIsPlaying(true);
-      return;
-    }
-
-    // 2. If not in cache, fetch from API
     setIsLoading(true);
+
     try {
-      const { media, error } = await aiPronunciation({ text });
+        const cachedAudio = getCachedAudio(text);
+        if (cachedAudio) {
+            audio.src = cachedAudio;
+            audio.play();
+            setIsPlaying(true);
+        } else {
+            const { media, error } = await aiPronunciation({ text });
       
-      if (error) {
-        toast({
-          title: 'Pronunciation Error',
-          description: error,
-          variant: 'destructive',
-        });
-      } else if (media) {
-        // 3. Play and cache the new audio
-        setCachedAudio(text, media);
-        audio.src = media;
-        audio.play();
-        setIsPlaying(true);
-      } else {
-        toast({
-            title: "Pronunciation Error",
-            description: "No audio data was returned from the service.",
-            variant: "destructive",
-        });
-      }
+            if (error) {
+                toast({
+                title: 'Pronunciation Error',
+                description: error,
+                variant: 'destructive',
+                });
+            } else if (media) {
+                setCachedAudio(text, media);
+                audio.src = media;
+                audio.play();
+                setIsPlaying(true);
+            } else {
+                toast({
+                    title: "Pronunciation Error",
+                    description: "No audio data was returned from the service.",
+                    variant: "destructive",
+                });
+            }
+        }
     } catch (error: any) {
       console.error('Pronunciation error:', error);
       toast({
@@ -109,19 +106,34 @@ export function PronunciationButton({ text }: { text: string }) {
         variant: 'destructive',
       });
     } finally {
-      setIsLoading(false);
+        // Only set loading to false if not playing, otherwise onEnded will handle it.
+        if (!audio.src || audio.paused) {
+            setIsLoading(false);
+        }
     }
   };
+
+  const isDisabled = isLoading;
+
+  useEffect(() => {
+    // When playback starts or stops, update loading state
+    if (isPlaying) {
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+    }
+  }, [isPlaying]);
+
 
   return (
     <Button
       variant="ghost"
       size="icon"
       onClick={handlePronunciation}
-      disabled={isLoading}
+      disabled={isDisabled}
       aria-label="Listen to pronunciation"
     >
-      {isLoading ? (
+      {isLoading && !isPlaying ? (
         <Loader2 className="h-6 w-6 animate-spin" />
       ) : isPlaying ? (
         <Square className="h-6 w-6 text-primary" />
