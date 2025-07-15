@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Deck, Flashcard as FlashcardType } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,25 +49,51 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [masteredCount, setMasteredCount] = useState(0);
-  
+
+  const getStorageKey = useCallback(() => `flashcard-session-${deck.id}`, [deck.id]);
+
+  // Load session from localStorage on initial mount
   useEffect(() => {
-    // Shuffle the deck to start
-    setCardsToShow([...deck.cards].sort(() => Math.random() - 0.5));
-    setCurrentIndex(0);
-    setMasteredCount(0);
+    try {
+        const savedSession = localStorage.getItem(getStorageKey());
+        if (savedSession) {
+            const { savedCards, savedIndex, savedMasteredCount } = JSON.parse(savedSession);
+            setCardsToShow(savedCards);
+            setCurrentIndex(savedIndex);
+            setMasteredCount(savedMasteredCount);
+        } else {
+            // No saved session, start a new one
+            setCardsToShow([...deck.cards].sort(() => Math.random() - 0.5));
+            setCurrentIndex(0);
+            setMasteredCount(0);
+        }
+    } catch (error) {
+        console.error("Could not load session from localStorage", error);
+        // Start a fresh session if loading fails
+        setCardsToShow([...deck.cards].sort(() => Math.random() - 0.5));
+    }
     setIsFlipped(false);
-  }, [deck.cards]);
+  }, [deck.cards, getStorageKey]);
 
-  const currentCard = cardsToShow[currentIndex];
-  const totalCards = deck.cards.length;
-  const progress = totalCards > 0 ? (masteredCount / totalCards) * 100 : 0;
-  const sessionComplete = cardsToShow.length === 0;
+  // Save session to localStorage when the component unmounts
+  useEffect(() => {
+    return () => {
+        // Only save if there's an active session (cardsToShow is not empty)
+        if (cardsToShow.length > 0) {
+            try {
+                const sessionData = JSON.stringify({
+                    savedCards: cardsToShow,
+                    savedIndex: currentIndex,
+                    savedMasteredCount: masteredCount,
+                });
+                localStorage.setItem(getStorageKey(), sessionData);
+            } catch (error) {
+                console.error("Could not save session to localStorage", error);
+            }
+        }
+    };
+  }, [cardsToShow, currentIndex, masteredCount, getStorageKey]);
 
-  const handleNextCard = () => {
-    setIsFlipped(false);
-    // Move to the next card in the queue, or wrap around if at the end
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % cardsToShow.length);
-  };
 
   const handleDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
     let newCardsToShow = [...cardsToShow];
@@ -97,11 +123,33 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   };
   
   const resetSession = () => {
+    try {
+        localStorage.removeItem(getStorageKey());
+    } catch (error) {
+        console.error("Could not remove session from localStorage", error);
+    }
     setCardsToShow([...deck.cards].sort(() => Math.random() - 0.5));
     setCurrentIndex(0);
     setMasteredCount(0);
     setIsFlipped(false);
   }
+  
+  const currentCard = cardsToShow[currentIndex];
+  const totalCards = deck.cards.length;
+  const progress = totalCards > 0 ? (masteredCount / totalCards) * 100 : 0;
+  const sessionComplete = cardsToShow.length === 0;
+  
+  // Clear storage when session is complete
+  useEffect(() => {
+    if (sessionComplete) {
+      try {
+        localStorage.removeItem(getStorageKey());
+      } catch (error) {
+        console.error("Could not remove session from localStorage on completion", error);
+      }
+    }
+  }, [sessionComplete, getStorageKey]);
+
 
   if (sessionComplete) {
     return (
@@ -125,7 +173,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   }
   
   if (!currentCard) {
-    // This can happen briefly while the state is updating.
+    // This can happen briefly while the state is updating or loading.
     return (
         <div className="text-center">
             <p>Loading cards...</p>
