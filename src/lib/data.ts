@@ -92,13 +92,13 @@ export const decks: Deck[] = [
 
 export interface StatsData {
   topic: string;
-  progress: number;
+  progress: number; // Number of mastered cards
   total: number;
 }
 
 export const userStats: StatsData[] = [
-    { topic: 'N5 Vocabulary', progress: 0, total: 50 },
-    { topic: 'N5 Grammar', progress: 0, total: 50 },
-    { topic: 'N5 Kanji', progress: 0, total: 50 },
-    { topic: 'Daily Phrases', progress: 0, total: 50 },
+    { topic: 'N5 Vocabulary', progress: 5, total: 50 },
+    { topic: 'N5 Grammar', progress: 8, total: 50 },
+    { topic: 'N5 Kanji', progress: 12, total: 50 },
+    { topic: 'Daily Phrases', progress: 2, total: 50 },
 ];

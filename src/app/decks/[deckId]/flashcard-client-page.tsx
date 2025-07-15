@@ -1,11 +1,12 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Deck, Flashcard as FlashcardType } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, ChevronRight, RotateCw, Lightbulb } from 'lucide-react';
+import { ChevronLeft, RotateCw, Lightbulb } from 'lucide-react';
 import { PronunciationButton } from '@/components/pronunciation-button';
 import { SentenceGenerator } from '@/components/sentence-generator';
 import Link from 'next/link';
@@ -44,43 +45,71 @@ function Flashcard({
 }
 
 export function FlashcardClientPage({ deck }: { deck: Deck }) {
+  const [cardsToShow, setCardsToShow] = useState<FlashcardType[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [completed, setCompleted] = useState<Set<number>>(new Set());
-
-  const currentCard = deck.cards[currentIndex];
-  const progress = (currentIndex / deck.cards.length) * 100;
-
-  const handleNext = () => {
+  const [masteredCount, setMasteredCount] = useState(0);
+  
+  useEffect(() => {
+    // Shuffle the deck to start
+    setCardsToShow([...deck.cards].sort(() => Math.random() - 0.5));
+    setCurrentIndex(0);
+    setMasteredCount(0);
     setIsFlipped(false);
-    setCompleted(prev => new Set(prev.add(currentIndex)));
-    if (currentIndex < deck.cards.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  };
+  }, [deck.cards]);
 
-  const handlePrev = () => {
+  const currentCard = cardsToShow[currentIndex];
+  const totalCards = deck.cards.length;
+  const progress = totalCards > 0 ? (masteredCount / totalCards) * 100 : 0;
+  const sessionComplete = cardsToShow.length === 0;
+
+  const handleNextCard = () => {
     setIsFlipped(false);
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
+    // Move to the next card in the queue, or wrap around if at the end
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % cardsToShow.length);
   };
 
   const handleDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
-    // In a real app, this would update review scheduling logic
-    console.log(`Card marked as ${difficulty}`);
-    handleNext();
+    let newCardsToShow = [...cardsToShow];
+    const cardToMove = newCardsToShow.splice(currentIndex, 1)[0];
+
+    if (difficulty === 'easy') {
+      setMasteredCount(prev => prev + 1);
+    } else if (difficulty === 'medium') {
+      // Re-insert roughly halfway through the remaining cards
+      const halfway = Math.ceil(newCardsToShow.length / 2);
+      newCardsToShow.splice(halfway, 0, cardToMove);
+    } else { // 'hard'
+      // Re-insert near the end of the queue
+      const position = Math.max(newCardsToShow.length - 2, 0);
+      newCardsToShow.splice(position, 0, cardToMove);
+    }
+
+    setCardsToShow(newCardsToShow);
+
+    if (newCardsToShow.length > 0) {
+      // If we removed the last item of the array, the new index should be 0
+      if (currentIndex >= newCardsToShow.length) {
+        setCurrentIndex(0);
+      }
+      setIsFlipped(false);
+    }
+  };
+  
+  const resetSession = () => {
+    setCardsToShow([...deck.cards].sort(() => Math.random() - 0.5));
+    setCurrentIndex(0);
+    setMasteredCount(0);
+    setIsFlipped(false);
   }
 
-  const isLastCard = currentIndex === deck.cards.length - 1;
-
-  if (isLastCard && completed.has(currentIndex)) {
+  if (sessionComplete) {
     return (
         <div className="text-center">
             <h1 className="text-4xl font-bold font-headline mb-4">Deck Complete!</h1>
             <p className="text-muted-foreground mb-8">You've finished all the cards in this deck. Great job!</p>
             <div className="flex justify-center gap-4">
-                <Button variant="outline" onClick={() => { setCurrentIndex(0); setCompleted(new Set()); setIsFlipped(false); }}>
+                <Button variant="outline" onClick={resetSession}>
                     <RotateCw className="mr-2 h-4 w-4" />
                     Review Again
                 </Button>
@@ -94,6 +123,16 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         </div>
     )
   }
+  
+  if (!currentCard) {
+    // This can happen briefly while the state is updating.
+    return (
+        <div className="text-center">
+            <p>Loading cards...</p>
+        </div>
+    );
+  }
+
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
@@ -102,7 +141,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
             <Link href="/decks" className="text-sm text-primary hover:underline">
                 &larr; {deck.title}
             </Link>
-            <span className="text-sm text-muted-foreground">{currentIndex + 1} / {deck.cards.length}</span>
+            <span className="text-sm text-muted-foreground">{masteredCount} / {totalCards} Mastered</span>
         </div>
         <Progress value={progress} />
       </div>
@@ -122,22 +161,16 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         </Button>
       ) : (
         <div className="w-full flex flex-col md:flex-row justify-center items-center gap-4">
-            <Button onClick={() => handleDifficulty('easy')} variant="outline" className="w-full md:w-auto bg-green-100 text-green-800 border-green-200 hover:bg-green-200 hover:text-green-900">Easy</Button>
-            <Button onClick={() => handleDifficulty('medium')} variant="outline" className="w-full md:w-auto bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 hover:text-yellow-900">Medium</Button>
             <Button onClick={() => handleDifficulty('hard')} variant="outline" className="w-full md:w-auto bg-red-100 text-red-800 border-red-200 hover:bg-red-200 hover:text-red-900">Hard</Button>
+            <Button onClick={() => handleDifficulty('medium')} variant="outline" className="w-full md:w-auto bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 hover:text-yellow-900">Medium</Button>
+            <Button onClick={() => handleDifficulty('easy')} variant="outline" className="w-full md:w-auto bg-green-100 text-green-800 border-green-200 hover:bg-green-200 hover:text-green-900">Easy</Button>
         </div>
       )}
 
-      <div className="flex justify-between w-full mt-8">
-        <Button variant="outline" onClick={handlePrev} disabled={currentIndex === 0}>
-          <ChevronLeft className="h-5 w-5" />
-          <span className="ml-2 hidden sm:inline">Prev</span>
-        </Button>
-        <Button variant="outline" onClick={handleNext} disabled={isLastCard}>
-          <span className="mr-2 hidden sm:inline">Next</span>
-          <ChevronRight className="h-5 w-5" />
-        </Button>
+      <div className="mt-8 text-muted-foreground text-sm">
+        Cards left in this session: {cardsToShow.length}
       </div>
+
     </div>
   );
 }
