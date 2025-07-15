@@ -6,11 +6,26 @@ import type { Deck, Flashcard as FlashcardType } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, RotateCw, Lightbulb } from 'lucide-react';
+import { ChevronLeft, RotateCw, Lightbulb, PlusCircle, Edit, Trash2 } from 'lucide-react';
 import { PronunciationButton } from '@/components/pronunciation-button';
 import { SentenceGenerator } from '@/components/sentence-generator';
 import Link from 'next/link';
 import { useGlobalState } from '@/hooks/use-global-state';
+import { useToast } from '@/hooks/use-toast';
+import { CardForm } from './manage/card-form';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+type CardFormData = Omit<FlashcardType, 'id'>;
+
 
 function Flashcard({
   card,
@@ -49,70 +64,92 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [masteredCount, setMasteredCount] = useState(0);
-  const { appData, updateStats, isLoading } = useGlobalState();
+  
+  const { appData, updateStats, isLoading, addCard, updateCard, deleteCard } = useGlobalState();
+  const { toast } = useToast();
+
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState<FlashcardType | null>(null);
+  const [cardToDelete, setCardToDelete] = useState<FlashcardType | null>(null);
 
   const getStorageKey = useCallback(() => `flashcard-session-${deck.id}`, [deck.id]);
 
-  // Load session from localStorage on initial mount
+  // Effect to initialize or load a session
   useEffect(() => {
-    if (isLoading) return; // Wait for global state to be ready
+    if (isLoading) return;
 
     try {
-        const savedSession = localStorage.getItem(getStorageKey());
-        if (savedSession) {
-            const { savedCards, savedIndex, savedMasteredCount } = JSON.parse(savedSession);
-            // Ensure saved data is valid
-            if (Array.isArray(savedCards) && typeof savedIndex === 'number' && typeof savedMasteredCount === 'number') {
-              setCardsToShow(savedCards);
-              setCurrentIndex(savedIndex);
-              setMasteredCount(savedMasteredCount);
-            } else {
-              // Saved data is corrupted, start a new session
-              throw new Error("Invalid session data format");
-            }
+      const savedSession = localStorage.getItem(getStorageKey());
+      if (savedSession) {
+        const { savedCards, savedIndex, savedMasteredCount } = JSON.parse(savedSession);
+        if (Array.isArray(savedCards) && typeof savedIndex === 'number' && typeof savedMasteredCount === 'number') {
+          setCardsToShow(savedCards);
+          setCurrentIndex(savedIndex);
+          setMasteredCount(savedMasteredCount);
         } else {
-            // No saved session, start a new one based on global progress
-            const deckStats = appData.userStats.find(s => s.topic === deck.title);
-            const currentProgress = deckStats ? deckStats.progress : 0;
-            
-            setMasteredCount(currentProgress);
-            
-            // For a new session, we need to know which cards are *already* mastered.
-            // Since we don't track individual card mastery, we'll reset for a full review
-            // if the user wants to start over, or a "reset" button is clicked.
-            // For now, let's assume a new session starts with all cards.
-            const shuffledCards = [...deck.cards].sort(() => Math.random() - 0.5);
-            setCardsToShow(shuffledCards);
-            setCurrentIndex(0);
+          throw new Error("Invalid session data format. Starting a new session.");
         }
-    } catch (error) {
-        console.error("Could not load session from localStorage, starting fresh.", error);
-        // Start a completely fresh session on error
-        const shuffledCards = [...deck.cards].sort(() => Math.random() - 0.5);
-        setCardsToShow(shuffledCards);
+      } else {
+        const deckStats = appData.userStats.find(s => s.topic === deck.title);
+        const currentProgress = deckStats ? deckStats.progress : 0;
+        setMasteredCount(currentProgress);
+        // On a fresh session start, we filter out already mastered cards.
+        // For simplicity, we'll assume progress means the first N cards are mastered.
+        const nonMasteredCards = deck.cards.slice(currentProgress);
+        setCardsToShow([...nonMasteredCards].sort(() => Math.random() - 0.5));
         setCurrentIndex(0);
-        setMasteredCount(0);
-        updateStats(deck.title, 0); // Reset global stats on error
+      }
+    } catch (error) {
+      console.error("Could not load session from localStorage, starting fresh.", error);
+      const shuffledCards = [...deck.cards].sort(() => Math.random() - 0.5);
+      setCardsToShow(shuffledCards);
+      setCurrentIndex(0);
+      setMasteredCount(0);
+      updateStats(deck.title, 0);
     }
     setIsFlipped(false);
   }, [deck.id, deck.title, deck.cards, getStorageKey, appData.userStats, isLoading, updateStats]);
 
-  // Save session to localStorage whenever state changes
+
+  // Save session to localStorage whenever state changes that defines the session
   useEffect(() => {
-    // Only save if there's an active session and it's not the initial empty state
     if (cardsToShow.length > 0 || masteredCount > 0) {
-        try {
-            const sessionData = JSON.stringify({
-                savedCards: cardsToShow,
-                savedIndex: currentIndex,
-                savedMasteredCount: masteredCount,
-            });
-            localStorage.setItem(getStorageKey(), sessionData);
-        } catch (error) {
-            console.error("Could not save session to localStorage", error);
-        }
+      try {
+        const sessionData = JSON.stringify({
+          savedCards: cardsToShow,
+          savedIndex: currentIndex,
+          savedMasteredCount: masteredCount,
+        });
+        localStorage.setItem(getStorageKey(), sessionData);
+      } catch (error) {
+        console.error("Could not save session to localStorage", error);
+      }
     }
   }, [cardsToShow, currentIndex, masteredCount, getStorageKey]);
+
+  // When the underlying deck data changes (e.g., from a CRUD operation), refresh the session
+  useEffect(() => {
+    // We only want to run this if a session is already active
+    if (!isLoading && (cardsToShow.length > 0 || deck.cards.length > 0)) {
+        const deckStats = appData.userStats.find(s => s.topic === deck.title);
+        const currentProgress = deckStats ? deckStats.progress : 0;
+
+        // Re-filter cards to show based on updated deck and progress
+        // This is simplified; a real implementation might need to be smarter
+        // about not re-shuffling if the user is in the middle of a card.
+        const nonMasteredCards = deck.cards.slice(currentProgress);
+        const shuffled = [...nonMasteredCards].sort(() => Math.random() - 0.5)
+        setCardsToShow(shuffled);
+        
+        // Adjust index if it's now out of bounds
+        if (currentIndex >= shuffled.length && shuffled.length > 0) {
+            setCurrentIndex(0);
+        } else if (shuffled.length === 0) {
+            setCurrentIndex(0);
+        }
+    }
+  }, [appData.decks, appData.userStats, deck.title]);
+
 
   const handleDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
     let newCardsToShow = [...cardsToShow];
@@ -121,26 +158,19 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     if (difficulty === 'easy') {
       const newMasteredCount = masteredCount + 1;
       setMasteredCount(newMasteredCount);
-      // Update global stats
       updateStats(deck.title, newMasteredCount);
     } else if (difficulty === 'medium') {
-      // Place card in the middle of the remaining deck
       const halfway = Math.ceil((newCardsToShow.length - currentIndex) / 2) + currentIndex;
       newCardsToShow.splice(halfway, 0, cardToMove);
     } else { // 'hard'
-      // Place card a few cards back
       const position = Math.min(currentIndex + 3, newCardsToShow.length);
       newCardsToShow.splice(position, 0, cardToMove);
     }
 
     setCardsToShow(newCardsToShow);
     
-    // After updating, reset flip and manage index
-    if (newCardsToShow.length > 0) {
-      // If we removed the last card, loop back to the beginning
-      if (currentIndex >= newCardsToShow.length) {
-        setCurrentIndex(0);
-      }
+    if (currentIndex >= newCardsToShow.length && newCardsToShow.length > 0) {
+      setCurrentIndex(0);
     }
     setIsFlipped(false);
   };
@@ -154,14 +184,78 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     setCardsToShow([...deck.cards].sort(() => Math.random() - 0.5));
     setCurrentIndex(0);
     setMasteredCount(0);
-    updateStats(deck.title, 0); // Reset global stats too
+    updateStats(deck.title, 0);
     setIsFlipped(false);
   }
   
+  const handleAddNew = () => {
+    setEditingCard(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEdit = () => {
+    if (currentCard) {
+      setEditingCard(currentCard);
+      setIsFormOpen(true);
+    }
+  };
+
+  const handleDeleteInitiate = () => {
+    if (currentCard) {
+      setCardToDelete(currentCard);
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!cardToDelete) return;
+
+    // Delete the card from global state
+    deleteCard(deck.id, cardToDelete.id);
+    
+    // Remove the card from the current session
+    const newCardsToShow = cardsToShow.filter(c => c.id !== cardToDelete.id);
+    setCardsToShow(newCardsToShow);
+
+    // If the deleted card was the last one, reset index
+    if (currentIndex >= newCardsToShow.length && newCardsToShow.length > 0) {
+      setCurrentIndex(0);
+    }
+
+    toast({
+      title: 'Card Deleted',
+      description: 'The flashcard has been successfully deleted.',
+      variant: 'destructive',
+    });
+    setCardToDelete(null);
+  };
+
+  const handleSaveCard = (data: CardFormData) => {
+    if (editingCard) {
+      updateCard(deck.id, editingCard.id, data);
+      
+      // Update the card in the local session state as well
+      const updatedCardsToShow = cardsToShow.map(c => c.id === editingCard.id ? { ...c, ...data } : c);
+      setCardsToShow(updatedCardsToShow);
+
+      toast({
+        title: 'Card Updated',
+        description: 'The flashcard has been successfully updated.',
+      });
+    } else {
+      addCard(deck.id, data);
+      toast({
+        title: 'Card Created',
+        description: 'A new flashcard has been added to the deck.',
+      });
+    }
+    setIsFormOpen(false);
+    setEditingCard(null);
+  };
+
+
   const currentCard = cardsToShow[currentIndex];
   const totalCards = deck.cards.length;
   const progress = totalCards > 0 ? (masteredCount / totalCards) * 100 : 0;
-  // Session is complete when there are no cards left to show.
   const sessionComplete = cardsToShow.length === 0 && totalCards > 0;
   
   useEffect(() => {
@@ -206,7 +300,26 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   if (!currentCard) {
     return (
         <div className="text-center">
-            <p>Loading cards...</p>
+            <h1 className="text-3xl font-bold font-headline mb-4">No cards to review!</h1>
+            <p className="text-muted-foreground mb-8">You can add some cards to get started.</p>
+             <div className="flex justify-center gap-4">
+                <Button onClick={handleAddNew}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add First Card
+                </Button>
+                <Link href="/decks" passHref>
+                    <Button variant="outline">
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Back to Decks
+                    </Button>
+                </Link>
+            </div>
+             <CardForm
+                isOpen={isFormOpen}
+                onOpenChange={setIsFormOpen}
+                onSave={handleSaveCard}
+                card={editingCard}
+            />
         </div>
     );
   }
@@ -237,17 +350,54 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
             Show Answer
         </Button>
       ) : (
-        <div className="w-full flex flex-col md:flex-row justify-center items-center gap-4">
-            <Button onClick={() => handleDifficulty('hard')} variant="outline" className="w-full md:w-auto bg-red-100 text-red-800 border-red-200 hover:bg-red-200 hover:text-red-900">Hard</Button>
-            <Button onClick={() => handleDifficulty('medium')} variant="outline" className="w-full md:w-auto bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 hover:text-yellow-900">Medium</Button>
-            <Button onClick={() => handleDifficulty('easy')} variant="outline" className="w-full md:w-auto bg-green-100 text-green-800 border-green-200 hover:bg-green-200 hover:text-green-900">Easy</Button>
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 justify-center items-center gap-4">
+            <Button onClick={() => handleDifficulty('hard')} variant="outline" className="w-full bg-red-100 text-red-800 border-red-200 hover:bg-red-200 hover:text-red-900">Hard</Button>
+            <Button onClick={() => handleDifficulty('medium')} variant="outline" className="w-full bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 hover:text-yellow-900">Medium</Button>
+            <Button onClick={() => handleDifficulty('easy')} variant="outline" className="w-full bg-green-100 text-green-800 border-green-200 hover:bg-green-200 hover:text-green-900">Easy</Button>
         </div>
       )}
 
       <div className="mt-8 flex justify-between w-full text-muted-foreground text-sm">
-        <span>Cards left in this session: {cardsToShow.length}</span>
-        <button onClick={resetSession} className="hover:text-primary hover:underline">Reset Session</button>
+        <span>Cards left in session: {cardsToShow.length}</span>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={handleAddNew} className="flex items-center gap-1">
+            <PlusCircle className="h-4 w-4"/> Add
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleEdit} className="flex items-center gap-1">
+            <Edit className="h-4 w-4"/> Edit
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleDeleteInitiate} className="flex items-center gap-1 text-destructive hover:text-destructive">
+            <Trash2 className="h-4 w-4"/> Delete
+          </Button>
+        </div>
       </div>
+      <div className="mt-2 w-full text-right text-sm">
+         <button onClick={resetSession} className="hover:text-primary hover:underline">Reset Session</button>
+      </div>
+
+       <CardForm
+          isOpen={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          onSave={handleSaveCard}
+          card={editingCard}
+        />
+
+        <AlertDialog open={!!cardToDelete} onOpenChange={() => setCardToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the card "{cardToDelete?.front}".
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setCardToDelete(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Delete
+                </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
     </div>
   );
