@@ -36,7 +36,7 @@ import { useEffect } from 'react';
 const formSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
-  category: z.enum(['Vocabulary', 'Grammar', 'Phrases']),
+  category: z.enum(['Vocabulary', 'Grammar', 'Phrases', 'Kanji']),
   level: z.enum(['Beginner', 'Intermediate', 'Advanced']),
 });
 
@@ -136,12 +136,13 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Vocabulary">Vocabulary</SelectItem>
                         <SelectItem value="Grammar">Grammar</SelectItem>
                         <SelectItem value="Phrases">Phrases</SelectItem>
+                        <SelectItem value="Kanji">Kanji</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -158,7 +159,7 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a level" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Beginner">Beginner</SelectItem>

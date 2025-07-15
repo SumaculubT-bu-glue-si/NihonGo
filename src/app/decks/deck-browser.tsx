@@ -194,7 +194,7 @@ export function DeckBrowser() {
     setEditingDeck(null);
   }
 
-  const categories = ['All', 'Vocabulary', 'Grammar', 'Phrases', 'Favorites'];
+  const categories = ['All', 'Vocabulary', 'Grammar', 'Kanji', 'Phrases', 'Favorites'];
 
   const filteredDecks = decks.filter((deck) => {
     if (filter === 'All') return true;
@@ -218,7 +218,7 @@ export function DeckBrowser() {
       </div>
 
       <Tabs value={filter} onValueChange={setFilter} className="mb-6">
-        <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:grid-cols-6">
           {categories.map((category) => (
             <TabsTrigger key={category} value={category}>
               {category}

@@ -15,7 +15,7 @@ export function VocabularyView() {
     const vocabSet = new Map<string, Flashcard>();
     decks.forEach(deck => {
         deck.cards.forEach(card => {
-            if (card.type === 'vocabulary' && !vocabSet.has(card.front)) {
+            if ((card.type === 'vocabulary' || card.type === 'kanji') && !vocabSet.has(card.front)) {
                 vocabSet.set(card.front, card);
             }
         })
