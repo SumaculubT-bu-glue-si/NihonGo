@@ -47,11 +47,11 @@ function Flashcard({
         </div>
       </Card>
       {/* Back of the card */}
-      <Card className="flip-card-back absolute w-full h-full flex flex-col items-center justify-center text-center p-6">
-        <h3 className="text-3xl md:text-5xl font-semibold font-headline">
+      <Card className="flip-card-back absolute w-full h-full flex flex-col items-center justify-center text-center p-6 overflow-y-auto">
+        <h3 className="text-3xl md:text-5xl font-semibold font-headline mb-4">
           {card.back}
         </h3>
-        {card.type === 'grammar' && <SentenceGenerator grammarPoint={card.front} />}
+        <SentenceGenerator card={card} />
       </Card>
     </div>
   );
@@ -99,14 +99,17 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       }
     } catch (error) {
       console.error("Could not load session from localStorage, starting fresh.", error);
-      const shuffledCards = [...deck.cards].sort(() => Math.random() - 0.5);
+      // Fallback to global state if localStorage fails
+      const deckStats = appData.userStats.find(s => s.topic === deck.title);
+      const currentProgress = deckStats ? deckStats.progress : 0;
+      setMasteredCount(currentProgress);
+      const nonMasteredCards = deck.cards.slice(currentProgress);
+      const shuffledCards = [...nonMasteredCards].sort(() => Math.random() - 0.5);
       setCardsToShow(shuffledCards);
       setCurrentIndex(0);
-      setMasteredCount(0);
-      updateStats(deck.title, 0);
     }
     setIsFlipped(false);
-  }, [deck.id, deck.title, deck.cards, getStorageKey, appData.userStats, isLoading, updateStats]);
+  }, [deck.id, deck.title, deck.cards, getStorageKey, appData.userStats, isLoading]);
 
 
   // Save session to localStorage whenever state changes that defines the session
@@ -360,7 +363,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       </div>
 
       <div
-        className="w-full h-80 perspective-[1000px] mb-6 cursor-pointer"
+        className="w-full h-96 perspective-[1000px] mb-6"
         onClick={() => setIsFlipped(!isFlipped)}
         aria-roledescription="card"
       >
