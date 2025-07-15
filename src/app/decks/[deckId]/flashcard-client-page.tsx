@@ -49,36 +49,58 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [masteredCount, setMasteredCount] = useState(0);
-  const { updateStats } = useGlobalState();
+  const { appData, updateStats, isLoading } = useGlobalState();
 
   const getStorageKey = useCallback(() => `flashcard-session-${deck.id}`, [deck.id]);
 
   // Load session from localStorage on initial mount
   useEffect(() => {
+    if (isLoading) return; // Wait for global state to be ready
+
     try {
         const savedSession = localStorage.getItem(getStorageKey());
         if (savedSession) {
             const { savedCards, savedIndex, savedMasteredCount } = JSON.parse(savedSession);
-            setCardsToShow(savedCards);
-            setCurrentIndex(savedIndex);
-            setMasteredCount(savedMasteredCount);
+            // Ensure saved data is valid
+            if (Array.isArray(savedCards) && typeof savedIndex === 'number' && typeof savedMasteredCount === 'number') {
+              setCardsToShow(savedCards);
+              setCurrentIndex(savedIndex);
+              setMasteredCount(savedMasteredCount);
+            } else {
+              // Saved data is corrupted, start a new session
+              throw new Error("Invalid session data format");
+            }
         } else {
-            // No saved session, start a new one
-            setCardsToShow([...deck.cards].sort(() => Math.random() - 0.5));
+            // No saved session, start a new one based on global progress
+            const deckStats = appData.userStats.find(s => s.topic === deck.title);
+            const currentProgress = deckStats ? deckStats.progress : 0;
+            
+            setMasteredCount(currentProgress);
+            
+            // For a new session, we need to know which cards are *already* mastered.
+            // Since we don't track individual card mastery, we'll reset for a full review
+            // if the user wants to start over, or a "reset" button is clicked.
+            // For now, let's assume a new session starts with all cards.
+            const shuffledCards = [...deck.cards].sort(() => Math.random() - 0.5);
+            setCardsToShow(shuffledCards);
             setCurrentIndex(0);
-            setMasteredCount(0);
         }
     } catch (error) {
-        console.error("Could not load session from localStorage", error);
-        setCardsToShow([...deck.cards].sort(() => Math.random() - 0.5));
+        console.error("Could not load session from localStorage, starting fresh.", error);
+        // Start a completely fresh session on error
+        const shuffledCards = [...deck.cards].sort(() => Math.random() - 0.5);
+        setCardsToShow(shuffledCards);
+        setCurrentIndex(0);
+        setMasteredCount(0);
+        updateStats(deck.title, 0); // Reset global stats on error
     }
     setIsFlipped(false);
-  }, [deck.cards, getStorageKey]);
+  }, [deck.id, deck.title, deck.cards, getStorageKey, appData.userStats, isLoading, updateStats]);
 
   // Save session to localStorage whenever state changes
   useEffect(() => {
-    // Only save if there's an active session
-    if (cardsToShow.length > 0) {
+    // Only save if there's an active session and it's not the initial empty state
+    if (cardsToShow.length > 0 || masteredCount > 0) {
         try {
             const sessionData = JSON.stringify({
                 savedCards: cardsToShow,
@@ -103,11 +125,11 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       updateStats(deck.title, newMasteredCount);
     } else if (difficulty === 'medium') {
       // Place card in the middle of the remaining deck
-      const halfway = Math.ceil(newCardsToShow.length / 2);
+      const halfway = Math.ceil((newCardsToShow.length - currentIndex) / 2) + currentIndex;
       newCardsToShow.splice(halfway, 0, cardToMove);
     } else { // 'hard'
-      // Place card a few cards back, or at the end if the deck is short
-      const position = Math.min(currentIndex + 2, newCardsToShow.length);
+      // Place card a few cards back
+      const position = Math.min(currentIndex + 3, newCardsToShow.length);
       newCardsToShow.splice(position, 0, cardToMove);
     }
 
@@ -119,8 +141,8 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       if (currentIndex >= newCardsToShow.length) {
         setCurrentIndex(0);
       }
-      setIsFlipped(false);
     }
+    setIsFlipped(false);
   };
   
   const resetSession = () => {
@@ -139,7 +161,8 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const currentCard = cardsToShow[currentIndex];
   const totalCards = deck.cards.length;
   const progress = totalCards > 0 ? (masteredCount / totalCards) * 100 : 0;
-  const sessionComplete = cardsToShow.length === 0;
+  // Session is complete when there are no cards left to show.
+  const sessionComplete = cardsToShow.length === 0 && totalCards > 0;
   
   useEffect(() => {
     if (sessionComplete) {
@@ -150,6 +173,14 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       }
     }
   }, [sessionComplete, getStorageKey]);
+
+  if (isLoading) {
+    return (
+        <div className="flex h-64 items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+    );
+  }
 
   if (sessionComplete) {
     return (
@@ -213,8 +244,9 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         </div>
       )}
 
-      <div className="mt-8 text-muted-foreground text-sm">
-        Cards left in this session: {cardsToShow.length}
+      <div className="mt-8 flex justify-between w-full text-muted-foreground text-sm">
+        <span>Cards left in this session: {cardsToShow.length}</span>
+        <button onClick={resetSession} className="hover:text-primary hover:underline">Reset Session</button>
       </div>
 
     </div>
