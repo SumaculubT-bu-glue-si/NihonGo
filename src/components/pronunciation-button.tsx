@@ -8,8 +8,29 @@ import { useToast } from '@/hooks/use-toast';
 
 export function PronunciationButton({ text }: { text: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [japaneseVoice, setJapaneseVoice] = useState<SpeechSynthesisVoice | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const foundVoice = voices.find(voice => voice.lang.startsWith('ja'));
+      if (foundVoice) {
+        setJapaneseVoice(foundVoice);
+      }
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      if (isPlaying) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [isPlaying]);
 
   const handlePronunciation = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -28,13 +49,7 @@ export function PronunciationButton({ text }: { text: string }) {
       setIsPlaying(false);
       return;
     }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utteranceRef.current = utterance;
-
-    const voices = window.speechSynthesis.getVoices();
-    const japaneseVoice = voices.find(voice => voice.lang.startsWith('ja'));
-
+    
     if (!japaneseVoice) {
         toast({
             title: 'No Japanese Voice Pack',
@@ -43,6 +58,9 @@ export function PronunciationButton({ text }: { text: string }) {
         });
         return;
     }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utteranceRef.current = utterance;
 
     utterance.voice = japaneseVoice;
     utterance.lang = 'ja-JP';
@@ -58,10 +76,10 @@ export function PronunciationButton({ text }: { text: string }) {
     };
     
     utterance.onerror = (event) => {
-        console.error('Speech synthesis error', event);
+        console.error('Speech synthesis error', event.error);
         toast({
             title: 'Pronunciation Error',
-            description: 'An unexpected error occurred.',
+            description: 'An unexpected error occurred during playback.',
             variant: 'destructive',
         });
         setIsPlaying(false);
@@ -69,26 +87,6 @@ export function PronunciationButton({ text }: { text: string }) {
     
     window.speechSynthesis.speak(utterance);
   };
-  
-  useEffect(() => {
-    const handleVoicesChanged = () => {
-      // Re-check for voices when they are loaded
-    };
-    
-    window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
-    
-    // Ensure voices are loaded on component mount
-    window.speechSynthesis.getVoices();
-    
-    // Cleanup on unmount
-    return () => {
-      window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
-      if (isPlaying) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, [isPlaying]);
-
 
   return (
     <Button
