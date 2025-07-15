@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -12,7 +13,7 @@ import {z} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import wav from 'wav';
 
-export const TextToSpeechOutputSchema = z.object({
+const TextToSpeechOutputSchema = z.object({
   audioDataUri: z.string().describe('The base64 encoded data URI of the audio.'),
 });
 export type TextToSpeechOutput = z.infer<typeof TextToSpeechOutputSchema>;
