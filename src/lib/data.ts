@@ -76,10 +76,10 @@ export interface StatsData {
 }
 
 export const userStats: StatsData[] = [
-    { topic: 'N5 Vocabulary', progress: 4, total: 5 },
-    { topic: 'Daily Phrases', progress: 2, total: 3 },
-    { topic: 'N4 Grammar', progress: 1, total: 3 },
+    { topic: 'N5 Vocabulary', progress: 0, total: 5 },
+    { topic: 'Daily Phrases', progress: 0, total: 3 },
+    { topic: 'N4 Grammar', progress: 0, total: 3 },
     { topic: 'Restaurant Japanese', progress: 0, total: 3 },
-    { topic: 'Katakana', progress: 46, total: 46 },
-    { topic: 'Hiragana', progress: 46, total: 46 },
+    { topic: 'Katakana', progress: 0, total: 46 },
+    { topic: 'Hiragana', progress: 0, total: 46 },
 ];
