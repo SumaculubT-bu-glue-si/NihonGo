@@ -30,7 +30,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen w-full flex flex-col">
+    <div className="min-h-screen pb-72 w-full flex flex-col">
        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center">
             <Link href="/decks" className="mr-6 flex items-center gap-2">
