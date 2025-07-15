@@ -1,12 +1,12 @@
 import { AuthGuard } from '@/components/auth-guard';
 import { AppLayout } from '@/components/app-layout';
-import { StatsView } from './stats-view';
+import { GrammarCheckerView } from './checker-view';
 
-export default function StatsPage() {
+export default function GrammarCheckerPage() {
   return (
     <AuthGuard>
       <AppLayout>
-        <StatsView fullPage={true}/>
+        <GrammarCheckerView />
       </AppLayout>
     </AuthGuard>
   );

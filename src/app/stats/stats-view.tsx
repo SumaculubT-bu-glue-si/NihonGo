@@ -4,18 +4,22 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recha
 import { userStats, type StatsData } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
-export function StatsView() {
+export function StatsView({ fullPage = false }: { fullPage?: boolean}) {
   const chartData = userStats.map(stat => ({
     name: stat.topic,
     progress: Math.round((stat.progress / stat.total) * 100),
   }));
 
   return (
-    <div className="container mx-auto">
-      <h1 className="mb-2 text-3xl font-bold font-headline">Your Progress</h1>
-      <p className="mb-6 text-muted-foreground">
-        A visual overview of your learning journey so far.
-      </p>
+    <div className={!fullPage ? "container mx-auto" : ""}>
+        {fullPage && (
+            <>
+                <h1 className="mb-2 text-3xl font-bold font-headline">Your Progress</h1>
+                <p className="mb-6 text-muted-foreground">
+                    A visual overview of your learning journey so far.
+                </p>
+            </>
+        )}
 
       <Card>
         <CardHeader>

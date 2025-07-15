@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { NihonGoLogo } from './icons';
-import { BookOpen, BarChart3, LogOut, Settings } from 'lucide-react';
+import { Home, BookText, SpellCheck, LogOut, Settings } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -33,7 +33,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const menuItems = [
-    { href: '/decks', label: 'Decks', icon: BookOpen },
+    { href: '/decks', label: 'Home', icon: Home },
+    { href: '/grammar-checker', label: 'Grammar Checker', icon: SpellCheck },
+    { href: '/vocabulary', label: 'Vocabulary', icon: BookText },
     { href: '/stats', label: 'Stats', icon: BarChart3 },
   ];
 

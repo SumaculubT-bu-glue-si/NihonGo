@@ -1,12 +1,12 @@
 import { AuthGuard } from '@/components/auth-guard';
 import { AppLayout } from '@/components/app-layout';
-import { StatsView } from './stats-view';
+import { VocabularyView } from './vocabulary-view';
 
-export default function StatsPage() {
+export default function VocabularyPage() {
   return (
     <AuthGuard>
       <AppLayout>
-        <StatsView fullPage={true}/>
+        <VocabularyView />
       </AppLayout>
     </AuthGuard>
   );
