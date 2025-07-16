@@ -34,6 +34,12 @@ export function StatsView({ appData }: StatsViewProps) {
   const { deckStats, grammarStats, quizStats, quizChartData, grammarChartData } = useMemo(() => {
     // Deck Stats
     const deckStats = appData.userStats.map(stat => ({
+        title: stat.topic, // Rename topic to title for the AI flow
+        progress: stat.progress,
+        total: stat.total,
+    }));
+    
+    const deckChartStats = appData.userStats.map(stat => ({
         ...stat,
         percentage: stat.total > 0 ? Math.round((stat.progress / stat.total) * 100) : 0,
     }));
@@ -95,7 +101,7 @@ export function StatsView({ appData }: StatsViewProps) {
     })).sort((a,b) => a.name.localeCompare(b.name));
 
 
-    return { deckStats, grammarStats, grammarChartData, quizStats, quizChartData };
+    return { deckStats, grammarStats, grammarChartData, quizStats, quizChartData, deckChartStats };
   }, [appData]);
   
   useEffect(() => {
@@ -160,7 +166,7 @@ export function StatsView({ appData }: StatsViewProps) {
                 </CardHeader>
                 <CardContent className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={deckStats} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                    <BarChart data={deckChartStats} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                         <XAxis 
                         dataKey="topic" 
                         stroke="hsl(var(--muted-foreground))"
