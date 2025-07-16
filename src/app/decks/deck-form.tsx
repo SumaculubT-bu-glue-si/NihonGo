@@ -62,25 +62,24 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
   });
 
   useEffect(() => {
-    if (isOpen) {
-      if (deck) {
-        form.reset({
-          title: deck.title,
-          description: deck.description,
-          category: deck.category,
-          level: deck.level,
-        });
-      } else {
-        form.reset({
-          title: '',
-          description: '',
-          category: 'Vocabulary',
-          level: 'Beginner',
-        });
-      }
+    if (!isOpen) return;
+  
+    if (deck) {
+      form.reset({
+        title: deck.title,
+        description: deck.description,
+        category: deck.category,
+        level: deck.level,
+      });
+    } else {
+      form.reset({
+        title: '',
+        description: '',
+        category: 'Vocabulary',
+        level: 'Beginner',
+      });
     }
-  }, [deck, form, isOpen]);
-
+  }, [isOpen, deck?.id]); 
 
   const onSubmit = (data: DeckFormData) => {
     onSave(data as Deck);
@@ -135,7 +134,7 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
@@ -158,7 +157,7 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Level</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a level" />
