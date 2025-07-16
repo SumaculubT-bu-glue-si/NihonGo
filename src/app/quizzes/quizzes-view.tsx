@@ -29,7 +29,7 @@ const quizCategories = [
 ];
 
 const levels: ('N5' | 'N4' | 'N3' | 'N2' | 'N1')[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
-const quizzesPerLevel = 3;
+const quizzesPerLevel = 1;
 
 export function QuizzesView() {
   return (
