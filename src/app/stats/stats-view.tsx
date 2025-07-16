@@ -31,18 +31,17 @@ export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; sta
           </p>
         </div>
         <div className="p-6 pt-0">
-          <div className="h-[160px] w-full">
+          <div className="min-h-fit h-[160px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 10 }}>
+              <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
                 <XAxis 
                   dataKey="name" 
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={12}
                   tickLine={false}
                   axisLine={true}
-                  padding={{ left: 10, right: 10 }}
                   interval={0}
-                  tick={{ width: 80, wordWrap: 'break-word' }}
+                  tick={{ width: 90, wordWrap: 'break-word' }}
                 />
                 <YAxis 
                   stroke="hsl(var(--muted-foreground))"

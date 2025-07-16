@@ -6,7 +6,7 @@ import type { Deck, Flashcard as FlashcardType } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, RotateCw, Lightbulb, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { ChevronLeft, RotateCw, Lightbulb, PlusCircle, Edit, Trash2, Wand2 } from 'lucide-react';
 import { PronunciationButton } from '@/components/pronunciation-button';
 import { SentenceGenerator } from '@/components/sentence-generator';
 import Link from 'next/link';
@@ -23,7 +23,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
+import { generateCards } from '@/ai/flows/generate-cards-flow';
+import { GenerateCardsForm, type GenerateCardsData } from './generate-cards-form';
 
 const Flashcard = memo(function Flashcard({
   card,
@@ -63,10 +64,11 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [masteredCount, setMasteredCount] = useState(0);
   
-  const { appData, updateStats, isLoading, addCard, updateCard, deleteCard } = useGlobalState();
+  const { appData, updateStats, isLoading, addCard, updateCard, deleteCard, addGeneratedCards } = useGlobalState();
   const { toast } = useToast();
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isCardFormOpen, setIsCardFormOpen] = useState(false);
+  const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<FlashcardType | null>(null);
   const [cardToDelete, setCardToDelete] = useState<FlashcardType | null>(null);
 
@@ -193,13 +195,17 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   
   const handleAddNew = () => {
     setEditingCard(null);
-    setIsFormOpen(true);
+    setIsCardFormOpen(true);
+  };
+  
+  const handleGenerateNew = () => {
+    setIsGenerateFormOpen(true);
   };
 
   const handleEdit = () => {
     if (currentCard) {
       setEditingCard(currentCard);
-      setIsFormOpen(true);
+      setIsCardFormOpen(true);
     }
   };
 
@@ -269,10 +275,45 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         description: 'A new flashcard has been added to the deck.',
       });
     }
-    setIsFormOpen(false);
+    setIsCardFormOpen(false);
     setEditingCard(null);
   };
+  
+  const handleGenerateCards = async (data: GenerateCardsData) => {
+    const generatingToast = toast({
+      title: 'Generating Cards...',
+      description: 'The AI is creating your new cards. This might take a moment.',
+    });
 
+    try {
+      const result = await generateCards({
+        deckContext: {
+          title: deck.title,
+          description: deck.description,
+          category: deck.category,
+          level: deck.level,
+        },
+        existingCards: deck.cards.map(c => c.front),
+        count: data.count,
+      });
+
+      addGeneratedCards(deck.id, result.cards);
+
+      generatingToast.update({
+        id: generatingToast.id,
+        title: 'Cards Generated!',
+        description: `Successfully added ${result.cards.length} new cards to the deck.`,
+      });
+    } catch (error) {
+      console.error("Card generation failed", error);
+       generatingToast.update({
+        id: generatingToast.id,
+        title: 'Generation Failed',
+        description: 'Could not generate new cards. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const currentCard = cardsToShow[currentIndex];
   const totalCards = deck.cards.length;
@@ -336,8 +377,8 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
                 </Link>
             </div>
              <CardForm
-                isOpen={isFormOpen}
-                onOpenChange={setIsFormOpen}
+                isOpen={isCardFormOpen}
+                onOpenChange={setIsCardFormOpen}
                 onSave={handleSaveCard}
                 card={editingCard}
                 deck={deck}
@@ -382,6 +423,9 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       <div className="mt-8 flex justify-between w-full text-muted-foreground text-sm">
         <span>Cards left in session: {cardsToShow.length}</span>
         <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={handleGenerateNew} className="flex items-center gap-1">
+            <Wand2 className="h-4 w-4"/> AI
+          </Button>
           <Button variant="ghost" size="sm" onClick={handleAddNew} className="flex items-center gap-1">
             <PlusCircle className="h-4 w-4"/> Add
           </Button>
@@ -398,11 +442,17 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       </div>
 
        <CardForm
-          isOpen={isFormOpen}
-          onOpenChange={setIsFormOpen}
+          isOpen={isCardFormOpen}
+          onOpenChange={setIsCardFormOpen}
           onSave={handleSaveCard}
           card={editingCard}
           deck={deck}
+        />
+        
+       <GenerateCardsForm
+          isOpen={isGenerateFormOpen}
+          onOpenChange={setIsGenerateFormOpen}
+          onGenerate={handleGenerateCards}
         />
 
         <AlertDialog open={!!cardToDelete} onOpenChange={() => setCardToDelete(null)}>
