@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { type GrammarLesson } from '@/lib/data';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
@@ -13,22 +13,25 @@ interface GrammarStatsChartProps {
 export function GrammarStatsChart({ lessons }: GrammarStatsChartProps) {
   const chartData = useMemo(() => {
     const levels: ('N5' | 'N4' | 'N3' | 'N2' | 'N1')[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
-    const dataByLevel = levels.map(level => {
+    return levels.map(level => {
       const levelLessons = lessons.filter(l => l.level === level);
+      const total = levelLessons.length;
+      const read = levelLessons.filter(l => l.read).length;
+      const percentage = total > 0 ? Math.round((read / total) * 100) : 0;
       return {
         level,
-        read: levelLessons.filter(l => l.read).length,
-        unread: levelLessons.filter(l => !l.read).length,
+        percentage,
+        read,
+        total,
       };
     });
-    return dataByLevel;
   }, [lessons]);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Lesson Progress</CardTitle>
-        <CardDescription>Breakdown of read and unread lessons by JLPT level.</CardDescription>
+        <CardDescription>Percentage of lessons completed by JLPT level.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[250px] w-full">
@@ -47,21 +50,26 @@ export function GrammarStatsChart({ lessons }: GrammarStatsChartProps) {
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                    allowDecimals={false}
+                    tickFormatter={(value) => `${value}%`}
+                    domain={[0, 100]}
                 />
                 <Tooltip
                     cursor={{ fill: 'hsl(var(--accent))', opacity: 0.3 }}
-                    contentStyle={{
-                        background: 'hsl(var(--background))',
-                        borderColor: 'hsl(var(--border))',
-                        borderRadius: 'var(--radius)',
-                    }}
+                    content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="rounded-lg border bg-background p-2 shadow-sm text-center">
+                              <p className="text-sm font-bold text-foreground">{data.level} Progress</p>
+                              <p className="text-lg font-bold text-primary">{`${data.percentage}%`}</p>
+                              <p className="text-xs text-muted-foreground">{`${data.read} / ${data.total} lessons`}</p>
+                            </div>
+                          )
+                        }
+                        return null
+                      }}
                 />
-                <Legend
-                    formatter={(value, entry, index) => <span className="capitalize text-muted-foreground">{value}</span>}
-                />
-                <Bar dataKey="unread" stackId="a" fill="hsl(var(--secondary))" name="Unread" radius={[4, 4, 0, 0]}/>
-                <Bar dataKey="read" stackId="a" fill="hsl(var(--primary))" name="Read" radius={[4, 4, 0, 0]}/>
+                <Bar dataKey="percentage" fill="hsl(var(--primary))" name="Completed" radius={[4, 4, 0, 0]} barSize={35}/>
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -69,5 +77,3 @@ export function GrammarStatsChart({ lessons }: GrammarStatsChartProps) {
     </Card>
   );
 }
-
-    
