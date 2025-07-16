@@ -81,7 +81,7 @@ const generateCardsFlow = ai.defineFlow(
         name: 'generateCardsPromptSized',
         input: { schema: GenerateCardsInputSchema },
         output: { schema: customOutputSchema },
-        prompt: prompt.prompt,
+        prompt: prompt.template,
     });
         
     const { output } = await customPrompt(input);
