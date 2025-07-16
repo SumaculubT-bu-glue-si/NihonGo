@@ -2,14 +2,15 @@
 'use client';
 
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import type { Deck, StatsData, Flashcard } from '@/lib/data';
-import { decks as initialDecks, userStats as initialUserStats } from '@/lib/initial-data';
+import type { Deck, StatsData, Flashcard, GrammarLesson } from '@/lib/data';
+import { decks as initialDecks, userStats as initialUserStats, grammarLessons as initialGrammarLessons } from '@/lib/initial-data';
 
 const STORAGE_KEY = 'nihongo-app-data';
 
 export interface AppData {
   decks: Deck[];
   userStats: StatsData[];
+  grammarLessons: GrammarLesson[];
 }
 
 interface GlobalStateContextType {
@@ -22,6 +23,7 @@ interface GlobalStateContextType {
   updateCard: (deckId: string, cardId: string, cardData: Partial<Flashcard>) => void;
   deleteCard: (deckId: string, cardId: string) => void;
   updateStats: (topic: string, masteredCount: number) => void;
+  toggleGrammarLessonRead: (lessonId: string, read: boolean) => void;
 }
 
 export const GlobalStateContext = createContext<GlobalStateContextType | undefined>(undefined);
@@ -35,25 +37,29 @@ export const useGlobalState = (): GlobalStateContextType => {
 };
 
 export const useGlobalStateData = () => {
-    const [appData, setAppData] = useState<AppData>({ decks: [], userStats: [] });
+    const [appData, setAppData] = useState<AppData>({ decks: [], userStats: [], grammarLessons: [] });
     const [isLoading, setIsLoading] = useState(true);
 
     const loadFromLocalStorage = (): AppData => {
         try {
           const serializedState = localStorage.getItem(STORAGE_KEY);
           if (serializedState === null) {
-            const initialData = { decks: initialDecks, userStats: initialUserStats };
+            const initialData = { decks: initialDecks, userStats: initialUserStats, grammarLessons: initialGrammarLessons };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
             return initialData;
           }
           const storedData = JSON.parse(serializedState);
           if (storedData.decks && storedData.userStats) {
+             // Ensure grammarLessons is not undefined
+            if (!storedData.grammarLessons) {
+                storedData.grammarLessons = initialGrammarLessons;
+            }
             return storedData;
           }
         } catch (error) {
           console.error("Error loading from localStorage", error);
         }
-        return { decks: initialDecks, userStats: initialUserStats };
+        return { decks: initialDecks, userStats: initialUserStats, grammarLessons: initialGrammarLessons };
     };
 
     useEffect(() => {
@@ -98,6 +104,7 @@ export const useGlobalStateData = () => {
                 total: 0,
             };
             return {
+                ...prevData,
                 decks: [newDeck, ...prevData.decks],
                 userStats: [...prevData.userStats, newStat]
             };
@@ -120,7 +127,6 @@ export const useGlobalStateData = () => {
                 );
             }
             
-            // If the cards are being replaced, update the total count in stats
             if(deckData.cards){
                 const deck = updatedDecks.find(d => d.id === deckId);
                 if(deck){
@@ -131,6 +137,7 @@ export const useGlobalStateData = () => {
             }
 
             return {
+                ...prevData,
                 decks: updatedDecks,
                 userStats: updatedStats
             };
@@ -143,6 +150,7 @@ export const useGlobalStateData = () => {
           if (!deckToDelete) return prevData;
 
           return {
+            ...prevData,
             decks: prevData.decks.filter(d => d.id !== deckId),
             userStats: prevData.userStats.filter(s => s.topic !== deckToDelete.title)
           };
@@ -181,7 +189,7 @@ export const useGlobalStateData = () => {
                 }
                 return stat;
             })
-            return { decks: updatedDecks, userStats: updatedStats };
+            return { ...prevData, decks: updatedDecks, userStats: updatedStats };
         });
     }, []);
 
@@ -220,8 +228,17 @@ export const useGlobalStateData = () => {
                 }
                 return stat;
             })
-            return { decks: updatedDecks, userStats: updatedStats };
+            return { ...prevData, decks: updatedDecks, userStats: updatedStats };
         });
+    }, []);
+
+    const toggleGrammarLessonRead = useCallback((lessonId: string, read: boolean) => {
+        setAppData(prevData => ({
+            ...prevData,
+            grammarLessons: prevData.grammarLessons.map(lesson =>
+                lesson.id === lessonId ? { ...lesson, read } : lesson
+            ),
+        }));
     }, []);
 
 
@@ -235,5 +252,6 @@ export const useGlobalStateData = () => {
         updateCard,
         deleteCard,
         updateStats,
+        toggleGrammarLessonRead,
     };
 };

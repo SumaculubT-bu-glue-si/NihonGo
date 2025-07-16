@@ -1,5 +1,6 @@
 
-import type { Deck, StatsData } from './data';
+import type { Deck, StatsData, GrammarLesson } from './data';
+import { grammarLessons as initialGrammarLessons } from './grammar-lessons-data';
 
 export const decks: Deck[] = [
   {
@@ -50,7 +51,7 @@ export const decks: Deck[] = [
         { id: 'n5-k-4', type: 'kanji', front: '四', back: 'Four', reading: 'よん/し', level: 'N5' },
         { id: 'n5-k-5', type: 'kanji', front: '五', back: 'Five', reading: 'ご', level: 'N5' },
         { id: 'n5-k-6', type: 'kanji', front: '六', back: 'Six', reading: 'ろく', level: 'N5' },
-        { id: 'n5-k-7', type: 'kanji', front: '七', back: 'Seven', reading: 'なな/しち', level: 'N5' },
+        { id: 'n5-k-7', type: 'kanji', front: 'Seven', reading: 'なな/しち', level: 'N5' },
         { id: 'n5-k-8', type: 'kanji', front: '八', back: 'Eight', reading: 'はち', level: 'N5' },
         { id: 'n5-k-9', type: 'kanji', front: '九', back: 'Nine', reading: 'きゅう/く', level: 'N5' },
         { id: 'n5-k-10', type: 'kanji', front: '十', back: 'Ten', reading: 'じゅう', level: 'N5' },
@@ -79,3 +80,5 @@ export const userStats: StatsData[] = decks.map(deck => ({
     progress: 0, // All progress starts at 0
     total: deck.cards.length,
 }));
+
+export const grammarLessons: GrammarLesson[] = initialGrammarLessons;

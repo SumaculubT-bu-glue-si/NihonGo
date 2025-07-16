@@ -22,3 +22,12 @@ export interface StatsData {
   progress: number; // Number of mastered cards
   total: number;
 }
+
+export interface GrammarLesson {
+    id: string;
+    title: string;
+    level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+    explanation: string;
+    examples: string[];
+    read: boolean;
+}
