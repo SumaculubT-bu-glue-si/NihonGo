@@ -14,7 +14,7 @@ import { GrammarCheckerTool } from './checker-view';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, BookOpenCheck, Eye, Lightbulb, PlusCircle, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { CheckCircle2, BookOpenCheck, Eye, Lightbulb, PlusCircle, MoreVertical, Edit, Trash2, Wand2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { LessonForm, type LessonFormData } from './lesson-form';
+import { GenerateLessonForm } from './generate-lesson-form';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -61,6 +62,7 @@ export function GrammarLessonsView() {
   const [lessonToEdit, setLessonToEdit] = useState<GrammarLesson | null>(null);
   const [lessonToDelete, setLessonToDelete] = useState<GrammarLesson | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false);
 
 
   const filteredLessons = useMemo(() => {
@@ -82,6 +84,10 @@ export function GrammarLessonsView() {
   const handleAddNew = () => {
     setLessonToEdit(null);
     setIsFormOpen(true);
+  };
+
+  const handleGenerateNew = () => {
+    setIsGenerateFormOpen(true);
   };
 
   const handleEdit = (lesson: GrammarLesson) => {
@@ -127,6 +133,10 @@ export function GrammarLessonsView() {
     setLessonToEdit(null);
   };
 
+  const handleLessonGenerated = (lessonData: Omit<GrammarLesson, 'id' | 'read'>) => {
+    addGrammarLesson(lessonData);
+  }
+
   if (isLoading) {
     return (
         <div className="flex h-64 w-full items-center justify-center">
@@ -145,10 +155,16 @@ export function GrammarLessonsView() {
                 Explore grammar points, check your sentences, and build your own library.
                 </p>
             </div>
-            <Button onClick={handleAddNew} className="mt-4 sm:mt-0">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add New Lesson
-            </Button>
+            <div className="flex items-center gap-2 mt-4 sm:mt-0">
+                <Button onClick={handleGenerateNew} variant="outline">
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Generate with AI
+                </Button>
+                <Button onClick={handleAddNew}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add New Lesson
+                </Button>
+            </div>
         </div>
       </div>
 
@@ -260,10 +276,10 @@ export function GrammarLessonsView() {
         <Dialog open={!!selectedLesson} onOpenChange={() => setSelectedLesson(null)}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
-              <div className="flex items-center justify-between">
-                <DialogTitle className="text-2xl font-headline">{selectedLesson.title}</DialogTitle>
-                <Badge variant="secondary">{selectedLesson.level}</Badge>
-              </div>
+                <div className="flex items-center justify-between">
+                    <DialogTitle className="text-2xl font-headline">{selectedLesson.title}</DialogTitle>
+                    <Badge variant="secondary">{selectedLesson.level}</Badge>
+                </div>
             </DialogHeader>
             <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto pr-6">
                 <div>
@@ -326,6 +342,12 @@ export function GrammarLessonsView() {
         onOpenChange={setIsFormOpen}
         onSave={handleSaveLesson}
         lesson={lessonToEdit}
+       />
+       
+       <GenerateLessonForm
+        isOpen={isGenerateFormOpen}
+        onOpenChange={setIsGenerateFormOpen}
+        onLessonGenerated={handleLessonGenerated}
        />
 
        <AlertDialog open={!!lessonToDelete} onOpenChange={() => setLessonToDelete(null)}>
