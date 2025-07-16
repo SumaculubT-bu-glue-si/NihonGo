@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { NihonGoLogo } from './icons';
-import { Home, BookText, SpellCheck, LogOut, Settings, BarChart3, BookMarked, ClipboardList } from 'lucide-react';
+import { Home, BookText, SpellCheck, LogOut, Settings, BarChart3, BookMarked, ClipboardList, BookOpen } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -27,6 +27,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/grammar-lessons', label: 'Grammar', icon: BookMarked },
     { href: '/vocabulary', label: 'Vocabulary', icon: BookText },
     { href: '/quizzes', label: 'Quizzes', icon: ClipboardList },
+    { href: '/dictionary', label: 'Dictionary', icon: BookOpen },
     { href: '/stats', label: 'Stats', icon: BarChart3 },
   ];
 
