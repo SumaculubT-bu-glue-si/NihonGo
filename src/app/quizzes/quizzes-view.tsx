@@ -11,6 +11,7 @@ import { allQuizzes } from '@/lib/quiz-data';
 import { Progress } from '@/components/ui/progress';
 import { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const quizCategories = [
   {
@@ -90,12 +91,24 @@ export function QuizzesView() {
             <CardContent>
                 <Accordion type="single" collapsible className="w-full">
                     {levels.map(level => {
-                        const quizzesForLevel = allQuizzes[category.type]?.[level];
-                        if (!quizzesForLevel) return null;
+                        const quizzesForLevel = allQuizzes[category.type]?.[level] ?? [];
+                        if (quizzesForLevel.length === 0) return null;
+
+                        const completedCount = quizzesForLevel.filter(q => getHighestScore(q.id) !== null).length;
+                        const totalCount = quizzesForLevel.length;
+                        const isLevelCompleted = completedCount === totalCount;
 
                         return (
                             <AccordionItem value={level} key={level}>
-                                <AccordionTrigger className="text-lg font-semibold">{level}</AccordionTrigger>
+                                <AccordionTrigger className="text-lg font-semibold">
+                                    <div className="flex items-center gap-4">
+                                        {level}
+                                        {isLevelCompleted && <CheckCircle2 className="h-5 w-5 text-green-500" />}
+                                    </div>
+                                    <span className="text-sm font-normal text-muted-foreground">
+                                        {completedCount} / {totalCount} completed
+                                    </span>
+                                </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
                                         {Array.from({ length: quizzesPerLevel }).map((_, i) => {
