@@ -27,19 +27,20 @@ function SentencePronunciationButton({ sentence }: { sentence: string }) {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       const foundVoice = voices.find(voice => voice.lang.startsWith('ja'));
-      if(foundVoice) {
+      if (foundVoice) {
         setJapaneseVoice(foundVoice);
       }
     };
-    
+
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
     return () => {
-        window.speechSynthesis.onvoiceschanged = null;
-        if (utteranceRef.current) {
-            window.speechSynthesis.cancel();
-        }
+      window.speechSynthesis.onvoiceschanged = null;
+      // Ensure any ongoing speech is stopped when the component unmounts.
+      if (utteranceRef.current) {
+        window.speechSynthesis.cancel();
+      }
     };
   }, []);
 
@@ -88,9 +89,10 @@ function SentencePronunciationButton({ sentence }: { sentence: string }) {
         utteranceRef.current = null;
     };
     utterance.onerror = (event) => {
+      // The 'interrupted' error is common and can be ignored if we manage state correctly.
       if (event.error === 'interrupted') {
-        setIsPlaying(false);
-        return;
+          setIsPlaying(false);
+          return;
       }
       console.error('Speech synthesis error', event.error);
       toast({
@@ -119,14 +121,16 @@ function SentencePronunciationButton({ sentence }: { sentence: string }) {
 }
 
 export function SentenceGenerator({ card }: { card: Flashcard }) {
-  const [level, setLevel] = useState<ProficiencyLevel>(() => {
-    if (card.level === 'N5' || card.level === 'N4') return 'beginner';
-    if (card.level === 'N3') return 'intermediate';
-    return 'advanced';
-  });
+  const [level, setLevel] = useState<ProficiencyLevel>('beginner');
   const [sentences, setSentences] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+   useEffect(() => {
+    if (card.level === 'N5' || card.level === 'N4') setLevel('beginner');
+    else if (card.level === 'N3') setLevel('intermediate');
+    else setLevel('advanced');
+  }, [card.level]);
 
   const handleGenerate = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
