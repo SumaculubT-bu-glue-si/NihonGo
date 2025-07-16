@@ -6,7 +6,7 @@ import type { Deck, StatsData } from '@/lib/data';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Star, CheckCircle, MoreVertical, PlusCircle, Edit, Trash2, Settings } from 'lucide-react';
+import { Star, CheckCircle, MoreVertical, PlusCircle, Edit, Trash2, Settings, Wand2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -29,6 +29,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { DeckForm } from './deck-form';
 import { Progress } from '@/components/ui/progress';
+import { GenerateDeckForm, type GenerateDeckData } from './generate-deck-form';
+import { useToast } from '@/hooks/use-toast';
 
 function DeckCard({
   deck,
@@ -155,10 +157,11 @@ interface DeckBrowserProps {
   userStats: StatsData[];
   onSave: (deckData: Deck, editingDeck: Deck | null) => void;
   onDelete: (id: string) => void;
+  onGenerate: (deckData: GenerateDeckData) => void;
 }
 
 
-export function DeckBrowser({ decks, userStats, onSave, onDelete }: DeckBrowserProps) {
+export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: DeckBrowserProps) {
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('favorite-decks');
@@ -168,7 +171,9 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete }: DeckBrowserP
   });
   const [filter, setFilter] = useState('All');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false);
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
+  const { toast } = useToast();
 
   const toggleFavorite = (id: string) => {
     setFavorites((prev) => {
@@ -193,10 +198,19 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete }: DeckBrowserP
     setIsFormOpen(true);
   };
 
+  const handleGenerateNew = () => {
+    setIsGenerateFormOpen(true);
+  };
+
   const handleSaveDeck = (deckData: Deck) => {
     onSave(deckData, editingDeck);
     setIsFormOpen(false);
     setEditingDeck(null);
+  }
+
+  const handleGenerateDeck = (deckData: GenerateDeckData) => {
+    onGenerate(deckData);
+    setIsGenerateFormOpen(false);
   }
 
   const categories = ['All', 'Vocabulary', 'Grammar', 'Kanji', 'Phrases', 'Favorites'];
@@ -216,10 +230,16 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete }: DeckBrowserP
             Choose a deck to start your learning journey.
             </p>
         </div>
-        <Button onClick={handleAddNew} className="mt-4 sm:mt-0">
-          <PlusCircle className="mr-2" />
-          Add New Deck
-        </Button>
+        <div className="flex items-center gap-2 mt-4 sm:mt-0">
+          <Button onClick={handleGenerateNew} variant="outline">
+            <Wand2 className="mr-2" />
+            Generate Deck with AI
+          </Button>
+          <Button onClick={handleAddNew}>
+            <PlusCircle className="mr-2" />
+            Add New Deck
+          </Button>
+        </div>
       </div>
 
       <Tabs value={filter} onValueChange={setFilter} className="mb-6">
@@ -266,6 +286,12 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete }: DeckBrowserP
         onOpenChange={setIsFormOpen}
         onSave={handleSaveDeck}
         deck={editingDeck}
+      />
+      
+      <GenerateDeckForm
+        isOpen={isGenerateFormOpen}
+        onOpenChange={setIsGenerateFormOpen}
+        onGenerate={handleGenerateDeck}
       />
     </div>
   );

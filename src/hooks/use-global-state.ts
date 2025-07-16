@@ -19,6 +19,7 @@ interface GlobalStateContextType {
   addDeck: (deckData: Omit<Deck, 'id' | 'cards'>) => void;
   updateDeck: (deckId: string, deckData: Partial<Deck>) => void;
   deleteDeck: (deckId: string) => void;
+  addGeneratedDeck: (deckData: Omit<Deck, 'id'>) => void;
   addCard: (deckId: string, cardData: Omit<Flashcard, 'id'>) => void;
   updateCard: (deckId: string, cardId: string, cardData: Partial<Flashcard>) => void;
   deleteCard: (deckId: string, cardId: string) => void;
@@ -107,6 +108,26 @@ export const useGlobalStateData = () => {
                 total: 0,
             };
             return {
+                ...prevData,
+                decks: [newDeck, ...prevData.decks],
+                userStats: [...prevData.userStats, newStat]
+            };
+        });
+    }, []);
+    
+    const addGeneratedDeck = useCallback((deckData: Omit<Deck, 'id'>) => {
+        setAppData(prevData => {
+            const newDeck: Deck = {
+                ...deckData,
+                id: `deck-${Date.now()}`,
+                cards: deckData.cards.map(card => ({...card, id: `card-${Date.now()}-${Math.random()}`}))
+            };
+            const newStat: StatsData = {
+                topic: newDeck.title,
+                progress: 0,
+                total: newDeck.cards.length,
+            };
+             return {
                 ...prevData,
                 decks: [newDeck, ...prevData.decks],
                 userStats: [...prevData.userStats, newStat]
@@ -281,6 +302,7 @@ export const useGlobalStateData = () => {
         addDeck,
         updateDeck,
         deleteDeck,
+        addGeneratedDeck,
         addCard,
         updateCard,
         deleteCard,

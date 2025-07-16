@@ -8,9 +8,11 @@ import { StatsView } from '../stats/stats-view';
 import { useGlobalState } from '@/hooks/use-global-state';
 import { useToast } from '@/hooks/use-toast';
 import type { Deck } from '@/lib/data';
+import { generateDeck } from '@/ai/flows/generate-deck-flow';
+import { type GenerateDeckData } from './generate-deck-form';
 
 export default function HomePage() {
-  const { appData, isLoading, addDeck, updateDeck, deleteDeck } = useGlobalState();
+  const { appData, isLoading, addDeck, updateDeck, deleteDeck, addGeneratedDeck } = useGlobalState();
   const { toast } = useToast();
 
   const handleSaveDeck = (deckData: Deck, editingDeck: Deck | null) => {
@@ -40,6 +42,36 @@ export default function HomePage() {
     });
   };
 
+  const handleGenerateDeck = async (data: GenerateDeckData) => {
+    const generatingToast = toast({
+      title: 'Generating Deck...',
+      description: 'The AI is creating your new deck. This might take a moment.',
+    });
+
+    try {
+      const generatedData = await generateDeck(data);
+      addGeneratedDeck({
+        ...generatedData,
+        category: data.category,
+        level: data.level,
+      });
+
+      generatingToast.update({
+        id: generatingToast.id,
+        title: 'Deck Generated!',
+        description: `Successfully created the "${generatedData.title}" deck.`,
+      });
+    } catch (error) {
+      console.error("Deck generation failed", error);
+       generatingToast.update({
+        id: generatingToast.id,
+        title: 'Generation Failed',
+        description: 'Could not generate the deck. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (isLoading) {
     return (
         <AuthGuard>
@@ -62,6 +94,7 @@ export default function HomePage() {
               userStats={appData.userStats}
               onSave={handleSaveDeck} 
               onDelete={handleDeleteDeck}
+              onGenerate={handleGenerateDeck}
             />
         </div>
       </AppLayout>
