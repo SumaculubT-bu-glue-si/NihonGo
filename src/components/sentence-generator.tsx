@@ -37,7 +37,6 @@ function SentencePronunciationButton({ sentence }: { sentence: string }) {
 
     return () => {
       window.speechSynthesis.onvoiceschanged = null;
-      // Ensure any ongoing speech is stopped when the component unmounts.
       if (utteranceRef.current) {
         window.speechSynthesis.cancel();
       }
@@ -89,7 +88,6 @@ function SentencePronunciationButton({ sentence }: { sentence: string }) {
         utteranceRef.current = null;
     };
     utterance.onerror = (event) => {
-      // The 'interrupted' error is common and can be ignored if we manage state correctly.
       if (event.error === 'interrupted') {
           setIsPlaying(false);
           return;
@@ -120,17 +118,23 @@ function SentencePronunciationButton({ sentence }: { sentence: string }) {
   );
 }
 
+const deriveLevelFromCard = (card: Flashcard): ProficiencyLevel => {
+    if (card.level === 'N5' || card.level === 'N4') return 'beginner';
+    if (card.level === 'N3') return 'intermediate';
+    return 'advanced';
+};
+
 export function SentenceGenerator({ card }: { card: Flashcard }) {
-  const [level, setLevel] = useState<ProficiencyLevel>('beginner');
+  const [level, setLevel] = useState<ProficiencyLevel>(() => deriveLevelFromCard(card));
   const [sentences, setSentences] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
    useEffect(() => {
-    if (card.level === 'N5' || card.level === 'N4') setLevel('beginner');
-    else if (card.level === 'N3') setLevel('intermediate');
-    else setLevel('advanced');
-  }, [card.level]);
+    setLevel(deriveLevelFromCard(card));
+    setSentences([]);
+  }, [card]);
+
 
   const handleGenerate = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
