@@ -32,6 +32,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
+import { useGlobalState } from '@/hooks/use-global-state';
 
 
 function AudioPlayer({ src, onPlay }: { src: string, onPlay: () => void }) {
@@ -73,6 +74,7 @@ export function QuizClientPage({
   const [showResults, setShowResults] = useState(false);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const { toast } = useToast();
+  const { updateQuizScore } = useGlobalState();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
@@ -123,6 +125,21 @@ export function QuizClientPage({
     loadQuiz();
   }, [loadQuiz]);
 
+  const handleNextQuestion = () => {
+    setIsAnswered(false);
+    setSelectedAnswer(null);
+
+    if (currentQuestionIndex < (quiz?.questions.length ?? 0) - 1) {
+      setCurrentQuestionIndex(i => i + 1);
+    } else {
+      setShowResults(true);
+      const finalScore = Math.round((score / (quiz?.questions.length ?? 1)) * 100);
+      if (quiz) {
+        updateQuizScore(quiz.id, finalScore);
+      }
+    }
+  };
+
   const handleAnswerSubmit = () => {
     if (!selectedAnswer || !quiz) return;
 
@@ -135,17 +152,6 @@ export function QuizClientPage({
 
     setUserAnswers(prev => [...prev, selectedAnswer]);
     setIsAnswered(true);
-  };
-
-  const handleNextQuestion = () => {
-    setIsAnswered(false);
-    setSelectedAnswer(null);
-
-    if (currentQuestionIndex < (quiz?.questions.length ?? 0) - 1) {
-      setCurrentQuestionIndex(i => i + 1);
-    } else {
-      setShowResults(true);
-    }
   };
 
   const handleRestartQuiz = () => {
@@ -185,6 +191,7 @@ export function QuizClientPage({
   }
 
   if (showResults && quiz) {
+    const finalScore = Math.round((score / quiz.questions.length) * 100);
     return (
       <div className="mx-auto max-w-2xl">
         <Card>
@@ -197,7 +204,7 @@ export function QuizClientPage({
             <CardContent className="space-y-6">
                 <div className="text-center">
                     <p className="text-5xl font-bold">
-                        {((score / quiz.questions.length) * 100).toFixed(0)}%
+                        {finalScore}%
                     </p>
                 </div>
                 <div className="space-y-4 max-h-80 overflow-y-auto pr-2">

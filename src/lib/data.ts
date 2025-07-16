@@ -41,6 +41,12 @@ export interface QuizQuestion {
 }
 
 export interface Quiz {
+  id: string;
   title: string;
   questions: QuizQuestion[];
+}
+
+export interface QuizScore {
+  quizId: string;
+  highestScore: number; // Stored as a percentage (0-100)
 }

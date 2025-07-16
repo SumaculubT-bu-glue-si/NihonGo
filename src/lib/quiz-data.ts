@@ -11,6 +11,7 @@ export const allQuizzes: QuizCollection = {
   vocabulary: {
     N5: [
       {
+        id: 'quiz-voc-n5-1',
         title: 'N5 Vocabulary Quiz #1',
         questions: [
           {
@@ -78,6 +79,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N4: [
       {
+        id: 'quiz-voc-n4-1',
         title: 'N4 Vocabulary Quiz #1',
         questions: [
             { questionText: 'What does 「意見」 (いけん) mean?', options: ['Idea', 'Opinion', 'Plan', 'Feeling'], correctAnswer: 'Opinion', explanation: '「意見」(いけん) means opinion.' },
@@ -95,6 +97,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N3: [
       {
+        id: 'quiz-voc-n3-1',
         title: 'N3 Vocabulary Quiz #1',
         questions: [
             { questionText: 'What does 「情報」 (じょうほう) mean?', options: ['Emotion', 'Situation', 'Information', 'Condition'], correctAnswer: 'Information', explanation: '「情報」(じょうほう) means information.' },
@@ -112,6 +115,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N2: [
       {
+        id: 'quiz-voc-n2-1',
         title: 'N2 Vocabulary Quiz #1',
         questions: [
             { questionText: 'What does 「貢献する」 (こうけんする) mean?', options: ['To criticize', 'To analyze', 'To contribute', 'To operate'], correctAnswer: 'To contribute', explanation: '「貢献する」(こうけんする) means to contribute.' },
@@ -129,6 +133,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N1: [
       {
+        id: 'quiz-voc-n1-1',
         title: 'N1 Vocabulary Quiz #1',
         questions: [
             { questionText: 'What does 「普遍的」 (ふへんてき) mean?', options: ['Unique', 'Specific', 'Partial', 'Universal'], correctAnswer: 'Universal', explanation: '「普遍的」(ふへんてき) is a na-adjective meaning universal or general.' },
@@ -148,6 +153,7 @@ export const allQuizzes: QuizCollection = {
   grammar: {
     N5: [
       {
+        id: 'quiz-gram-n5-1',
         title: 'N5 Grammar Quiz #1',
         questions: [
           {
@@ -215,6 +221,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N4: [
        {
+        id: 'quiz-gram-n4-1',
         title: 'N4 Grammar Quiz #1',
         questions: [
           { questionText: 'Fill in the blank: ピアノを弾くこと ___ できます。', options: ['が', 'を', 'は', 'に'], correctAnswer: 'が', explanation: 'The structure「Verb-dictionary form + こと + ができます」is used to express ability ("can do").' },
@@ -232,6 +239,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N3: [
        {
+        id: 'quiz-gram-n3-1',
         title: 'N3 Grammar Quiz #1',
         questions: [
           { questionText: 'Fill in the blank: 先生のおかげ ___ 、合格できました。 (Thanks to the teacher, I was able to pass.)', options: ['で', 'に', 'を', 'と'], correctAnswer: 'で', explanation: 'The grammar point「～おかげで」means "thanks to" a positive reason or cause.' },
@@ -249,6 +257,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N2: [
        {
+        id: 'quiz-gram-n2-1',
         title: 'N2 Grammar Quiz #1',
         questions: [
           { questionText: 'Fill in the blank: この問題は難しくて、私 ___ どうしようもない。', options: ['にとって', 'として', 'にしては', 'にこたえて'], correctAnswer: 'にとって', explanation: '「～にとって」means "for X" or "from X\'s perspective," indicating a point of view or standard of judgment.' },
@@ -266,6 +275,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N1: [
        {
+        id: 'quiz-gram-n1-1',
         title: 'N1 Grammar Quiz #1',
         questions: [
           { questionText: 'Fill in the blank: このような事態を招いたのは、経営陣の判断ミスに ___ ならない。', options: ['ほか', 'しか', 'だけ', 'のみ'], correctAnswer: 'ほか', explanation: '「～にほかならない」is a strong statement meaning "it is nothing but..." or "it is precisely...".' },
@@ -285,6 +295,7 @@ export const allQuizzes: QuizCollection = {
   listening: {
     N5: [
         {
+          id: 'quiz-list-n5-1',
           title: 'N5 Listening Quiz #1',
           questions: [
             {
@@ -352,6 +363,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N4: [
       {
+        id: 'quiz-list-n4-1',
         title: 'N4 Listening Quiz #1',
         questions: [
             { questionText: 'この仕事は明日までに終わらせなければなりません。', options: ['I don\'t have to finish this work by tomorrow.', 'I must finish this work by tomorrow.', 'I might finish this work by tomorrow.', 'I want to finish this work by tomorrow.'], correctAnswer: 'I must finish this work by tomorrow.', explanation: '「～なければなりません」is a strong expression of obligation, meaning "must do" or "have to do".' },
@@ -369,6 +381,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N3: [
       {
+        id: 'quiz-list-n3-1',
         title: 'N3 Listening Quiz #1',
         questions: [
             { questionText: '最近、運動不足のせいか、ちょっと太ってきた。', options: ['I\'ve been gaining weight, probably because I\'m exercising a lot.', 'I\'ve been losing weight, probably because of a lack of exercise.', 'I\'ve been gaining weight, probably because of a lack of exercise.', 'I\'ve been gaining weight, but I don\'t know why.'], correctAnswer: 'I\'ve been gaining weight, probably because of a lack of exercise.', explanation: '「～せいか」means "perhaps because of..." (with a negative nuance), and 「太ってきた」means "have started to gain weight".' },
@@ -386,6 +399,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N2: [
       {
+        id: 'quiz-list-n2-1',
         title: 'N2 Listening Quiz #1',
         questions: [
             { questionText: 'この状況を放置しておけば、問題は悪化するにほかならない。', options: ['If we leave this situation as is, the problem will definitely get worse.', 'If we leave this situation as is, the problem might get better.', 'If we leave this situation as is, the problem will not change.', 'The problem is not that bad even if we leave it.'], correctAnswer: 'If we leave this situation as is, the problem will definitely get worse.', explanation: '「～にほかならない」is a strong assertion meaning "it is nothing other than..." or "it is precisely...". Here, it emphasizes the certainty of the outcome.' },
@@ -403,6 +417,7 @@ export const allQuizzes: QuizCollection = {
     ],
     N1: [
       {
+        id: 'quiz-list-n1-1',
         title: 'N1 Listening Quiz #1',
         questions: [
             { questionText: '彼のしたことは、非難されてしかるべきだ。', options: ['His actions should be praised.', 'His actions deserve to be criticized.', 'His actions are neither good nor bad.', 'No one should criticize his actions.'], correctAnswer: 'His actions deserve to be criticized.', explanation: '「～てしかるべきだ」is a strong expression meaning that something is natural, proper, or deserved according to common sense or social norms.' },

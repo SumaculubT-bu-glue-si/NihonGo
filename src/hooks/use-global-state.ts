@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import type { Deck, StatsData, Flashcard, GrammarLesson } from '@/lib/data';
+import type { Deck, StatsData, Flashcard, GrammarLesson, QuizScore } from '@/lib/data';
 import { decks as initialDecks, userStats as initialUserStats, grammarLessons as initialGrammarLessons } from '@/lib/initial-data';
 
 const STORAGE_KEY = 'nihongo-app-data';
@@ -11,6 +11,7 @@ export interface AppData {
   decks: Deck[];
   userStats: StatsData[];
   grammarLessons: GrammarLesson[];
+  quizScores: QuizScore[];
 }
 
 interface GlobalStateContextType {
@@ -29,6 +30,7 @@ interface GlobalStateContextType {
   addGrammarLesson: (lessonData: Omit<GrammarLesson, 'id' | 'read'>) => void;
   updateGrammarLesson: (lessonId: string, lessonData: Partial<Omit<GrammarLesson, 'id' | 'read'>>) => void;
   deleteGrammarLesson: (lessonId: string) => void;
+  updateQuizScore: (quizId: string, score: number) => void;
 }
 
 export const GlobalStateContext = createContext<GlobalStateContextType | undefined>(undefined);
@@ -42,29 +44,27 @@ export const useGlobalState = (): GlobalStateContextType => {
 };
 
 export const useGlobalStateData = () => {
-    const [appData, setAppData] = useState<AppData>({ decks: [], userStats: [], grammarLessons: [] });
+    const [appData, setAppData] = useState<AppData>({ decks: [], userStats: [], grammarLessons: [], quizScores: [] });
     const [isLoading, setIsLoading] = useState(true);
 
     const loadFromLocalStorage = (): AppData => {
         try {
           const serializedState = localStorage.getItem(STORAGE_KEY);
           if (serializedState === null) {
-            const initialData = { decks: initialDecks, userStats: initialUserStats, grammarLessons: initialGrammarLessons };
+            const initialData = { decks: initialDecks, userStats: initialUserStats, grammarLessons: initialGrammarLessons, quizScores: [] };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
             return initialData;
           }
           const storedData = JSON.parse(serializedState);
-          if (storedData.decks && storedData.userStats) {
-             // Ensure grammarLessons is not undefined
-            if (!storedData.grammarLessons) {
-                storedData.grammarLessons = initialGrammarLessons;
-            }
-            return storedData;
-          }
+          // Ensure all keys exist
+          if (!storedData.grammarLessons) storedData.grammarLessons = initialGrammarLessons;
+          if (!storedData.quizScores) storedData.quizScores = [];
+          
+          return storedData;
         } catch (error) {
           console.error("Error loading from localStorage", error);
         }
-        return { decks: initialDecks, userStats: initialUserStats, grammarLessons: initialGrammarLessons };
+        return { decks: initialDecks, userStats: initialUserStats, grammarLessons: initialGrammarLessons, quizScores: [] };
     };
 
     useEffect(() => {
@@ -320,6 +320,30 @@ export const useGlobalStateData = () => {
         }));
     }, []);
 
+    const updateQuizScore = useCallback((quizId: string, newScore: number) => {
+        setAppData(prevData => {
+            const existingScore = prevData.quizScores.find(s => s.quizId === quizId);
+            if (existingScore) {
+                // Update score if new one is higher
+                if (newScore > existingScore.highestScore) {
+                    return {
+                        ...prevData,
+                        quizScores: prevData.quizScores.map(s => s.quizId === quizId ? { ...s, highestScore: newScore } : s),
+                    };
+                }
+            } else {
+                // Add new score
+                const newScoreEntry: QuizScore = { quizId, highestScore: newScore };
+                return {
+                    ...prevData,
+                    quizScores: [...prevData.quizScores, newScoreEntry],
+                };
+            }
+            // Return previous data if no change
+            return prevData;
+        });
+    }, []);
+
 
     return {
         appData,
@@ -337,5 +361,6 @@ export const useGlobalStateData = () => {
         addGrammarLesson,
         updateGrammarLesson,
         deleteGrammarLesson,
+        updateQuizScore,
     };
 };
