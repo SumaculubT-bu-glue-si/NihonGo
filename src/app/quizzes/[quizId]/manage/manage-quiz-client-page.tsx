@@ -26,8 +26,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { QuizForm, type QuizFormData } from '../quiz-form';
-import { QuestionForm, type QuestionFormData } from '../question-form';
+import { QuizForm, type QuizFormData } from '../../quiz-form';
+import { QuestionForm, type QuestionFormData } from '../../question-form';
 
 export function ManageQuizClientPage({ quiz: initialQuiz }: { quiz: Quiz }) {
   const { appData, updateQuiz, addQuestionToQuiz, updateQuestionInQuiz, deleteQuestionFromQuiz } = useGlobalState();
