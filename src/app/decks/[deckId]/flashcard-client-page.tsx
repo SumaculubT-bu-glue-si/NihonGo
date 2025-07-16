@@ -155,25 +155,22 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const handleDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
     if (cardsToShow.length === 0) return;
 
-    if (difficulty === 'easy') {
-        const newMasteredCount = masteredCount + 1;
-        setMasteredCount(newMasteredCount);
-        updateStats(deck.title, newMasteredCount);
-    }
-
     setCardsToShow(currentCards => {
         let newCardsToShow = [...currentCards];
         const cardToMove = newCardsToShow.splice(currentIndex, 1)[0];
 
-        if (difficulty === 'medium') {
+        if (difficulty === 'easy') {
+            const newMasteredCount = masteredCount + 1;
+            setMasteredCount(newMasteredCount);
+            updateStats(deck.title, newMasteredCount);
+        } else if (difficulty === 'medium') {
             const halfway = Math.ceil((newCardsToShow.length - currentIndex) / 2) + currentIndex;
             newCardsToShow.splice(halfway, 0, cardToMove);
         } else if (difficulty === 'hard') {
             const position = Math.min(currentIndex + 3, newCardsToShow.length);
             newCardsToShow.splice(position, 0, cardToMove);
         }
-        // For 'easy', the card is simply removed, not re-inserted.
-
+        
         if (currentIndex >= newCardsToShow.length && newCardsToShow.length > 0) {
             setCurrentIndex(0);
         }
