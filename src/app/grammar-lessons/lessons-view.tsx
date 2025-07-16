@@ -170,7 +170,7 @@ export function GrammarLessonsView() {
         </div>
         <Card>
             <CardHeader>
-                <CardTitle>Overall Progress</CardTitle>
+                <CardTitle>Grammar Lesson Completion</CardTitle>
                 <CardDescription>
                     You have completed {readLessons} of {totalLessons} lessons.
                 </CardDescription>
