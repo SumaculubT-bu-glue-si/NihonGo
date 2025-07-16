@@ -131,7 +131,7 @@ export function SentenceGenerator({ card }: { card: Flashcard }) {
   const { toast } = useToast();
 
    useEffect(() => {
-    // This effect runs when the card prop changes.
+    // This effect runs ONLY when the card prop changes to a new card.
     // It resets the level and clears old sentences for the new card.
     setLevel(deriveLevelFromCard(card));
     setSentences([]);
