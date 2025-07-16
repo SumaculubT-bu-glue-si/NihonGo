@@ -392,7 +392,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       <div className="w-full mb-4">
         <div className="flex justify-between items-center mb-2">
             <Link href="/decks" className="text-sm text-primary hover:underline">
-                &larr; {deck.title}
+                &larr; Back to Decks
             </Link>
             <span className="text-sm text-muted-foreground">{masteredCount} / {totalCards} Mastered</span>
         </div>
