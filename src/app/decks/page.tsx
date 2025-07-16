@@ -88,7 +88,7 @@ export default function HomePage() {
     <AuthGuard>
       <AppLayout>
         <div className="space-y-8">
-            <StatsView stats={appData.userStats} />
+            <StatsView appData={appData} />
             <DeckBrowser 
               decks={appData.decks} 
               userStats={appData.userStats}
