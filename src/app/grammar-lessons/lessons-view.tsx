@@ -46,7 +46,6 @@ import {
 import { LessonForm, type LessonFormData } from './lesson-form';
 import { GenerateLessonForm } from './generate-lesson-form';
 import { useToast } from '@/hooks/use-toast';
-import { Progress } from '@/components/ui/progress';
 
 
 type LevelFilter = 'All' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
@@ -76,17 +75,6 @@ export function GrammarLessonsView() {
         return true;
       });
   }, [appData.grammarLessons, levelFilter, statusFilter]);
-
-  const { totalLessons, readLessons, overallProgress } = useMemo(() => {
-    const total = appData.grammarLessons.length;
-    const read = appData.grammarLessons.filter(l => l.read).length;
-    const progress = total > 0 ? (read / total) * 100 : 0;
-    return {
-      totalLessons: total,
-      readLessons: read,
-      overallProgress: progress,
-    };
-  }, [appData.grammarLessons]);
 
   const handleMarkAsRead = (lessonId: string, isRead: boolean) => {
     toggleGrammarLessonRead(lessonId, isRead);
@@ -168,17 +156,6 @@ export function GrammarLessonsView() {
                 </p>
             </div>
         </div>
-        <Card>
-            <CardHeader>
-                <CardTitle>Grammar Lesson Completion</CardTitle>
-                <CardDescription>
-                    You have completed {readLessons} of {totalLessons} lessons.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Progress value={overallProgress} />
-            </CardContent>
-        </Card>
       </div>
 
       <Accordion type="single" collapsible className="w-full">
