@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -22,7 +23,7 @@ const FlashcardSchema = z.object({
     level: cardLevelSchema.describe("The JLPT level of the card. Should align with the deck's level."),
 });
 
-export const GenerateCardsInputSchema = z.object({
+const GenerateCardsInputSchema = z.object({
   deckContext: z.object({
     title: z.string().describe('The title of the deck.'),
     description: z.string().describe('The description of the deck.'),
@@ -34,7 +35,7 @@ export const GenerateCardsInputSchema = z.object({
 });
 export type GenerateCardsInput = z.infer<typeof GenerateCardsInputSchema>;
 
-export const GenerateCardsOutputSchema = z.object({
+const GenerateCardsOutputSchema = z.object({
   cards: z.array(FlashcardSchema).describe('An array of newly generated flashcards.'),
 });
 export type GenerateCardsOutput = z.infer<typeof GenerateCardsOutputSchema>;
