@@ -23,7 +23,7 @@ export default function StatsPage() {
   return (
     <AuthGuard>
       <AppLayout>
-        <StatsView fullPage={true} stats={appData.userStats} />
+        <StatsView appData={appData} />
       </AppLayout>
     </AuthGuard>
   );
