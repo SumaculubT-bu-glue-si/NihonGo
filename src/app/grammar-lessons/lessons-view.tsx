@@ -11,13 +11,22 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { GrammarCheckerTool } from './checker-view';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, BookOpenCheck } from 'lucide-react';
+import { CheckCircle2, BookOpenCheck, Eye } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 type LevelFilter = 'All' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 type StatusFilter = 'all' | 'read' | 'unread';
@@ -27,7 +36,7 @@ export function GrammarLessonsView() {
   const { appData, isLoading, toggleGrammarLessonRead } = useGlobalState();
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('All');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [expandedLesson, setExpandedLesson] = useState<string | undefined>();
+  const [selectedLesson, setSelectedLesson] = useState<GrammarLesson | null>(null);
 
   const filteredLessons = useMemo(() => {
     return appData.grammarLessons
@@ -100,40 +109,37 @@ export function GrammarLessonsView() {
                 </RadioGroup>
               </div>
 
-              <div className="space-y-2 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
                  {filteredLessons.length > 0 ? (
-                    <Accordion type="single" collapsible value={expandedLesson} onValueChange={setExpandedLesson}>
-                        {filteredLessons.map(lesson => (
-                            <AccordionItem value={lesson.id} key={lesson.id}>
-                                <AccordionTrigger>
-                                    <div className="flex items-center justify-between w-full pr-4">
-                                        <div className="flex items-center gap-4">
-                                            {lesson.read ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : <BookOpenCheck className="h-5 w-5 text-muted-foreground" />}
-                                            <span className="text-left">{lesson.title}</span>
+                    filteredLessons.map(lesson => (
+                        <Card key={lesson.id} className="flex flex-col">
+                            <CardHeader>
+                                <div className="flex justify-between items-start">
+                                    <Badge variant="outline">{lesson.level}</Badge>
+                                    {lesson.read ? (
+                                        <div className="flex items-center gap-1 text-xs text-green-600">
+                                            <CheckCircle2 className="h-4 w-4" />
+                                            <span>Read</span>
                                         </div>
-                                        <Badge variant="outline">{lesson.level}</Badge>
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="prose prose-sm max-w-none p-4 rounded-b-md border-t bg-secondary/50">
-                                    <p>{lesson.explanation}</p>
-                                    <h4 className="font-semibold">Examples:</h4>
-                                    <ul>
-                                        {lesson.examples.map((ex, i) => <li key={i}>{ex}</li>)}
-                                    </ul>
-                                    <Button
-                                        size="sm"
-                                        variant={lesson.read ? 'secondary' : 'default'}
-                                        onClick={() => handleMarkAsRead(lesson.id, !lesson.read)}
-                                        className="mt-4"
-                                    >
-                                        {lesson.read ? 'Mark as Unread' : 'Mark as Read'}
-                                    </Button>
-                                </AccordionContent>
-                            </AccordionItem>
-                        ))}
-                    </Accordion>
+                                     ) : (
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <BookOpenCheck className="h-4 w-4" />
+                                            <span>Unread</span>
+                                        </div>
+                                     )}
+                                </div>
+                                <CardTitle className="pt-2">{lesson.title}</CardTitle>
+                            </CardHeader>
+                            <CardFooter className="mt-auto">
+                                <Button className="w-full" onClick={() => setSelectedLesson(lesson)}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    View Lesson
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    ))
                  ) : (
-                    <div className="text-center text-muted-foreground py-10">
+                    <div className="col-span-full text-center text-muted-foreground py-10">
                         <p>No lessons match the current filters.</p>
                     </div>
                  )}
@@ -141,6 +147,48 @@ export function GrammarLessonsView() {
           </CardContent>
         </Card>
       </div>
+
+       {selectedLesson && (
+        <Dialog open={!!selectedLesson} onOpenChange={() => setSelectedLesson(null)}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">{selectedLesson.title}</DialogTitle>
+              <DialogDescription>
+                <Badge variant="secondary">{selectedLesson.level}</Badge>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="prose prose-sm max-w-none text-card-foreground leading-relaxed py-4">
+              <p>{selectedLesson.explanation}</p>
+              <h4 className="font-semibold">Examples:</h4>
+              <ul>
+                {selectedLesson.examples.map((ex, i) => (
+                  <li key={i}>{ex}</li>
+                ))}
+              </ul>
+            </div>
+            <DialogFooter className="sm:justify-between sm:items-center">
+                <p className="text-sm text-muted-foreground">
+                    Status: {selectedLesson.read ? "Read" : "Unread"}
+                </p>
+                <div className="flex gap-2">
+                     <Button
+                        size="sm"
+                        variant={selectedLesson.read ? 'secondary' : 'default'}
+                        onClick={() => handleMarkAsRead(selectedLesson.id, !selectedLesson.read)}
+                        className="mt-4"
+                    >
+                        {selectedLesson.read ? 'Mark as Unread' : 'Mark as Read'}
+                    </Button>
+                    <DialogClose asChild>
+                        <Button type="button" variant="outline">
+                        Close
+                        </Button>
+                    </DialogClose>
+                </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
