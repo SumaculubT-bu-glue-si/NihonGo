@@ -40,8 +40,6 @@ export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; sta
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  angle={-45}
-                  textAnchor="end"
                   interval={0}
                 />
                 <YAxis 
