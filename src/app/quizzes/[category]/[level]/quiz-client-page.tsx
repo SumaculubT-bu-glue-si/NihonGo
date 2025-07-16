@@ -2,8 +2,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { type Quiz, type QuizQuestion } from '@/lib/data';
-import { generateQuiz } from '@/ai/flows/generate-quiz-flow';
+import type { Quiz, QuizQuestion } from '@/lib/data';
+// We are no longer generating quizzes on the fly
+// import { generateQuiz } from '@/ai/flows/generate-quiz-flow';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -62,7 +63,7 @@ export function QuizClientPage({
   quizNumber: number;
 }) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -72,29 +73,22 @@ export function QuizClientPage({
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const { toast } = useToast();
 
+  const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
+
+  // This is now a placeholder. In a real app, you would fetch this from a static data file.
   const loadQuiz = useCallback(async () => {
     setIsLoading(true);
-    setError(null);
-    setQuiz(null);
-    try {
-      const generatedQuiz = await generateQuiz({
-        category,
-        level,
-        existingQuestionContext: [ `Quiz number ${quizNumber}` ],
-      });
-      setQuiz(generatedQuiz);
-    } catch (e) {
-      console.error('Failed to generate quiz:', e);
-      setError('Failed to load the quiz. Please try again.');
-      toast({
-        title: 'Error',
-        description: 'Could not generate a quiz. Please try again later.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [category, level, quizNumber, toast]);
+    // Simulate loading
+    await new Promise(res => setTimeout(res, 500));
+    
+    // In a real implementation, you would look up the quiz from a file
+    // based on category, level, and quizNumber.
+    // For now, we'll show a "not implemented" message.
+    setQuiz(null); // No quiz data available yet
+    setError(`Quizzes are not yet implemented. This is a placeholder for ${categoryTitle} ${level} Quiz #${quizNumber}.`);
+
+    setIsLoading(false);
+  }, [category, level, quizNumber, categoryTitle]);
 
   useEffect(() => {
     loadQuiz();
@@ -135,28 +129,28 @@ export function QuizClientPage({
     loadQuiz();
   };
   
-  const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
-
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <h2 className="mt-4 text-2xl font-semibold">Generating Your Quiz...</h2>
-        <p className="text-muted-foreground">The AI is crafting questions for {categoryTitle} Quiz #{quizNumber} ({level}).</p>
+        <h2 className="mt-4 text-2xl font-semibold">Loading Your Quiz...</h2>
+        <p className="text-muted-foreground">Preparing {categoryTitle} Quiz #{quizNumber} ({level}).</p>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !quiz) {
     return (
       <div className="text-center">
         <XCircle className="mx-auto h-12 w-12 text-destructive" />
-        <h2 className="mt-4 text-2xl font-semibold">Oops! Something went wrong.</h2>
-        <p className="text-muted-foreground">{error}</p>
-        <Button onClick={loadQuiz} className="mt-4">
-          <Repeat className="mr-2 h-4 w-4" />
-          Try Again
-        </Button>
+        <h2 className="mt-4 text-2xl font-semibold">Quiz Not Available</h2>
+        <p className="text-muted-foreground">{error || 'This quiz could not be loaded.'}</p>
+         <Link href={`/quizzes`} passHref>
+            <Button variant="outline" className="mt-4">
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back to Quizzes
+            </Button>
+        </Link>
       </div>
     );
   }
@@ -205,7 +199,7 @@ export function QuizClientPage({
                         <Repeat className="mr-2 h-4 w-4" />
                         Take Another Quiz
                     </Button>
-                    <Link href={`/quizzes/${category}`} passHref>
+                    <Link href={`/quizzes`} passHref>
                         <Button variant="outline">
                             <ChevronLeft className="mr-2 h-4 w-4" />
                             Back to Quiz List
@@ -218,17 +212,13 @@ export function QuizClientPage({
     );
   }
 
-  if (!quiz) {
-    return null;
-  }
-
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
 
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4">
-        <Link href={`/quizzes/${category}`} className="text-sm text-primary hover:underline">
+        <Link href={`/quizzes`} className="text-sm text-primary hover:underline">
           &larr; Back to Quiz List
         </Link>
         <Progress value={progress} className="mt-2 h-2" />
