@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -20,6 +20,7 @@ type ProficiencyLevel = 'beginner' | 'intermediate' | 'advanced';
 function SentencePronunciationButton({ sentence }: { sentence: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [japaneseVoice, setJapaneseVoice] = useState<SpeechSynthesisVoice | null>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,11 +37,11 @@ function SentencePronunciationButton({ sentence }: { sentence: string }) {
 
     return () => {
         window.speechSynthesis.onvoiceschanged = null;
-        if (isPlaying) {
+        if (utteranceRef.current) {
             window.speechSynthesis.cancel();
         }
     };
-  }, [isPlaying]);
+  }, []);
 
 
   const handlePlayback = (e: React.MouseEvent) => {
@@ -61,6 +62,10 @@ function SentencePronunciationButton({ sentence }: { sentence: string }) {
       return;
     }
 
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
+
     if (!japaneseVoice) {
         toast({
             title: 'No Japanese Voice Pack',
@@ -70,15 +75,23 @@ function SentencePronunciationButton({ sentence }: { sentence: string }) {
         return;
     }
 
-
     const utterance = new SpeechSynthesisUtterance(sentence);
+    utteranceRef.current = utterance;
+    
     utterance.voice = japaneseVoice;
     utterance.lang = 'ja-JP';
     utterance.rate = 0.9;
 
     utterance.onstart = () => setIsPlaying(true);
-    utterance.onend = () => setIsPlaying(false);
+    utterance.onend = () => {
+        setIsPlaying(false);
+        utteranceRef.current = null;
+    };
     utterance.onerror = (event) => {
+      if (event.error === 'interrupted') {
+        setIsPlaying(false);
+        return;
+      }
       console.error('Speech synthesis error', event.error);
       toast({
         title: 'Pronunciation Error',

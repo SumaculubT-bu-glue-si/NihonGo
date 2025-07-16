@@ -26,11 +26,12 @@ export function PronunciationButton({ text }: { text: string }) {
 
     return () => {
       window.speechSynthesis.onvoiceschanged = null;
-      if (isPlaying) {
+      // Ensure any ongoing speech is stopped when the component unmounts.
+      if (utteranceRef.current) {
         window.speechSynthesis.cancel();
       }
     };
-  }, [isPlaying]);
+  }, []);
 
   const handlePronunciation = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -44,10 +45,16 @@ export function PronunciationButton({ text }: { text: string }) {
         return;
     }
     
+    // If this button is currently playing, stop it.
     if (isPlaying) {
       window.speechSynthesis.cancel();
       setIsPlaying(false);
       return;
+    }
+    
+    // If another audio is playing, stop it before starting a new one.
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
     }
     
     if (!japaneseVoice) {
@@ -76,6 +83,11 @@ export function PronunciationButton({ text }: { text: string }) {
     };
     
     utterance.onerror = (event) => {
+        // The 'interrupted' error is common and can be ignored if we manage state correctly.
+        if (event.error === 'interrupted') {
+            setIsPlaying(false);
+            return;
+        }
         console.error('Speech synthesis error', event.error);
         toast({
             title: 'Pronunciation Error',
