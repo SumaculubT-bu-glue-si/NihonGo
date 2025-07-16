@@ -75,6 +75,140 @@ export const allQuizzes: QuizCollection = {
           },
         ],
       },
+      {
+        title: 'N5 Vocabulary Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N5 Vocab Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N5 Vocabulary Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N5 Vocab Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      }
+    ],
+    N4: [
+      {
+        title: 'N4 Vocabulary Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N4 Vocab Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N4 Vocabulary Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N4 Vocab Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N4 Vocabulary Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N4 Vocab Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      }
+    ],
+    N3: [
+      {
+        title: 'N3 Vocabulary Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N3 Vocab Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N3 Vocabulary Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N3 Vocab Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N3 Vocabulary Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N3 Vocab Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      }
+    ],
+    N2: [
+      {
+        title: 'N2 Vocabulary Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N2 Vocab Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N2 Vocabulary Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N2 Vocab Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N2 Vocabulary Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N2 Vocab Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      }
+    ],
+    N1: [
+      {
+        title: 'N1 Vocabulary Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N1 Vocab Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N1 Vocabulary Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N1 Vocab Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N1 Vocabulary Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N1 Vocab Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      }
     ],
   },
   grammar: {
@@ -144,7 +278,141 @@ export const allQuizzes: QuizCollection = {
           },
         ],
       },
+      {
+        title: 'N5 Grammar Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N5 Grammar Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N5 Grammar Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N5 Grammar Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      }
     ],
+    N4: [
+       {
+        title: 'N4 Grammar Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N4 Grammar Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+       {
+        title: 'N4 Grammar Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N4 Grammar Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+       {
+        title: 'N4 Grammar Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N4 Grammar Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      }
+    ],
+    N3: [
+       {
+        title: 'N3 Grammar Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N3 Grammar Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+       {
+        title: 'N3 Grammar Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N3 Grammar Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+       {
+        title: 'N3 Grammar Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N3 Grammar Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      }
+    ],
+    N2: [
+       {
+        title: 'N2 Grammar Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N2 Grammar Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+       {
+        title: 'N2 Grammar Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N2 Grammar Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+       {
+        title: 'N2 Grammar Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N2 Grammar Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      }
+    ],
+    N1: [
+       {
+        title: 'N1 Grammar Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N1 Grammar Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+       {
+        title: 'N1 Grammar Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N1 Grammar Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+       {
+        title: 'N1 Grammar Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N1 Grammar Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      }
+    ]
   },
   listening: {
     N5: [
@@ -213,6 +481,140 @@ export const allQuizzes: QuizCollection = {
             }
           ],
         },
+        {
+          title: 'N5 Listening Quiz #2',
+          questions: Array.from({ length: 10 }, (_, i) => ({
+              questionText: `Placeholder question ${i+1} for N5 Listening Quiz 2`,
+              options: ['A', 'B', 'C', 'D'],
+              correctAnswer: 'A',
+              explanation: 'This is a placeholder explanation.'
+          }))
+        },
+        {
+          title: 'N5 Listening Quiz #3',
+          questions: Array.from({ length: 10 }, (_, i) => ({
+              questionText: `Placeholder question ${i+1} for N5 Listening Quiz 3`,
+              options: ['A', 'B', 'C', 'D'],
+              correctAnswer: 'A',
+              explanation: 'This is a placeholder explanation.'
+          }))
+        }
     ],
+    N4: [
+      {
+        title: 'N4 Listening Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N4 Listening Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N4 Listening Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N4 Listening Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N4 Listening Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N4 Listening Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+    ],
+    N3: [
+      {
+        title: 'N3 Listening Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N3 Listening Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N3 Listening Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N3 Listening Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N3 Listening Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N3 Listening Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+    ],
+    N2: [
+      {
+        title: 'N2 Listening Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N2 Listening Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N2 Listening Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N2 Listening Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N2 Listening Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N2 Listening Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+    ],
+    N1: [
+      {
+        title: 'N1 Listening Quiz #1',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N1 Listening Quiz 1`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N1 Listening Quiz #2',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N1 Listening Quiz 2`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+      {
+        title: 'N1 Listening Quiz #3',
+        questions: Array.from({ length: 10 }, (_, i) => ({
+            questionText: `Placeholder question ${i+1} for N1 Listening Quiz 3`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A',
+            explanation: 'This is a placeholder explanation.'
+        }))
+      },
+    ]
   },
 };
