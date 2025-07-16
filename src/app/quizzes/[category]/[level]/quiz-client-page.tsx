@@ -13,7 +13,6 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
-  Volume2,
   Lightbulb,
   Repeat,
   ChevronLeft,
@@ -31,28 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 import { useGlobalState } from '@/hooks/use-global-state';
-
-
-function AudioPlayer({ src, onPlay }: { src: string, onPlay: () => void }) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  const playAudio = () => {
-    onPlay();
-    audioRef.current?.play();
-  };
-
-  return (
-    <div>
-      <audio ref={audioRef} src={src} preload="auto" />
-      <Button onClick={playAudio} variant="outline" size="lg">
-        <Volume2 className="mr-2 h-6 w-6" />
-        Play Question
-      </Button>
-    </div>
-  );
-}
 
 
 export function QuizClientPage({
@@ -60,7 +38,7 @@ export function QuizClientPage({
   level,
   quizNumber,
 }: {
-  category: 'vocabulary' | 'grammar' | 'listening';
+  category: 'vocabulary' | 'grammar';
   level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
   quizNumber: number;
 }) {
@@ -93,26 +71,7 @@ export function QuizClientPage({
         const quizData = levelQuizzes[quizNumber - 1];
         if (!quizData) throw new Error(`Quiz #${quizNumber} not found.`);
 
-        if (category === 'listening') {
-            const generatingToast = toast({
-              title: 'Preparing Audio...',
-              description: 'Generating audio for the listening quiz. Please wait.',
-            });
-            const questionsWithAudio = await Promise.all(
-                quizData.questions.map(async (q) => {
-                    const audio = await textToSpeech({ text: q.questionText });
-                    return { ...q, audioDataUri: audio.media };
-                })
-            );
-            generatingToast.update({ 
-                id: generatingToast.id,
-                title: 'Audio Ready!',
-                description: 'The listening quiz is ready to start.',
-            })
-            setQuiz({ ...quizData, questions: questionsWithAudio });
-        } else {
-            setQuiz(quizData);
-        }
+        setQuiz(quizData);
     } catch (e: any) {
         console.error(e);
         setError(e.message || 'There was an error loading this quiz.');
@@ -251,17 +210,6 @@ export function QuizClientPage({
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex) / quiz.questions.length) * 100;
   
-  const playAudio = () => {
-    if (currentQuestion.audioDataUri) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      const audio = new Audio(currentQuestion.audioDataUri);
-      audioRef.current = audio;
-      audio.play();
-    }
-  };
-
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4">
@@ -277,13 +225,8 @@ export function QuizClientPage({
       <Card>
         <CardHeader>
           <CardTitle className="text-xl md:text-2xl">
-            {category === 'listening' ? "Listen to the sentence and choose the correct meaning." : currentQuestion.questionText}
+            {currentQuestion.questionText}
           </CardTitle>
-          {category === 'listening' && currentQuestion.audioDataUri && (
-            <div className="mt-4">
-                <AudioPlayer src={currentQuestion.audioDataUri} onPlay={playAudio} />
-            </div>
-          )}
         </CardHeader>
         <CardContent>
           <RadioGroup

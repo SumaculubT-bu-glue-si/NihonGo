@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BookText, Headphones, SpellCheck } from 'lucide-react';
+import { BookText, SpellCheck } from 'lucide-react';
 import Link from 'next/link';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useGlobalState } from '@/hooks/use-global-state';
@@ -21,12 +21,6 @@ const quizCategories = [
     description: 'Challenge your understanding of Japanese grammar patterns.',
     icon: <BookText className="h-8 w-8 text-primary" />,
     type: 'grammar' as const,
-  },
-  {
-    name: 'Listening',
-    description: 'Assess your listening comprehension skills with audio-based questions.',
-    icon: <Headphones className="h-8 w-8 text-primary" />,
-    type: 'listening' as const,
   },
 ];
 
@@ -61,8 +55,11 @@ export function QuizzesView() {
                             <AccordionTrigger className="text-lg font-semibold">{level}</AccordionTrigger>
                             <AccordionContent>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
-                                    {allQuizzes[category.type][level]?.map((quiz, i) => {
+                                    {Array.from({ length: quizzesPerLevel }).map((_, i) => {
                                       const quizNum = i + 1;
+                                      const quiz = allQuizzes[category.type][level]?.[i];
+                                      if (!quiz) return null;
+
                                       const highestScore = getHighestScore(quiz.id);
                                       return (
                                         <Link 

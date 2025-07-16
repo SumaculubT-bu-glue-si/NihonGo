@@ -10,11 +10,11 @@ export default function QuizPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   
-  const category = params.category as 'vocabulary' | 'grammar' | 'listening';
+  const category = params.category as 'vocabulary' | 'grammar';
   const level = params.level as 'n5' | 'n4' | 'n3' | 'n2' | 'n1';
   const quizNumber = searchParams.get('num') || '1';
 
-  const validCategories = ['vocabulary', 'grammar', 'listening'];
+  const validCategories = ['vocabulary', 'grammar'];
   const validLevels = ['n5', 'n4', 'n3', 'n2', 'n1'];
 
   if (!validCategories.includes(category) || !validLevels.includes(level)) {

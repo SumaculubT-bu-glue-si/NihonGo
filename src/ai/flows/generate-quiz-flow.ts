@@ -11,9 +11,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { textToSpeech } from './text-to-speech-flow';
 
-const QuizCategorySchema = z.enum(['vocabulary', 'grammar', 'listening']);
+const QuizCategorySchema = z.enum(['vocabulary', 'grammar']);
 const QuizLevelSchema = z.enum(['N5', 'N4', 'N3', 'N2', 'N1']);
 
 const GenerateQuizInputSchema = z.object({
@@ -38,15 +37,6 @@ export type GenerateQuizOutput = z.infer<typeof QuizSchema>;
 
 export async function generateQuiz(input: GenerateQuizInput): Promise<GenerateQuizOutput> {
   const result = await generateQuizFlow(input);
-
-  if (input.category === 'listening') {
-    const questionsWithAudio = await Promise.all(result.questions.map(async (q) => {
-        const audioData = await textToSpeech({ text: q.questionText });
-        return { ...q, audioDataUri: audioData.media };
-    }));
-    return { ...result, questions: questionsWithAudio };
-  }
-  
   return result;
 }
 
@@ -65,7 +55,6 @@ Your task is to generate a quiz with exactly 10 unique and challenging questions
 
 - For 'vocabulary' quizzes, test knowledge of words. The question can be in Japanese or English.
 - For 'grammar' quizzes, test understanding of grammar points. The question should present a sentence with a blank and ask the user to fill it in.
-- For 'listening' quizzes, the 'questionText' should be a simple Japanese sentence to be read aloud. The user will not see this text. The options should be possible English translations.
 
 Rules:
 - Each question must have 4 options.

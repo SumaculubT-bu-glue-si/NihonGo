@@ -7,4 +7,3 @@ import '@/ai/flows/generate-grammar-lesson-flow.ts';
 import '@/ai/flows/generate-deck-flow.ts';
 import '@/ai/flows/generate-cards-flow.ts';
 import '@/ai/flows/generate-quiz-flow.ts';
-import '@/ai/flows/text-to-speech-flow.ts';
