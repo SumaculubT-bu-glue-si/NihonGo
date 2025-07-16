@@ -104,13 +104,17 @@ export function StatsView({ appData }: StatsViewProps) {
         N2: 'hsl(var(--chart-4))',
         N1: 'hsl(var(--chart-5))',
     };
-
-    const quizChartData = Object.entries(scoresByLevel).map(([name, data]) => ({
-        name,
-        average: data.average,
-        count: data.count,
-        fill: levelColors[name as keyof typeof levelColors]
-    })).sort((a,b) => a.name.localeCompare(b.name));
+    
+    const allLevels: ('N5' | 'N4' | 'N3' | 'N2' | 'N1')[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
+    const quizChartData = allLevels.map(level => {
+        const data = scoresByLevel[level];
+        return {
+            name: level,
+            average: data ? data.average : 0,
+            count: data ? data.count : 0,
+            fill: levelColors[level],
+        };
+    });
 
 
     return { deckStats: deckStatsForAI, grammarStats, grammarChartData, quizStats: quizStatsForAI, quizChartData, deckChartStats };
