@@ -24,6 +24,9 @@ interface GlobalStateContextType {
   deleteCard: (deckId: string, cardId: string) => void;
   updateStats: (topic: string, masteredCount: number) => void;
   toggleGrammarLessonRead: (lessonId: string, read: boolean) => void;
+  addGrammarLesson: (lessonData: Omit<GrammarLesson, 'id' | 'read'>) => void;
+  updateGrammarLesson: (lessonId: string, lessonData: Partial<Omit<GrammarLesson, 'id' | 'read'>>) => void;
+  deleteGrammarLesson: (lessonId: string) => void;
 }
 
 export const GlobalStateContext = createContext<GlobalStateContextType | undefined>(undefined);
@@ -241,6 +244,36 @@ export const useGlobalStateData = () => {
         }));
     }, []);
 
+    const addGrammarLesson = useCallback((lessonData: Omit<GrammarLesson, 'id' | 'read'>) => {
+        setAppData(prevData => {
+            const newLesson: GrammarLesson = {
+                ...lessonData,
+                id: `gl-${Date.now()}`,
+                read: false,
+            };
+            return {
+                ...prevData,
+                grammarLessons: [newLesson, ...prevData.grammarLessons],
+            };
+        });
+    }, []);
+
+    const updateGrammarLesson = useCallback((lessonId: string, lessonData: Partial<Omit<GrammarLesson, 'id' | 'read'>>) => {
+        setAppData(prevData => ({
+            ...prevData,
+            grammarLessons: prevData.grammarLessons.map(lesson =>
+                lesson.id === lessonId ? { ...lesson, ...lessonData } : lesson
+            ),
+        }));
+    }, []);
+
+    const deleteGrammarLesson = useCallback((lessonId: string) => {
+        setAppData(prevData => ({
+            ...prevData,
+            grammarLessons: prevData.grammarLessons.filter(lesson => lesson.id !== lessonId),
+        }));
+    }, []);
+
 
     return {
         appData,
@@ -253,5 +286,8 @@ export const useGlobalStateData = () => {
         deleteCard,
         updateStats,
         toggleGrammarLessonRead,
+        addGrammarLesson,
+        updateGrammarLesson,
+        deleteGrammarLesson,
     };
 };
