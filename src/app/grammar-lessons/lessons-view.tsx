@@ -149,22 +149,12 @@ export function GrammarLessonsView() {
   return (
     <div className="container mx-auto space-y-8">
       <div>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
+        <div className="mb-2">
             <div>
                 <h1 className="text-3xl font-bold font-headline">Grammar</h1>
                 <p className="text-muted-foreground">
                 Explore grammar points, check your sentences, and build your own library.
                 </p>
-            </div>
-            <div className="flex items-center gap-2 mt-4 sm:mt-0">
-                <Button onClick={handleGenerateNew} variant="outline">
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    Generate with AI
-                </Button>
-                <Button onClick={handleAddNew}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add New Lesson
-                </Button>
             </div>
         </div>
       </div>
@@ -181,7 +171,19 @@ export function GrammarLessonsView() {
       </Accordion>
 
       <div>
-        <h2 className="text-2xl font-bold font-headline mb-4">Lessons Library</h2>
+         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+            <h2 className="text-2xl font-bold font-headline">Lessons Library</h2>
+            <div className="flex items-center gap-2 mt-4 sm:mt-0">
+                <Button onClick={handleGenerateNew} variant="outline">
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Generate with AI
+                </Button>
+                <Button onClick={handleAddNew}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add New Lesson
+                </Button>
+            </div>
+        </div>
         <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-between">
               <Tabs value={levelFilter} onValueChange={(v) => setLevelFilter(v as LevelFilter)}>
