@@ -19,7 +19,6 @@ const QuizLevelSchema = z.enum(['N5', 'N4', 'N3', 'N2', 'N1']);
 const GenerateQuizInputSchema = z.object({
   category: QuizCategorySchema,
   level: QuizLevelSchema,
-  existingQuestionContext: z.array(z.string()).describe('A list of context from existing questions to ensure variety and avoid repetition.'),
 });
 export type GenerateQuizInput = z.infer<typeof GenerateQuizInputSchema>;
 
@@ -72,10 +71,7 @@ Rules:
 - Each question must have 4 options.
 - The 'correctAnswer' must exactly match one of the options.
 - Provide a concise 'explanation' for each correct answer.
-- Ensure variety. Do not repeat concepts from this list of previous questions:
-{{#each existingQuestionContext}}
-- {{{this}}}
-{{/each}}
+- Ensure variety and do not repeat concepts.
 `,
 });
 

@@ -3,8 +3,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Quiz, QuizQuestion } from '@/lib/data';
-// We are no longer generating quizzes on the fly
-// import { generateQuiz } from '@/ai/flows/generate-quiz-flow';
+import { allQuizzes } from '@/lib/quiz-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -32,12 +31,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 
 
-function AudioPlayer({ src }: { src: string }) {
+function AudioPlayer({ src, onPlay }: { src: string, onPlay: () => void }) {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const playAudio = () => {
+    onPlay();
     audioRef.current?.play();
   };
 
@@ -63,7 +64,7 @@ export function QuizClientPage({
   quizNumber: number;
 }) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -72,23 +73,51 @@ export function QuizClientPage({
   const [showResults, setShowResults] = useState(false);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const { toast } = useToast();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
 
-  // This is now a placeholder. In a real app, you would fetch this from a static data file.
   const loadQuiz = useCallback(async () => {
     setIsLoading(true);
-    // Simulate loading
-    await new Promise(res => setTimeout(res, 500));
-    
-    // In a real implementation, you would look up the quiz from a file
-    // based on category, level, and quizNumber.
-    // For now, we'll show a "not implemented" message.
-    setQuiz(null); // No quiz data available yet
-    setError(`Quizzes are not yet implemented. This is a placeholder for ${categoryTitle} ${level} Quiz #${quizNumber}.`);
+    setError(null);
+    setQuiz(null);
+    try {
+        const categoryQuizzes = allQuizzes[category];
+        if (!categoryQuizzes) throw new Error(`No quizzes found for category: ${category}`);
 
-    setIsLoading(false);
-  }, [category, level, quizNumber, categoryTitle]);
+        const levelQuizzes = categoryQuizzes[level];
+        if (!levelQuizzes || levelQuizzes.length === 0) throw new Error(`No quizzes found for level: ${level}`);
+
+        const quizData = levelQuizzes[quizNumber - 1];
+        if (!quizData) throw new Error(`Quiz #${quizNumber} not found.`);
+
+        if (category === 'listening') {
+            const generatingToast = toast({
+              title: 'Preparing Audio...',
+              description: 'Generating audio for the listening quiz. Please wait.',
+            });
+            const questionsWithAudio = await Promise.all(
+                quizData.questions.map(async (q) => {
+                    const audio = await textToSpeech({ text: q.questionText });
+                    return { ...q, audioDataUri: audio.media };
+                })
+            );
+            generatingToast.update({ 
+                id: generatingToast.id,
+                title: 'Audio Ready!',
+                description: 'The listening quiz is ready to start.',
+            })
+            setQuiz({ ...quizData, questions: questionsWithAudio });
+        } else {
+            setQuiz(quizData);
+        }
+    } catch (e: any) {
+        console.error(e);
+        setError(e.message || 'There was an error loading this quiz.');
+    } finally {
+        setIsLoading(false);
+    }
+  }, [category, level, quizNumber, toast]);
 
   useEffect(() => {
     loadQuiz();
@@ -160,7 +189,7 @@ export function QuizClientPage({
       <div className="mx-auto max-w-2xl">
         <Card>
             <CardHeader className="text-center">
-                <CardTitle className="text-3xl">Quiz Results for {categoryTitle} Quiz #{quizNumber}</CardTitle>
+                <CardTitle className="text-3xl">Quiz Results for {quiz.title}</CardTitle>
                 <CardDescription>
                 You scored {score} out of {quiz.questions.length}!
                 </CardDescription>
@@ -171,7 +200,7 @@ export function QuizClientPage({
                         {((score / quiz.questions.length) * 100).toFixed(0)}%
                     </p>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
                     {quiz.questions.map((q, index) => (
                         <div key={index} className="rounded-lg border p-4">
                              <p className="font-medium">{index + 1}. {q.questionText}</p>
@@ -194,10 +223,10 @@ export function QuizClientPage({
                         </div>
                     ))}
                 </div>
-                <div className="flex justify-center gap-4">
+                <div className="flex justify-center gap-4 border-t pt-6">
                     <Button onClick={handleRestartQuiz}>
                         <Repeat className="mr-2 h-4 w-4" />
-                        Take Another Quiz
+                        Take This Quiz Again
                     </Button>
                     <Link href={`/quizzes`} passHref>
                         <Button variant="outline">
@@ -213,7 +242,18 @@ export function QuizClientPage({
   }
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
+  const progress = ((currentQuestionIndex) / quiz.questions.length) * 100;
+  
+  const playAudio = () => {
+    if (currentQuestion.audioDataUri) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const audio = new Audio(currentQuestion.audioDataUri);
+      audioRef.current = audio;
+      audio.play();
+    }
+  };
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -234,7 +274,7 @@ export function QuizClientPage({
           </CardTitle>
           {category === 'listening' && currentQuestion.audioDataUri && (
             <div className="mt-4">
-                <AudioPlayer src={currentQuestion.audioDataUri} />
+                <AudioPlayer src={currentQuestion.audioDataUri} onPlay={playAudio} />
             </div>
           )}
         </CardHeader>
