@@ -47,6 +47,7 @@ import {
 import { LessonForm, type LessonFormData } from './lesson-form';
 import { GenerateLessonForm } from './generate-lesson-form';
 import { useToast } from '@/hooks/use-toast';
+import { GrammarStatsChart } from './grammar-stats-chart';
 
 
 type LevelFilter = 'All' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
@@ -149,7 +150,7 @@ export function GrammarLessonsView() {
   return (
     <div className="container mx-auto space-y-8">
       <div>
-        <div className="mb-2">
+        <div className="mb-6">
             <div>
                 <h1 className="text-3xl font-bold font-headline">Grammar</h1>
                 <p className="text-muted-foreground">
@@ -157,6 +158,7 @@ export function GrammarLessonsView() {
                 </p>
             </div>
         </div>
+        <GrammarStatsChart lessons={appData.grammarLessons} />
       </div>
 
       <Accordion type="single" collapsible className="w-full">
@@ -374,3 +376,5 @@ export function GrammarLessonsView() {
     </div>
   );
 }
+
+    
