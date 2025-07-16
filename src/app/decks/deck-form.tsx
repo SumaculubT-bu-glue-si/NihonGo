@@ -137,7 +137,7 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
+                          <SelectValue aria-label={field.value} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -160,7 +160,7 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a level" />
+                          <SelectValue aria-label={field.value} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

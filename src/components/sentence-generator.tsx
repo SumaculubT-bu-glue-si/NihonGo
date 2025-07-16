@@ -135,7 +135,7 @@ export function SentenceGenerator({ card }: { card: Flashcard }) {
     // It resets the level and clears old sentences for the new card.
     setLevel(deriveLevelFromCard(card));
     setSentences([]);
-  }, [card]);
+  }, [card.id]);
 
 
   const handleGenerate = async (e?: React.MouseEvent) => {
@@ -168,7 +168,7 @@ export function SentenceGenerator({ card }: { card: Flashcard }) {
           onValueChange={(value: ProficiencyLevel) => setLevel(value)}
         >
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Proficiency" />
+          <SelectValue aria-label={level} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="beginner">Beginner</SelectItem>
