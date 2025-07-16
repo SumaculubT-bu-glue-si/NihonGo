@@ -16,7 +16,7 @@ import { textToSpeech } from './text-to-speech-flow';
 const QuizCategorySchema = z.enum(['vocabulary', 'grammar', 'listening']);
 const QuizLevelSchema = z.enum(['N5', 'N4', 'N3', 'N2', 'N1']);
 
-export const GenerateQuizInputSchema = z.object({
+const GenerateQuizInputSchema = z.object({
   category: QuizCategorySchema,
   level: QuizLevelSchema,
   existingQuestionContext: z.array(z.string()).describe('A list of context from existing questions to ensure variety and avoid repetition.'),
