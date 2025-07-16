@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { GrammarLesson } from '@/lib/data';
 import { useGlobalState } from '@/hooks/use-global-state';
 import {
@@ -14,7 +14,7 @@ import { GrammarCheckerTool } from './checker-view';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, BookOpenCheck, Eye } from 'lucide-react';
+import { CheckCircle2, BookOpenCheck, Eye, Lightbulb } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -27,6 +27,7 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 
 type LevelFilter = 'All' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 type StatusFilter = 'all' | 'read' | 'unread';
@@ -51,6 +52,8 @@ export function GrammarLessonsView() {
 
   const handleMarkAsRead = (lessonId: string, isRead: boolean) => {
     toggleGrammarLessonRead(lessonId, isRead);
+    // Update the selectedLesson state to reflect the change immediately in the dialog
+    setSelectedLesson(prev => prev ? { ...prev, read: isRead } : null);
   };
   
   if (isLoading) {
@@ -129,8 +132,13 @@ export function GrammarLessonsView() {
                               </div>
                               <CardTitle className="pt-2">{lesson.title}</CardTitle>
                           </CardHeader>
-                          <CardFooter className="mt-auto">
-                              <Button className="w-full" onClick={() => setSelectedLesson(lesson)}>
+                           <CardContent className="flex-grow">
+                            <p className="text-sm text-muted-foreground line-clamp-3">
+                              {lesson.explanation}
+                            </p>
+                          </CardContent>
+                          <CardFooter>
+                              <Button className="w-full" variant="outline" onClick={() => setSelectedLesson(lesson)}>
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Lesson
                               </Button>
@@ -150,38 +158,59 @@ export function GrammarLessonsView() {
         <Dialog open={!!selectedLesson} onOpenChange={() => setSelectedLesson(null)}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
-              <div className="flex items-center justify-between">
-                <DialogTitle className="text-2xl">{selectedLesson.title}</DialogTitle>
-                <Badge variant="secondary">{selectedLesson.level}</Badge>
-              </div>
-              <DialogDescription>
-                {selectedLesson.explanation}
-              </DialogDescription>
+               <div className="flex items-center justify-between">
+                 <DialogTitle className="text-2xl font-headline">{selectedLesson.title}</DialogTitle>
+                 <Badge variant="secondary">{selectedLesson.level}</Badge>
+               </div>
             </DialogHeader>
-            <div className="prose prose-sm max-w-none text-card-foreground leading-relaxed py-4">
-              <h4 className="font-semibold">Examples:</h4>
-              <ul>
-                {selectedLesson.examples.map((ex, i) => (
-                  <li key={i}>{ex}</li>
-                ))}
-              </ul>
+            <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto pr-2">
+                <div>
+                    <h3 className="flex items-center text-sm font-semibold uppercase text-muted-foreground mb-2">
+                        <Lightbulb className="mr-2 h-4 w-4" />
+                        Explanation
+                    </h3>
+                    <div className="prose prose-sm max-w-none rounded-md border bg-secondary/50 p-4 text-card-foreground leading-relaxed">
+                        <p>{selectedLesson.explanation}</p>
+                    </div>
+                </div>
+
+                 <div>
+                    <h3 className="flex items-center text-sm font-semibold uppercase text-muted-foreground mb-2">
+                        Examples
+                    </h3>
+                     <div className="prose prose-sm max-w-none text-card-foreground leading-relaxed">
+                        <ul className="space-y-2 rounded-md border p-4">
+                            {selectedLesson.examples.map((ex, i) => (
+                            <li key={i}>{ex}</li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <DialogFooter className="sm:justify-between sm:items-center">
-                <p className="text-sm text-muted-foreground">
-                    Status: {selectedLesson.read ? "Read" : "Unread"}
+            <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between sm:items-center border-t pt-4">
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    Status: 
+                     {selectedLesson.read ? (
+                        <span className="flex items-center gap-1 text-green-600 font-medium">
+                            <CheckCircle2 className="h-4 w-4" /> Read
+                        </span>
+                     ) : (
+                        <span className="flex items-center gap-1 font-medium">
+                           <BookOpenCheck className="h-4 w-4" /> Unread
+                        </span>
+                     )}
                 </p>
                 <div className="flex gap-2">
                      <Button
                         size="sm"
                         variant={selectedLesson.read ? 'secondary' : 'default'}
                         onClick={() => handleMarkAsRead(selectedLesson.id, !selectedLesson.read)}
-                        className="mt-4"
                     >
                         {selectedLesson.read ? 'Mark as Unread' : 'Mark as Read'}
                     </Button>
                     <DialogClose asChild>
-                        <Button type="button" variant="outline">
-                        Close
+                        <Button type="button" variant="outline" size="sm">
+                            Close
                         </Button>
                     </DialogClose>
                 </div>
