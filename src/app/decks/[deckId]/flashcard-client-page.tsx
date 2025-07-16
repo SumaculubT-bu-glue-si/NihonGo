@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import type { Deck, Flashcard as FlashcardType } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 
-function Flashcard({
+const Flashcard = memo(function Flashcard({
   card,
   isFlipped,
 }: {
@@ -55,7 +55,7 @@ function Flashcard({
       </Card>
     </div>
   );
-}
+});
 
 export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const [cardsToShow, setCardsToShow] = useState<FlashcardType[]>([]);
@@ -142,14 +142,11 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     }
   }, [appData.decks, appData.userStats, deck.title, isLoading, currentIndex]);
   
-  // This effect safely syncs the local masteredCount with the global state
+  // This effect safely syncs the local masteredCount with the global state after render.
   useEffect(() => {
-    // We don't want to run this on the initial load, only on subsequent changes
-    // to masteredCount triggered by user action. A simple check is to see if masteredCount is > initial progress.
     const deckStats = appData.userStats.find(s => s.topic === deck.title);
-    const initialProgress = deckStats ? deckStats.progress : 0;
-    if (masteredCount > initialProgress || (masteredCount === 0 && initialProgress > 0)) {
-       updateStats(deck.title, masteredCount);
+    if (deckStats && masteredCount !== deckStats.progress) {
+      updateStats(deck.title, masteredCount);
     }
   }, [masteredCount, deck.title, updateStats, appData.userStats]);
 
@@ -157,23 +154,28 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const handleDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
     if (cardsToShow.length === 0) return;
 
-    let newCardsToShow = [...cardsToShow];
-    const cardToMove = newCardsToShow.splice(currentIndex, 1)[0];
-    
     if (difficulty === 'easy') {
-        // Just remove from queue, the mastered count is updated separately
-        setMasteredCount(prev => prev + 1);
-    } else if (difficulty === 'medium') {
-        const halfway = Math.ceil((newCardsToShow.length - currentIndex) / 2) + currentIndex;
-        newCardsToShow.splice(halfway, 0, cardToMove);
-    } else { // 'hard'
-        const position = Math.min(currentIndex + 3, newCardsToShow.length);
-        newCardsToShow.splice(position, 0, cardToMove);
+      setMasteredCount(prev => prev + 1);
     }
 
-    setCardsToShow(newCardsToShow);
+    setCardsToShow(prevCards => {
+        let newCardsToShow = [...prevCards];
+        const cardToMove = newCardsToShow.splice(currentIndex, 1)[0];
+        
+        if (difficulty === 'easy') {
+            // Card is just removed from the session queue.
+        } else if (difficulty === 'medium') {
+            const halfway = Math.ceil((newCardsToShow.length - currentIndex) / 2) + currentIndex;
+            newCardsToShow.splice(halfway, 0, cardToMove);
+        } else { // 'hard'
+            const position = Math.min(currentIndex + 3, newCardsToShow.length);
+            newCardsToShow.splice(position, 0, cardToMove);
+        }
+
+        return newCardsToShow;
+    });
     
-    if (currentIndex >= newCardsToShow.length && newCardsToShow.length > 0) {
+    if (currentIndex >= cardsToShow.length -1 && cardsToShow.length > 1) {
         setCurrentIndex(0);
     }
     

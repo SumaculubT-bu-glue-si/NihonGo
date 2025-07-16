@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -124,7 +124,7 @@ const deriveLevelFromCard = (card: Flashcard): ProficiencyLevel => {
     return 'advanced';
 };
 
-export function SentenceGenerator({ card }: { card: Flashcard }) {
+export const SentenceGenerator = memo(function SentenceGenerator({ card }: { card: Flashcard }) {
   const [level, setLevel] = useState<ProficiencyLevel>(() => deriveLevelFromCard(card));
   const [sentences, setSentences] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -201,4 +201,4 @@ export function SentenceGenerator({ card }: { card: Flashcard }) {
       )}
     </div>
   );
-}
+});
