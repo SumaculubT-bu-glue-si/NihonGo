@@ -44,11 +44,23 @@ export async function generateCards(input: GenerateCardsInput): Promise<Generate
   return generateCardsFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateCardsPrompt',
-  input: { schema: GenerateCardsInputSchema },
-  output: { schema: GenerateCardsOutputSchema },
-  prompt: `You are an expert Japanese language tutor creating new flashcards for an existing deck.
+const generateCardsFlow = ai.defineFlow(
+  {
+    name: 'generateCardsFlow',
+    inputSchema: GenerateCardsInputSchema,
+    outputSchema: GenerateCardsOutputSchema,
+  },
+  async (input) => {
+    // Ensure the number of generated cards matches the request count.
+    const customOutputSchema = z.object({
+        cards: z.array(FlashcardSchema).length(input.count).describe(`An array of exactly ${input.count} flashcards.`),
+    });
+
+    const prompt = ai.definePrompt({
+        name: 'generateCardsPromptSized',
+        input: { schema: GenerateCardsInputSchema },
+        output: { schema: customOutputSchema },
+        prompt: `You are an expert Japanese language tutor creating new flashcards for an existing deck.
 
 The user wants to add {{{count}}} new cards to the following deck:
 - Title: {{{deckContext.title}}}
@@ -63,28 +75,9 @@ The deck already contains the following cards (by their front text). You MUST NO
 
 Your task is to generate exactly {{{count}}} new, unique, and relevant flashcards for this deck. Ensure the 'type' and 'level' for each new card are appropriate for the deck's category and level.
 `,
-});
-
-const generateCardsFlow = ai.defineFlow(
-  {
-    name: 'generateCardsFlow',
-    inputSchema: GenerateCardsInputSchema,
-    outputSchema: GenerateCardsOutputSchema,
-  },
-  async (input) => {
-    // Ensure the number of generated cards matches the request count.
-    const customOutputSchema = z.object({
-        cards: z.array(FlashcardSchema).length(input.count).describe(`An array of exactly ${input.count} flashcards.`),
-    });
-
-    const customPrompt = ai.definePrompt({
-        name: 'generateCardsPromptSized',
-        input: { schema: GenerateCardsInputSchema },
-        output: { schema: customOutputSchema },
-        prompt: prompt.template,
     });
         
-    const { output } = await customPrompt(input);
+    const { output } = await prompt(input);
     return output!;
   }
 );
