@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -149,7 +148,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
             setCurrentIndex(0);
         }
     }
-  }, [appData.decks, appData.userStats, deck.title]);
+  }, [appData.decks, appData.userStats, deck.title, isLoading, currentIndex]);
 
 
   const handleDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
