@@ -86,7 +86,7 @@ export function QuizClientPage({
         if (!categoryQuizzes) throw new Error(`No quizzes found for category: ${category}`);
 
         const levelQuizzes = categoryQuizzes[level];
-        if (!levelQuizzes || levelQuizzes.length === 0) throw new Error(`No quizzes found for level: ${level}`);
+        if (!levelQuizzes || levelQuizzes.length === 0) throw new Error(`No quizzes found for level: ${level}. Content may be coming soon!`);
 
         const quizData = levelQuizzes[quizNumber - 1];
         if (!quizData) throw new Error(`Quiz #${quizNumber} not found.`);

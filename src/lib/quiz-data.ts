@@ -3,7 +3,7 @@ import type { Quiz } from './data';
 
 type QuizCollection = {
   [category in 'vocabulary' | 'grammar' | 'listening']: {
-    [level in 'N5' | 'N4' | 'N3' | 'N2' | 'N1']: Quiz[];
+    [level in 'N5' | 'N4' | 'N3' | 'N2' | 'N1']?: Quiz[];
   };
 };
 
@@ -76,10 +76,6 @@ export const allQuizzes: QuizCollection = {
         ],
       },
     ],
-    N4: [],
-    N3: [],
-    N2: [],
-    N1: [],
   },
   grammar: {
     N5: [
@@ -149,10 +145,6 @@ export const allQuizzes: QuizCollection = {
         ],
       },
     ],
-    N4: [],
-    N3: [],
-    N2: [],
-    N1: [],
   },
   listening: {
     N5: [
@@ -222,9 +214,5 @@ export const allQuizzes: QuizCollection = {
           ],
         },
     ],
-    N4: [],
-    N3: [],
-    N2: [],
-    N1: [],
   },
 };
