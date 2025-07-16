@@ -6,7 +6,7 @@ import type { Deck, Flashcard as FlashcardType } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, RotateCw, Lightbulb, PlusCircle, Edit, Trash2, Wand2 } from 'lucide-react';
+import { ChevronLeft, RotateCw, Lightbulb, PlusCircle, Edit, Trash2, Wand2, List } from 'lucide-react';
 import { PronunciationButton } from '@/components/pronunciation-button';
 import { SentenceGenerator } from '@/components/sentence-generator';
 import Link from 'next/link';
@@ -420,26 +420,32 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         </div>
       )}
 
-      <div className="mt-8 flex justify-between w-full text-muted-foreground text-sm">
+      <div className="mt-8 flex justify-between items-center w-full text-muted-foreground text-sm">
         <span>Cards left in session: {cardsToShow.length}</span>
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={handleGenerateNew} className="flex items-center gap-1">
-            <Wand2 className="h-4 w-4"/> AI
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleAddNew} className="flex items-center gap-1">
-            <PlusCircle className="h-4 w-4"/> Add
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleEdit} className="flex items-center gap-1">
-            <Edit className="h-4 w-4"/> Edit
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleDeleteInitiate} className="flex items-center gap-1 text-destructive hover:text-destructive">
-            <Trash2 className="h-4 w-4"/> Delete
-          </Button>
+        <div className="flex items-center gap-2">
+            <Link href={`/decks/${deck.id}/manage`} passHref>
+              <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                <List className="h-4 w-4"/> Manage
+              </Button>
+            </Link>
+             <button onClick={resetSession} className="text-sm hover:text-primary hover:underline">Reset Session</button>
         </div>
       </div>
-      <div className="mt-2 w-full text-right text-sm">
-         <button onClick={resetSession} className="hover:text-primary hover:underline">Reset Session</button>
-      </div>
+       <div className="mt-4 w-full border-t pt-4 flex justify-center items-center gap-4">
+          <Button variant="outline" size="sm" onClick={handleGenerateNew}>
+            <Wand2 className="h-4 w-4 mr-2"/> AI Generate
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleAddNew}>
+            <PlusCircle className="h-4 w-4 mr-2"/> Add Card
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleEdit}>
+            <Edit className="h-4 w-4 mr-2"/> Edit Card
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleDeleteInitiate} className="text-destructive hover:text-destructive">
+            <Trash2 className="h-4 w-4 mr-2"/> Delete Card
+          </Button>
+        </div>
+
 
        <CardForm
           isOpen={isCardFormOpen}
@@ -475,3 +481,5 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     </div>
   );
 }
+
+    
