@@ -31,16 +31,18 @@ export function StatsView({ appData }: StatsViewProps) {
   const [analysis, setAnalysis] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(true); // Start analyzing on load
 
-  const { deckStats, grammarStats, quizStats, quizChartData, grammarChartData } = useMemo(() => {
+  const { deckStats, grammarStats, quizStats, quizChartData, grammarChartData, deckChartStats } = useMemo(() => {
     // Deck Stats
-    const deckStats = appData.userStats.map(stat => ({
-        title: stat.topic, // Rename topic to title for the AI flow
+    const deckStatsForAI = appData.userStats.map(stat => ({
+        title: stat.topic,
         progress: stat.progress,
         total: stat.total,
     }));
     
     const deckChartStats = appData.userStats.map(stat => ({
-        ...stat,
+        topic: stat.topic,
+        progress: stat.progress,
+        total: stat.total,
         percentage: stat.total > 0 ? Math.round((stat.progress / stat.total) * 100) : 0,
     }));
     
@@ -101,7 +103,7 @@ export function StatsView({ appData }: StatsViewProps) {
     })).sort((a,b) => a.name.localeCompare(b.name));
 
 
-    return { deckStats, grammarStats, grammarChartData, quizStats, quizChartData, deckChartStats };
+    return { deckStats: deckStatsForAI, grammarStats, grammarChartData, quizStats, quizChartData, deckChartStats };
   }, [appData]);
   
   useEffect(() => {
