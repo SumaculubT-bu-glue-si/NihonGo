@@ -29,7 +29,7 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
 
 export function StatsView({ appData }: StatsViewProps) {
   const [analysis, setAnalysis] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(true); // Start analyzing on load
 
   const { deckStats, grammarStats, quizStats, quizChartData, grammarChartData } = useMemo(() => {
     // Deck Stats
@@ -57,22 +57,31 @@ export function StatsView({ appData }: StatsViewProps) {
             if (!scoresByLevel[quiz.level]) {
                 scoresByLevel[quiz.level] = { totalScore: 0, count: 0, average: 0 };
             }
-            const scorePercentage = (score.highestScore / quiz.questions.length) * 100;
-            scoresByLevel[quiz.level].totalScore += scorePercentage;
+            const scoreValue = score.highestScore; // This is the raw score now
+            scoresByLevel[quiz.level].totalScore += scoreValue;
             scoresByLevel[quiz.level].count++;
-            totalScoreSum += scorePercentage;
+            totalScoreSum += scoreValue;
         }
     });
     
     Object.keys(scoresByLevel).forEach(level => {
-        scoresByLevel[level].average = Math.round(scoresByLevel[level].totalScore / scoresByLevel[level].count);
+        const quizCountForLevel = appData.quizzes.filter(q => q.level === level && scoresByLevel[level].count > 0).reduce((acc, q) => acc + q.questions.length, 0);
+        const averageRawScore = scoresByLevel[level].totalScore / scoresByLevel[level].count;
+        const totalPossibleScore = quizCountForLevel > 0 ? (appData.quizzes.find(q => q.level === level)?.questions.length ?? 10) * scoresByLevel[level].count : 1;
+        // The average is now based on percentage of raw scores
+        scoresByLevel[level].average = Math.round((scoresByLevel[level].totalScore / totalPossibleScore) * 100);
     });
     
-    const quizzesTaken = appData.quizScores.length;
-    const averageScore = quizzesTaken > 0 ? Math.round(totalScoreSum / quizzesTaken) : 0;
+    const quizzesTakenCount = appData.quizScores.length;
+    const totalQuestionsInTakenQuizzes = appData.quizScores.reduce((acc, score) => {
+        const quiz = appData.quizzes.find(q => q.id === score.quizId);
+        return acc + (quiz?.questions.length ?? 0);
+    }, 0);
+
+    const averageScore = totalQuestionsInTakenQuizzes > 0 ? Math.round((totalScoreSum / totalQuestionsInTakenQuizzes) * 100) : 0;
     
     const quizStats = {
-      quizzesTaken,
+      quizzesTaken: quizzesTakenCount,
       averageScore,
       scoresByLevel: Object.entries(scoresByLevel).reduce((acc, [level, data]) => {
           acc[level] = { average: data.average, count: data.count };
@@ -88,20 +97,27 @@ export function StatsView({ appData }: StatsViewProps) {
 
     return { deckStats, grammarStats, grammarChartData, quizStats, quizChartData };
   }, [appData]);
-
-  const handleAnalyzeProgress = async () => {
-    setIsAnalyzing(true);
-    setAnalysis('');
-    try {
-        const result = await analyzeProgress({ deckStats, grammarStats, quizStats });
-        setAnalysis(result.analysis);
-    } catch (error) {
-        console.error("Failed to analyze progress:", error);
-        setAnalysis("Sorry, I couldn't analyze your progress right now. Please try again later.");
-    } finally {
-        setIsAnalyzing(false);
-    }
-  };
+  
+  useEffect(() => {
+    const handleAnalyzeProgress = async () => {
+        setIsAnalyzing(true);
+        setAnalysis('');
+        try {
+            if (!deckStats.length && !grammarStats.total && !quizStats.quizzesTaken) {
+                 setAnalysis("There's not enough data to analyze your progress yet. Start learning to see your stats here!");
+                 return;
+            }
+            const result = await analyzeProgress({ deckStats, grammarStats, quizStats });
+            setAnalysis(result.analysis);
+        } catch (error) {
+            console.error("Failed to analyze progress:", error);
+            setAnalysis("Sorry, I couldn't analyze your progress right now. Please try again later.");
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+    handleAnalyzeProgress();
+  }, [deckStats, grammarStats, quizStats]);
   
   return (
     <div className="space-y-6">
@@ -116,16 +132,8 @@ export function StatsView({ appData }: StatsViewProps) {
             <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                     <span>AI Analysis</span>
-                    <Button size="sm" onClick={handleAnalyzeProgress} disabled={isAnalyzing}>
-                        {isAnalyzing ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                            <Wand2 className="mr-2 h-4 w-4" />
-                        )}
-                        Analyze My Progress
-                    </Button>
                 </CardTitle>
-                <CardDescription>Get personalized feedback on your learning habits from your AI tutor.</CardDescription>
+                <CardDescription>Personalized feedback on your learning habits from your AI tutor, Go-sensei.</CardDescription>
             </CardHeader>
             <CardContent>
                 {isAnalyzing && (
@@ -134,17 +142,11 @@ export function StatsView({ appData }: StatsViewProps) {
                         <p>Go-sensei is analyzing your progress...</p>
                     </div>
                 )}
-                 {analysis && (
+                 {analysis && !isAnalyzing && (
                     <div className="prose prose-sm max-w-none space-y-2 rounded-md border bg-secondary/50 p-4 text-card-foreground leading-relaxed">
                        {analysis.split('\n').map((paragraph, index) => (
                             <p key={index}>{paragraph}</p>
                         ))}
-                    </div>
-                )}
-                {!analysis && !isAnalyzing && (
-                     <div className="flex items-center gap-3 text-muted-foreground">
-                        <Lightbulb className="h-5 w-5"/>
-                        <p>Click the button to generate your personalized progress report.</p>
                     </div>
                 )}
             </CardContent>
@@ -254,10 +256,12 @@ export function StatsView({ appData }: StatsViewProps) {
                         content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                             const data = payload[0].payload;
+                            const quizData = quizStats.scoresByLevel[data.name];
                             return (
                                 <div className="rounded-lg border bg-background p-2 shadow-sm text-center">
                                     <span className="text-sm font-bold text-foreground">{data.name} Quizzes</span>
                                     <p className="text-xs text-muted-foreground">{`Average score: ${data.Average}%`}</p>
+                                    <p className="text-xs text-muted-foreground">{`(${quizData.count} quiz(zes) taken)`}</p>
                                 </div>
                             )
                             }
