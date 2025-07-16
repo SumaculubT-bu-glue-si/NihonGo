@@ -167,18 +167,6 @@ export function QuizzesView() {
 
   return (
     <div className="space-y-8">
-        <Card>
-            <CardHeader>
-                <CardTitle>Quiz Completion</CardTitle>
-                <CardDescription>
-                    You have completed {completedQuizzes} of {totalQuizzes} quizzes.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Progress value={overallProgress} />
-            </CardContent>
-        </Card>
-
       {quizCategories.map((category) => (
         <Card key={category.name}>
             <CardHeader>
