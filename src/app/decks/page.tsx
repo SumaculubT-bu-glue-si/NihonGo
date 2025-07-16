@@ -4,7 +4,6 @@
 import { AuthGuard } from '@/components/auth-guard';
 import { AppLayout } from '@/components/app-layout';
 import { DeckBrowser } from './deck-browser';
-import { StatsView } from '../stats/stats-view';
 import { useGlobalState } from '@/hooks/use-global-state';
 import { useToast } from '@/hooks/use-toast';
 import type { Deck } from '@/lib/data';
@@ -88,7 +87,6 @@ export default function HomePage() {
     <AuthGuard>
       <AppLayout>
         <div className="space-y-8">
-            <StatsView appData={appData} />
             <DeckBrowser 
               decks={appData.decks} 
               userStats={appData.userStats}
