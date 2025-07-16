@@ -152,10 +152,10 @@ export function GrammarLessonsView() {
         <Dialog open={!!selectedLesson} onOpenChange={() => setSelectedLesson(null)}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="text-2xl">{selectedLesson.title}</DialogTitle>
-              <DialogDescription>
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-2xl">{selectedLesson.title}</DialogTitle>
                 <Badge variant="secondary">{selectedLesson.level}</Badge>
-              </DialogDescription>
+              </div>
             </DialogHeader>
             <div className="prose prose-sm max-w-none text-card-foreground leading-relaxed py-4">
               <p>{selectedLesson.explanation}</p>
