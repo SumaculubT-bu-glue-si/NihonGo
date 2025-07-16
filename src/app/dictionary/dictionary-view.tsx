@@ -1,17 +1,15 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, Search, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { searchJisho, type JishoSearchOutput } from '@/ai/flows/jisho-dictionary-flow';
-import { suggestDictionaryTerms } from '@/ai/flows/suggest-dictionary-terms-flow';
 import { Badge } from '@/components/ui/badge';
 import { PronunciationButton } from '@/components/pronunciation-button';
-import { useDebounce } from '@/hooks/use-debounce';
 
 function SearchResultCard({ result }: { result: JishoSearchOutput['results'][0] }) {
     const mainReading = result.japanese[0];
@@ -61,43 +59,14 @@ export function DictionaryView() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<JishoSearchOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const { toast } = useToast();
-  const debouncedQuery = useDebounce(query, 300);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [hasSearched, setHasSearched] = useState(false);
-
-
-  const fetchSuggestions = useCallback(async (searchQuery: string) => {
-    if (searchQuery.length < 2) {
-        setSuggestions([]);
-        return;
-    }
-    setIsSuggestionsLoading(true);
-    try {
-        const response = await suggestDictionaryTerms({ query: searchQuery });
-        setSuggestions(response.suggestions);
-    } catch (error) {
-        // Fail silently on suggestions
-        console.error('Suggestion fetch error:', error);
-        setSuggestions([]);
-    } finally {
-        setIsSuggestionsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchSuggestions(debouncedQuery);
-  }, [debouncedQuery, fetchSuggestions]);
 
   const performSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
     
     setIsLoading(true);
     setResults(null);
-    setShowSuggestions(false);
     setHasSearched(true);
 
     try {
@@ -121,21 +90,6 @@ export function DictionaryView() {
     performSearch(query);
   };
   
-  const handleSuggestionClick = (suggestion: string) => {
-    setQuery(suggestion);
-    performSearch(suggestion);
-  }
-  
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
     <div className="container mx-auto space-y-6">
         <div>
@@ -144,12 +98,11 @@ export function DictionaryView() {
                 Search for any Japanese word using Jisho.org's powerful dictionary.
             </p>
         </div>
-      <div className="relative" ref={containerRef}>
+      <div className="relative">
         <form onSubmit={handleSearch} className="flex items-center gap-2">
             <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onFocus={() => setShowSuggestions(true)}
                 placeholder="Search in English or Japanese (e.g., 猫, ねこ, cat)"
                 className="text-lg h-12"
             />
@@ -162,32 +115,6 @@ export function DictionaryView() {
                 <span className="sr-only">Search</span>
             </Button>
         </form>
-
-        {showSuggestions && (suggestions.length > 0 || isSuggestionsLoading) && (
-            <Card className="absolute z-10 w-full mt-2">
-                <CardContent className="p-2">
-                    {isSuggestionsLoading ? (
-                        <div className="flex items-center justify-center p-2 text-sm text-muted-foreground">
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            <span>Loading suggestions...</span>
-                        </div>
-                    ) : (
-                        <ul className="space-y-1">
-                            {suggestions.map((s, i) => (
-                                <li key={i}>
-                                    <button
-                                        onClick={() => handleSuggestionClick(s)}
-                                        className="w-full text-left p-2 rounded-md hover:bg-accent"
-                                    >
-                                        {s}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </CardContent>
-            </Card>
-        )}
       </div>
 
 
