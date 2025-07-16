@@ -154,28 +154,23 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const handleDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
     if (cardsToShow.length === 0) return;
 
+    let newCardsToShow = [...cardsToShow];
+    const cardToMove = newCardsToShow.splice(currentIndex, 1)[0];
+    
     if (difficulty === 'easy') {
       setMasteredCount(prev => prev + 1);
+        // Card is just removed from the session queue.
+    } else if (difficulty === 'medium') {
+        const halfway = Math.ceil((newCardsToShow.length - currentIndex) / 2) + currentIndex;
+        newCardsToShow.splice(halfway, 0, cardToMove);
+    } else { // 'hard'
+        const position = Math.min(currentIndex + 3, newCardsToShow.length);
+        newCardsToShow.splice(position, 0, cardToMove);
     }
-
-    setCardsToShow(prevCards => {
-        let newCardsToShow = [...prevCards];
-        const cardToMove = newCardsToShow.splice(currentIndex, 1)[0];
-        
-        if (difficulty === 'easy') {
-            // Card is just removed from the session queue.
-        } else if (difficulty === 'medium') {
-            const halfway = Math.ceil((newCardsToShow.length - currentIndex) / 2) + currentIndex;
-            newCardsToShow.splice(halfway, 0, cardToMove);
-        } else { // 'hard'
-            const position = Math.min(currentIndex + 3, newCardsToShow.length);
-            newCardsToShow.splice(position, 0, cardToMove);
-        }
-
-        return newCardsToShow;
-    });
     
-    if (currentIndex >= cardsToShow.length -1 && cardsToShow.length > 1) {
+    setCardsToShow(newCardsToShow);
+
+    if (currentIndex >= newCardsToShow.length && newCardsToShow.length > 0) {
         setCurrentIndex(0);
     }
     
@@ -188,10 +183,12 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     } catch (error) {
         console.error("Could not remove session from localStorage", error);
     }
-    setMasteredCount(0); // This will trigger the useEffect to updateStats
-    setCardsToShow([...deck.cards].sort(() => Math.random() - 0.5));
+    setMasteredCount(0);
+    const shuffledCards = [...deck.cards].sort(() => Math.random() - 0.5);
+    setCardsToShow(shuffledCards);
     setCurrentIndex(0);
     setIsFlipped(false);
+    updateStats(deck.title, 0); // Reset global stats too
   }
   
   const handleAddNew = () => {
