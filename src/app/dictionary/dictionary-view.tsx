@@ -5,12 +5,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, Search, Volume2, BookOpen } from 'lucide-react';
+import { Loader2, Search, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { searchJisho, type JishoSearchOutput } from '@/ai/flows/jisho-dictionary-flow';
 import { suggestDictionaryTerms } from '@/ai/flows/suggest-dictionary-terms-flow';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { PronunciationButton } from '@/components/pronunciation-button';
 import { useDebounce } from '@/hooks/use-debounce';
 

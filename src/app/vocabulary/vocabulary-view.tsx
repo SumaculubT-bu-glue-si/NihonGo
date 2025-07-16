@@ -110,7 +110,7 @@ export function VocabularyView() {
             <Card key={card.id}>
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-4">
-                    <PronunciationButton text={card.front} />
+                    <PronunciationButton text={card.front} size="sm" />
                     <div>
                         <p className="text-lg font-bold">{card.front}</p>
                         <p className="text-sm text-muted-foreground">{card.reading}</p>

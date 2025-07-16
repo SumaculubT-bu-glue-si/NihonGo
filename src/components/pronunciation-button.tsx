@@ -2,116 +2,97 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Volume2, Square } from 'lucide-react';
+import { Volume2, Loader2, Play, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 
-export function PronunciationButton({ text }: { text: string }) {
+export function PronunciationButton({ text, size = "default" }: { text: string; size?: "sm" | "default" }) {
+  const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [japaneseVoice, setJapaneseVoice] = useState<SpeechSynthesisVoice | null>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const loadVoices = () => {
-      const voices = window.speechSynthesis.getVoices();
-      const foundVoice = voices.find(voice => voice.lang.startsWith('ja'));
-      if (foundVoice) {
-        setJapaneseVoice(foundVoice);
-      }
-    };
-
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-
+    // When the component unmounts, stop any playing audio.
     return () => {
-      window.speechSynthesis.onvoiceschanged = null;
-      // Ensure any ongoing speech is stopped when the component unmounts.
-      if (utteranceRef.current) {
-        window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
       }
     };
   }, []);
+  
+  // When text changes, invalidate the old audio
+  useEffect(() => {
+    setAudioSrc(null);
+    setIsPlaying(false);
+    if(audioRef.current) {
+      audioRef.current.src = "";
+    }
+  }, [text]);
 
-  const handlePronunciation = (e: React.MouseEvent) => {
+  const handleFetchAndPlayAudio = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!('speechSynthesis' in window)) {
-        toast({
-            title: 'Unsupported Browser',
-            description: 'Your browser does not support text-to-speech.',
-            variant: 'destructive',
-        });
-        return;
-    }
-    
-    // If this button is currently playing, stop it.
     if (isPlaying) {
-      window.speechSynthesis.cancel();
+      audioRef.current?.pause();
       setIsPlaying(false);
       return;
     }
     
-    // If another audio is playing, stop it before starting a new one.
-    if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-    }
-    
-    if (!japaneseVoice) {
-        toast({
-            title: 'No Japanese Voice Pack',
-            description: 'Could not find a Japanese voice pack on your device. Please install one to use this feature.',
-            variant: 'destructive',
-        });
-        return;
+    if (audioSrc && audioRef.current) {
+      audioRef.current.play();
+      return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utteranceRef.current = utterance;
-
-    utterance.voice = japaneseVoice;
-    utterance.lang = 'ja-JP';
-    utterance.rate = 0.9;
-
-    utterance.onstart = () => {
-      setIsPlaying(true);
-    };
-
-    utterance.onend = () => {
-      setIsPlaying(false);
-      utteranceRef.current = null;
-    };
-    
-    utterance.onerror = (event) => {
-        // The 'interrupted' error is common and can be ignored if we manage state correctly.
-        if (event.error === 'interrupted') {
-            setIsPlaying(false);
-            return;
-        }
-        console.error('Speech synthesis error', event.error);
-        toast({
-            title: 'Pronunciation Error',
-            description: 'An unexpected error occurred during playback.',
-            variant: 'destructive',
-        });
-        setIsPlaying(false);
-    };
-    
-    window.speechSynthesis.speak(utterance);
+    setIsLoading(true);
+    try {
+      const response = await textToSpeech(text);
+      setAudioSrc(response.media);
+    } catch (error) {
+      console.error('TTS Error:', error);
+      toast({
+        title: 'Pronunciation Error',
+        description: 'Could not generate pronunciation audio.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+  
+  // This effect plays the audio as soon as the src is available
+  useEffect(() => {
+    if (audioSrc && audioRef.current) {
+      audioRef.current.play();
+    }
+  }, [audioSrc]);
+
+  let Icon;
+  if (isLoading) Icon = Loader2;
+  else if (isPlaying) Icon = Square;
+  else Icon = Volume2;
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={handlePronunciation}
-      aria-label="Listen to pronunciation"
-    >
-      {isPlaying ? (
-        <Square className="h-6 w-6 text-primary" />
-      ) : (
-        <Volume2 className="h-6 w-6 text-muted-foreground" />
-      )}
-    </Button>
+    <>
+      <Button
+        variant="ghost"
+        size={size === "sm" ? "sm" : "icon"}
+        onClick={handleFetchAndPlayAudio}
+        aria-label="Listen to pronunciation"
+        disabled={isLoading}
+      >
+        <Icon className={isLoading ? "animate-spin" : ""} />
+      </Button>
+      <audio
+        ref={audioRef}
+        src={audioSrc ?? ''}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => setIsPlaying(false)}
+        className="hidden"
+      />
+    </>
   );
 }
