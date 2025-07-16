@@ -88,7 +88,7 @@ export function StatsView({ appData }: StatsViewProps) {
 
     const averageScore = totalQuestionsInTakenQuizzes > 0 ? Math.round((totalScoreSum / totalQuestionsInTakenQuizzes) * 100) : 0;
     
-    const quizStats = {
+    const quizStatsForAI = {
       quizzesTaken: quizzesTakenCount,
       averageScore,
       scoresByLevel: Object.entries(scoresByLevel).reduce((acc, [level, data]) => {
@@ -108,11 +108,12 @@ export function StatsView({ appData }: StatsViewProps) {
     const quizChartData = Object.entries(scoresByLevel).map(([name, data]) => ({
         name,
         average: data.average,
+        count: data.count,
         fill: levelColors[name as keyof typeof levelColors]
     })).sort((a,b) => a.name.localeCompare(b.name));
 
 
-    return { deckStats: deckStatsForAI, grammarStats, grammarChartData, quizStats, quizChartData, deckChartStats };
+    return { deckStats: deckStatsForAI, grammarStats, grammarChartData, quizStats: quizStatsForAI, quizChartData, deckChartStats };
   }, [appData]);
   
   useEffect(() => {
@@ -284,6 +285,7 @@ export function StatsView({ appData }: StatsViewProps) {
                                     <div className="rounded-lg border bg-background p-2 shadow-sm text-center">
                                         <span className="text-sm font-bold text-foreground">{data.name}</span>
                                         <p className="text-xs text-muted-foreground">{`Average Score: ${data.average}%`}</p>
+                                        <p className="text-xs text-muted-foreground">{`Quizzes taken: ${data.count}`}</p>
                                     </div>
                                 )
                                 }
@@ -297,4 +299,3 @@ export function StatsView({ appData }: StatsViewProps) {
     </div>
   );
 }
-
