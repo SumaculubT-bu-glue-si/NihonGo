@@ -46,6 +46,16 @@ function SearchResultCard({ result }: { result: JishoSearchOutput['results'][0] 
       </Card>
     );
   }
+  
+function InitialStateCard() {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-lg border bg-card p-12 text-center text-muted-foreground">
+        <BookOpen className="h-12 w-12 mb-4" />
+        <h3 className="text-xl font-semibold">Jisho Dictionary</h3>
+        <p>Start by searching for a word in English or Japanese.</p>
+    </div>
+  )
+}
 
 export function DictionaryView() {
   const [query, setQuery] = useState('');
@@ -57,6 +67,7 @@ export function DictionaryView() {
   const { toast } = useToast();
   const debouncedQuery = useDebounce(query, 300);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
 
   const fetchSuggestions = useCallback(async (searchQuery: string) => {
@@ -87,6 +98,7 @@ export function DictionaryView() {
     setIsLoading(true);
     setResults(null);
     setShowSuggestions(false);
+    setHasSearched(true);
 
     try {
       const response = await searchJisho({ query: searchQuery });
@@ -103,10 +115,6 @@ export function DictionaryView() {
     }
   }, [toast]);
   
-  // Fetch initial data on load
-  useEffect(() => {
-    performSearch('welcome');
-  }, [performSearch]);
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -191,13 +199,15 @@ export function DictionaryView() {
             </div>
         )}
 
-        {results && results.results.length > 0 && (
+        {!hasSearched && !isLoading && <InitialStateCard />}
+        
+        {hasSearched && results && results.results.length > 0 && (
             results.results.map((res) => (
                 <SearchResultCard key={res.slug} result={res} />
             ))
         )}
 
-        {results && results.results.length === 0 && !isLoading && (
+        {hasSearched && results && results.results.length === 0 && !isLoading && (
             <div className="flex flex-col items-center justify-center rounded-lg border bg-card p-12 text-center text-muted-foreground">
                 <BookOpen className="h-12 w-12 mb-4" />
                 <h3 className="text-xl font-semibold">No Results Found</h3>
