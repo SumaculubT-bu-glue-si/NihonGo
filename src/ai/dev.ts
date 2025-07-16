@@ -9,4 +9,3 @@ import '@/ai/flows/generate-cards-flow.ts';
 import '@/ai/flows/generate-quiz-flow.ts';
 import '@/ai/flows/jisho-dictionary-flow.ts';
 import '@/ai/flows/suggest-dictionary-terms-flow.ts';
-import '@/ai/flows/text-to-speech-flow.ts';

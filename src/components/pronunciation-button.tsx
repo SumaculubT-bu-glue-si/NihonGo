@@ -2,97 +2,69 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Volume2, Loader2, Play, Square } from 'lucide-react';
+import { Volume2, Loader2, Play, Square, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 
 export function PronunciationButton({ text, size = "default" }: { text: string; size?: "sm" | "default" }) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [audioSrc, setAudioSrc] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    // When the component unmounts, stop any playing audio.
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-    };
-  }, []);
   
-  // When text changes, invalidate the old audio
-  useEffect(() => {
-    setAudioSrc(null);
-    setIsPlaying(false);
-    if(audioRef.current) {
-      audioRef.current.src = "";
-    }
-  }, [text]);
-
-  const handleFetchAndPlayAudio = async (e: React.MouseEvent) => {
+  const handleSpeak = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (isPlaying) {
-      audioRef.current?.pause();
-      setIsPlaying(false);
-      return;
-    }
-    
-    if (audioSrc && audioRef.current) {
-      audioRef.current.play();
-      return;
+    if (!window.speechSynthesis) {
+        toast({
+            title: "TTS Not Supported",
+            description: "Your browser does not support text-to-speech.",
+            variant: "destructive",
+        });
+        return;
     }
 
-    setIsLoading(true);
-    try {
-      const response = await textToSpeech(text);
-      setAudioSrc(response.media);
-    } catch (error) {
-      console.error('TTS Error:', error);
-      toast({
-        title: 'Pronunciation Error',
-        description: 'Could not generate pronunciation audio.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
+    if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+        return;
     }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ja-JP';
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = (event) => {
+        console.error('Speech synthesis error', event);
+        toast({
+            title: 'Pronunciation Error',
+            description: 'Could not play pronunciation audio.',
+            variant: 'destructive',
+        });
+        setIsSpeaking(false);
+    };
+    
+    window.speechSynthesis.speak(utterance);
   };
   
-  // This effect plays the audio as soon as the src is available
+  // Cancel speech if component unmounts
   useEffect(() => {
-    if (audioSrc && audioRef.current) {
-      audioRef.current.play();
+    return () => {
+        if (isSpeaking) {
+            window.speechSynthesis.cancel();
+        }
     }
-  }, [audioSrc]);
+  }, [isSpeaking]);
 
-  let Icon;
-  if (isLoading) Icon = Loader2;
-  else if (isPlaying) Icon = Square;
-  else Icon = Volume2;
+  let Icon = Volume2;
+  if(isSpeaking) Icon = Square;
 
   return (
-    <>
-      <Button
-        variant="ghost"
-        size={size === "sm" ? "sm" : "icon"}
-        onClick={handleFetchAndPlayAudio}
-        aria-label="Listen to pronunciation"
-        disabled={isLoading}
-      >
-        <Icon className={isLoading ? "animate-spin" : ""} />
-      </Button>
-      <audio
-        ref={audioRef}
-        src={audioSrc ?? ''}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        className="hidden"
-      />
-    </>
+    <Button
+      variant="ghost"
+      size={size === "sm" ? "sm" : "icon"}
+      onClick={handleSpeak}
+      aria-label="Listen to pronunciation"
+    >
+      <Icon />
+    </Button>
   );
 }
