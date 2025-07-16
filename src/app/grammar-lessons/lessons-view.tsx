@@ -83,69 +83,67 @@ export function GrammarLessonsView() {
 
       <div>
         <h2 className="text-2xl font-bold font-headline mb-4">Lessons Library</h2>
-        <Card>
-          <CardContent className="p-4 space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4 justify-between">
-                <Tabs value={levelFilter} onValueChange={(v) => setLevelFilter(v as LevelFilter)}>
-                    <TabsList>
-                        {(['All', 'N5', 'N4', 'N3', 'N2', 'N1'] as LevelFilter[]).map(level => (
-                            <TabsTrigger key={level} value={level}>{level}</TabsTrigger>
-                        ))}
-                    </TabsList>
-                </Tabs>
-                <RadioGroup value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} className="flex items-center">
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="all" id="r1" />
-                        <Label htmlFor="r1">All</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="read" id="r2" />
-                        <Label htmlFor="r2">Read</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="unread" id="r3" />
-                        <Label htmlFor="r3">Unread</Label>
-                    </div>
-                </RadioGroup>
-              </div>
+        <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between">
+              <Tabs value={levelFilter} onValueChange={(v) => setLevelFilter(v as LevelFilter)}>
+                  <TabsList>
+                      {(['All', 'N5', 'N4', 'N3', 'N2', 'N1'] as LevelFilter[]).map(level => (
+                          <TabsTrigger key={level} value={level}>{level}</TabsTrigger>
+                      ))}
+                  </TabsList>
+              </Tabs>
+              <RadioGroup value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} className="flex items-center">
+                  <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="all" id="r1" />
+                      <Label htmlFor="r1">All</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="read" id="r2" />
+                      <Label htmlFor="r2">Read</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="unread" id="r3" />
+                      <Label htmlFor="r3">Unread</Label>
+                  </div>
+              </RadioGroup>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
-                 {filteredLessons.length > 0 ? (
-                    filteredLessons.map(lesson => (
-                        <Card key={lesson.id} className="flex flex-col">
-                            <CardHeader>
-                                <div className="flex justify-between items-start">
-                                    <Badge variant="outline">{lesson.level}</Badge>
-                                    {lesson.read ? (
-                                        <div className="flex items-center gap-1 text-xs text-green-600">
-                                            <CheckCircle2 className="h-4 w-4" />
-                                            <span>Read</span>
-                                        </div>
-                                     ) : (
-                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                            <BookOpenCheck className="h-4 w-4" />
-                                            <span>Unread</span>
-                                        </div>
-                                     )}
-                                </div>
-                                <CardTitle className="pt-2">{lesson.title}</CardTitle>
-                            </CardHeader>
-                            <CardFooter className="mt-auto">
-                                <Button className="w-full" onClick={() => setSelectedLesson(lesson)}>
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    View Lesson
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    ))
-                 ) : (
-                    <div className="col-span-full text-center text-muted-foreground py-10">
-                        <p>No lessons match the current filters.</p>
-                    </div>
-                 )}
-              </div>
-          </CardContent>
-        </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+               {filteredLessons.length > 0 ? (
+                  filteredLessons.map(lesson => (
+                      <Card key={lesson.id} className="flex flex-col">
+                          <CardHeader>
+                              <div className="flex justify-between items-start">
+                                  <Badge variant="outline">{lesson.level}</Badge>
+                                  {lesson.read ? (
+                                      <div className="flex items-center gap-1 text-xs text-green-600">
+                                          <CheckCircle2 className="h-4 w-4" />
+                                          <span>Read</span>
+                                      </div>
+                                   ) : (
+                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                          <BookOpenCheck className="h-4 w-4" />
+                                          <span>Unread</span>
+                                      </div>
+                                   )}
+                              </div>
+                              <CardTitle className="pt-2">{lesson.title}</CardTitle>
+                          </CardHeader>
+                          <CardFooter className="mt-auto">
+                              <Button className="w-full" onClick={() => setSelectedLesson(lesson)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Lesson
+                              </Button>
+                          </CardFooter>
+                      </Card>
+                  ))
+               ) : (
+                  <div className="col-span-full text-center text-muted-foreground py-10">
+                      <p>No lessons match the current filters.</p>
+                  </div>
+               )}
+            </div>
+        </div>
       </div>
 
        {selectedLesson && (
@@ -156,9 +154,11 @@ export function GrammarLessonsView() {
                 <DialogTitle className="text-2xl">{selectedLesson.title}</DialogTitle>
                 <Badge variant="secondary">{selectedLesson.level}</Badge>
               </div>
+              <DialogDescription>
+                {selectedLesson.explanation}
+              </DialogDescription>
             </DialogHeader>
             <div className="prose prose-sm max-w-none text-card-foreground leading-relaxed py-4">
-              <p>{selectedLesson.explanation}</p>
               <h4 className="font-semibold">Examples:</h4>
               <ul>
                 {selectedLesson.examples.map((ex, i) => (
