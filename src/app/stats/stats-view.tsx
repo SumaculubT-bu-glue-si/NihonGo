@@ -3,7 +3,6 @@
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { type StatsData } from '@/lib/data';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; stats: StatsData[] }) {
   const chartData = stats.map(stat => ({
@@ -32,7 +31,7 @@ export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; sta
           </p>
         </div>
         <div className="p-6 pt-0">
-          <div className="h-[400px] w-full">
+          <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 60 }}>
                 <XAxis 
