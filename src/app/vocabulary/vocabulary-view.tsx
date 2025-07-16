@@ -9,9 +9,17 @@ import { PronunciationButton } from '@/components/pronunciation-button';
 import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
 import { useGlobalState } from '@/hooks/use-global-state';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+
+type LevelFilter = 'All' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+type TypeFilter = 'all' | 'vocabulary' | 'kanji';
 
 export function VocabularyView() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [levelFilter, setLevelFilter] = useState<LevelFilter>('All');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const { appData, isLoading } = useGlobalState();
 
   const allVocabulary = useMemo(() => {
@@ -27,17 +35,23 @@ export function VocabularyView() {
   }, [appData.decks]);
 
   const filteredVocabulary = useMemo(() => {
-    if (!searchTerm) {
-      return allVocabulary;
-    }
-    const lowercasedTerm = searchTerm.toLowerCase();
-    return allVocabulary.filter(
-      (card) =>
-        card.front.toLowerCase().includes(lowercasedTerm) ||
-        card.back.toLowerCase().includes(lowercasedTerm) ||
-        card.reading?.toLowerCase().includes(lowercasedTerm)
-    );
-  }, [allVocabulary, searchTerm]);
+    return allVocabulary
+      .filter(card => {
+        if (typeFilter === 'all') return true;
+        return card.type === typeFilter;
+      })
+      .filter(card => {
+        if (levelFilter === 'All') return true;
+        return card.level === levelFilter;
+      })
+      .filter(card => {
+        if (!searchTerm) return true;
+        const lowercasedTerm = searchTerm.toLowerCase();
+        return card.front.toLowerCase().includes(lowercasedTerm) ||
+               card.back.toLowerCase().includes(lowercasedTerm) ||
+               card.reading?.toLowerCase().includes(lowercasedTerm);
+      });
+  }, [allVocabulary, searchTerm, levelFilter, typeFilter]);
 
   if (isLoading) {
     return (
@@ -51,18 +65,43 @@ export function VocabularyView() {
     <div className="container mx-auto">
       <h1 className="mb-2 text-3xl font-bold font-headline">Vocabulary</h1>
       <p className="mb-6 text-muted-foreground">
-        Search for any vocabulary word you have learned.
+        Search and filter all the vocabulary and kanji you have learned across your decks.
       </p>
 
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search vocabulary (e.g., 学校, school, がっこう)"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      <div className="mb-6 space-y-4 rounded-lg border p-4">
+        <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+            type="text"
+            placeholder="Search vocabulary (e.g., 学校, school, がっこう)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+            />
+        </div>
+        <div className="flex flex-col sm:flex-row gap-4 justify-between">
+            <Tabs value={levelFilter} onValueChange={(v) => setLevelFilter(v as LevelFilter)}>
+                <TabsList>
+                    {(['All', 'N5', 'N4', 'N3', 'N2', 'N1'] as LevelFilter[]).map(level => (
+                        <TabsTrigger key={level} value={level}>{level}</TabsTrigger>
+                    ))}
+                </TabsList>
+            </Tabs>
+            <RadioGroup value={typeFilter} onValueChange={(v) => setTypeFilter(v as TypeFilter)} className="flex items-center">
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="all" id="r1" />
+                    <Label htmlFor="r1">All</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="vocabulary" id="r2" />
+                    <Label htmlFor="r2">Vocabulary</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="kanji" id="r3" />
+                    <Label htmlFor="r3">Kanji</Label>
+                </div>
+            </RadioGroup>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -77,16 +116,19 @@ export function VocabularyView() {
                         <p className="text-sm text-muted-foreground">{card.reading}</p>
                     </div>
                 </div>
-                <div className="text-right">
+                <div className="flex items-center gap-4 text-right">
                     <p className="text-lg">{card.back}</p>
-                    <Badge variant="outline">{card.level}</Badge>
+                    <div className="flex flex-col items-end gap-1">
+                        <Badge variant="secondary" className="capitalize">{card.type}</Badge>
+                        <Badge variant="outline">{card.level}</Badge>
+                    </div>
                 </div>
               </CardContent>
             </Card>
           ))
         ) : (
             <div className="text-center text-muted-foreground py-10">
-                <p>No vocabulary found for "{searchTerm}".</p>
+                <p>No vocabulary found matching your criteria.</p>
             </div>
         )}
       </div>
