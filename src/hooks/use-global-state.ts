@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import type { Deck, StatsData, Flashcard, GrammarLesson, QuizScore } from '@/lib/data';
-import { decks as initialDecks, userStats as initialUserStats, grammarLessons as initialGrammarLessons } from '@/lib/initial-data';
+import type { Deck, StatsData, Flashcard, GrammarLesson, Quiz, QuizScore, QuizQuestion } from '@/lib/data';
+import { decks as initialDecks, userStats as initialUserStats, grammarLessons as initialGrammarLessons, initialQuizzes } from '@/lib/initial-data';
 
 const STORAGE_KEY = 'nihongo-app-data';
 
@@ -11,6 +11,7 @@ export interface AppData {
   decks: Deck[];
   userStats: StatsData[];
   grammarLessons: GrammarLesson[];
+  quizzes: Quiz[];
   quizScores: QuizScore[];
 }
 
@@ -31,6 +32,13 @@ interface GlobalStateContextType {
   updateGrammarLesson: (lessonId: string, lessonData: Partial<Omit<GrammarLesson, 'id' | 'read'>>) => void;
   deleteGrammarLesson: (lessonId: string) => void;
   updateQuizScore: (quizId: string, score: number) => void;
+  addQuiz: (quizData: Omit<Quiz, 'id' | 'questions'>) => Quiz;
+  updateQuiz: (quizId: string, quizData: Partial<Quiz>) => void;
+  deleteQuiz: (quizId: string) => void;
+  addQuestionToQuiz: (quizId: string, questionData: Omit<QuizQuestion, 'id'>) => void;
+  updateQuestionInQuiz: (quizId: string, questionId: string, questionData: Partial<QuizQuestion>) => void;
+  deleteQuestionFromQuiz: (quizId: string, questionId: string) => void;
+  addGeneratedQuiz: (quizData: Omit<Quiz, 'id'>) => void;
 }
 
 export const GlobalStateContext = createContext<GlobalStateContextType | undefined>(undefined);
@@ -44,27 +52,34 @@ export const useGlobalState = (): GlobalStateContextType => {
 };
 
 export const useGlobalStateData = () => {
-    const [appData, setAppData] = useState<AppData>({ decks: [], userStats: [], grammarLessons: [], quizScores: [] });
+    const [appData, setAppData] = useState<AppData>({ decks: [], userStats: [], grammarLessons: [], quizzes: [], quizScores: [] });
     const [isLoading, setIsLoading] = useState(true);
 
     const loadFromLocalStorage = (): AppData => {
         try {
           const serializedState = localStorage.getItem(STORAGE_KEY);
           if (serializedState === null) {
-            const initialData = { decks: initialDecks, userStats: initialUserStats, grammarLessons: initialGrammarLessons, quizScores: [] };
+            const initialData = { 
+                decks: initialDecks, 
+                userStats: initialUserStats, 
+                grammarLessons: initialGrammarLessons,
+                quizzes: initialQuizzes, 
+                quizScores: [] 
+            };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
             return initialData;
           }
           const storedData = JSON.parse(serializedState);
           // Ensure all keys exist
           if (!storedData.grammarLessons) storedData.grammarLessons = initialGrammarLessons;
+          if (!storedData.quizzes) storedData.quizzes = initialQuizzes;
           if (!storedData.quizScores) storedData.quizScores = [];
           
           return storedData;
         } catch (error) {
           console.error("Error loading from localStorage", error);
         }
-        return { decks: initialDecks, userStats: initialUserStats, grammarLessons: initialGrammarLessons, quizScores: [] };
+        return { decks: initialDecks, userStats: initialUserStats, grammarLessons: initialGrammarLessons, quizzes: initialQuizzes, quizScores: [] };
     };
 
     useEffect(() => {
@@ -344,6 +359,83 @@ export const useGlobalStateData = () => {
         });
     }, []);
 
+    // Quiz CRUD
+    const addQuiz = useCallback((quizData: Omit<Quiz, 'id' | 'questions'>): Quiz => {
+      const newQuiz: Quiz = {
+        ...quizData,
+        id: `quiz-${Date.now()}`,
+        questions: [],
+      };
+      setAppData(prev => ({
+        ...prev,
+        quizzes: [newQuiz, ...prev.quizzes],
+      }));
+      return newQuiz;
+    }, []);
+
+    const addGeneratedQuiz = useCallback((quizData: Omit<Quiz, 'id'>) => {
+        const newQuiz: Quiz = {
+            ...quizData,
+            id: `quiz-${Date.now()}`,
+            questions: quizData.questions.map(q => ({...q, id: `q-${Date.now()}-${Math.random()}`}))
+        };
+        setAppData(prev => ({
+            ...prev,
+            quizzes: [newQuiz, ...prev.quizzes],
+        }));
+    }, []);
+
+    const updateQuiz = useCallback((quizId: string, quizData: Partial<Quiz>) => {
+      setAppData(prev => ({
+        ...prev,
+        quizzes: prev.quizzes.map(q => q.id === quizId ? { ...q, ...quizData } : q),
+      }));
+    }, []);
+
+    const deleteQuiz = useCallback((quizId: string) => {
+      setAppData(prev => ({
+        ...prev,
+        quizzes: prev.quizzes.filter(q => q.id !== quizId),
+        quizScores: prev.quizScores.filter(qs => qs.quizId !== quizId),
+      }));
+    }, []);
+
+    // Question CRUD (within a quiz)
+    const addQuestionToQuiz = useCallback((quizId: string, questionData: Omit<QuizQuestion, 'id'>) => {
+        const newQuestion: QuizQuestion = {
+            ...questionData,
+            id: `q-${Date.now()}`,
+        };
+        setAppData(prev => ({
+            ...prev,
+            quizzes: prev.quizzes.map(q =>
+                q.id === quizId ? { ...q, questions: [...q.questions, newQuestion] } : q
+            ),
+        }));
+    }, []);
+
+    const updateQuestionInQuiz = useCallback((quizId: string, questionId: string, questionData: Partial<QuizQuestion>) => {
+        setAppData(prev => ({
+            ...prev,
+            quizzes: prev.quizzes.map(q =>
+                q.id === quizId
+                    ? { ...q, questions: q.questions.map(qu => qu.id === questionId ? { ...qu, ...questionData } : qu) }
+                    : q
+            ),
+        }));
+    }, []);
+
+    const deleteQuestionFromQuiz = useCallback((quizId: string, questionId: string) => {
+        setAppData(prev => ({
+            ...prev,
+            quizzes: prev.quizzes.map(q =>
+                q.id === quizId
+                    ? { ...q, questions: q.questions.filter(qu => qu.id !== questionId) }
+                    : q
+            ),
+        }));
+    }, []);
+
 
     return {
         appData,
@@ -362,5 +454,12 @@ export const useGlobalStateData = () => {
         updateGrammarLesson,
         deleteGrammarLesson,
         updateQuizScore,
+        addQuiz,
+        updateQuiz,
+        deleteQuiz,
+        addQuestionToQuiz,
+        updateQuestionInQuiz,
+        deleteQuestionFromQuiz,
+        addGeneratedQuiz,
     };
 };

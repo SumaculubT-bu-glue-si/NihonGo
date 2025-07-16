@@ -33,6 +33,7 @@ export interface GrammarLesson {
 }
 
 export interface QuizQuestion {
+  id: string;
   questionText: string;
   options: string[];
   correctAnswer: string;
@@ -43,6 +44,8 @@ export interface QuizQuestion {
 export interface Quiz {
   id: string;
   title: string;
+  category: 'vocabulary' | 'grammar';
+  level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
   questions: QuizQuestion[];
 }
 

@@ -1,6 +1,7 @@
 
-import type { Deck, StatsData, GrammarLesson } from './data';
+import type { Deck, StatsData, GrammarLesson, Quiz } from './data';
 import { grammarLessons as initialGrammarLessons } from './grammar-lessons-data';
+import { allQuizzes } from './quiz-data';
 
 export const decks: Deck[] = [
   {
@@ -82,3 +83,16 @@ export const userStats: StatsData[] = decks.map(deck => ({
 }));
 
 export const grammarLessons: GrammarLesson[] = initialGrammarLessons;
+
+export const initialQuizzes: Quiz[] = [
+    ...allQuizzes.vocabulary.N5,
+    ...allQuizzes.vocabulary.N4,
+    ...allQuizzes.vocabulary.N3,
+    ...allQuizzes.vocabulary.N2,
+    ...allQuizzes.vocabulary.N1,
+    ...allQuizzes.grammar.N5,
+    ...allQuizzes.grammar.N4,
+    ...allQuizzes.grammar.N3,
+    ...allQuizzes.grammar.N2,
+    ...allQuizzes.grammar.N1,
+];

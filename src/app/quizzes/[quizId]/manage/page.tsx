@@ -4,14 +4,14 @@
 import { AuthGuard } from '@/components/auth-guard';
 import { AppLayout } from '@/components/app-layout';
 import { notFound, useParams } from 'next/navigation';
-import { QuizClientPage } from './quiz-client-page';
 import { useGlobalState } from '@/hooks/use-global-state';
+import { ManageQuizClientPage } from './manage-quiz-client-page';
 
-export default function QuizPage() {
+export default function ManageQuizPage() {
   const params = useParams();
-  const { appData, isLoading } = useGlobalState();
   const quizId = params.quizId as string;
-  
+  const { appData, isLoading } = useGlobalState();
+
   if (isLoading) {
     return (
       <AuthGuard>
@@ -24,7 +24,7 @@ export default function QuizPage() {
     );
   }
 
-  const quiz = appData.quizzes.find(q => q.id === quizId);
+  const quiz = appData.quizzes.find((q) => q.id === quizId);
 
   if (!quiz) {
     return notFound();
@@ -33,7 +33,7 @@ export default function QuizPage() {
   return (
     <AuthGuard>
       <AppLayout>
-        <QuizClientPage quiz={quiz} />
+        <ManageQuizClientPage quiz={quiz} />
       </AppLayout>
     </AuthGuard>
   );

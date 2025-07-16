@@ -3,15 +3,36 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BookText, SpellCheck, CheckCircle2 } from 'lucide-react';
+import { BookText, SpellCheck, CheckCircle2, MoreVertical, Settings, Trash2, Wand2, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useGlobalState } from '@/hooks/use-global-state';
-import { allQuizzes } from '@/lib/quiz-data';
 import { Progress } from '@/components/ui/progress';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import type { Quiz } from '@/lib/data';
+import { generateQuiz } from '@/ai/flows/generate-quiz-flow';
+import { GenerateQuizForm, type GenerateQuizData } from './generate-quiz-form';
+
 
 const quizCategories = [
   {
@@ -29,31 +50,85 @@ const quizCategories = [
 ];
 
 const levels: ('N5' | 'N4' | 'N3' | 'N2' | 'N1')[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
-const quizzesPerLevel = 1;
 
 export function QuizzesView() {
-  const { appData } = useGlobalState();
-  
+  const { appData, addQuiz, deleteQuiz, addGeneratedQuiz } = useGlobalState();
+  const { toast } = useToast();
+  const router = useRouter();
+  const [quizToDelete, setQuizToDelete] = useState<Quiz | null>(null);
+  const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false);
+  const [generationContext, setGenerationContext] = useState<{category: 'vocabulary' | 'grammar', level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1'} | null>(null);
+
+
   const getHighestScore = (quizId: string) => {
     const score = appData.quizScores.find(s => s.quizId === quizId);
     return score ? score.highestScore : null;
   }
+  
+  const handleAddNew = (category: 'vocabulary' | 'grammar', level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1') => {
+    const newQuiz = addQuiz({
+      title: `New ${category} Quiz (${level})`,
+      category: category,
+      level: level,
+    });
+    toast({
+        title: 'Quiz Created',
+        description: 'A new empty quiz has been added. Manage it to add questions.'
+    });
+    router.push(`/quizzes/${newQuiz.id}/manage`);
+  };
+
+  const handleGenerateNew = (category: 'vocabulary' | 'grammar', level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1') => {
+    setGenerationContext({ category, level });
+    setIsGenerateFormOpen(true);
+  };
+  
+  const handleGenerateQuiz = async () => {
+    if (!generationContext) return;
+
+    const generatingToast = toast({
+      title: 'Generating Quiz...',
+      description: 'The AI is creating your new quiz. This might take a moment.',
+    });
+    
+    try {
+      const result = await generateQuiz({
+        category: generationContext.category,
+        level: generationContext.level,
+      });
+      addGeneratedQuiz({
+        ...result,
+        category: generationContext.category,
+        level: generationContext.level,
+      });
+      generatingToast.update({
+        id: generatingToast.id,
+        title: 'Quiz Generated!',
+        description: `Successfully created the "${result.title}" quiz.`,
+      });
+    } catch(e) {
+        console.error("Quiz generation failed", e);
+        generatingToast.update({
+            id: generatingToast.id,
+            title: 'Generation Failed',
+            description: 'Could not generate the quiz. Please try again.',
+            variant: 'destructive',
+        });
+    } finally {
+        setIsGenerateFormOpen(false);
+        setGenerationContext(null);
+    }
+  };
+
 
   const { totalQuizzes, completedQuizzes, overallProgress } = useMemo(() => {
-    let total = 0;
+    const total = appData.quizzes.length;
     let completed = 0;
-
-    for (const category of quizCategories) {
-      for (const level of levels) {
-        const quizzesForLevel = allQuizzes[category.type]?.[level] ?? [];
-        total += quizzesForLevel.length;
-        for (const quiz of quizzesForLevel) {
-          if (appData.quizScores.some(score => score.quizId === quiz.id)) {
+    appData.quizzes.forEach(quiz => {
+        if(appData.quizScores.some(score => score.quizId === quiz.id)) {
             completed++;
-          }
         }
-      }
-    }
+    });
 
     const progress = total > 0 ? (completed / total) * 100 : 0;
     return {
@@ -61,7 +136,34 @@ export function QuizzesView() {
       completedQuizzes: completed,
       overallProgress: progress,
     };
-  }, [appData.quizScores]);
+  }, [appData.quizzes, appData.quizScores]);
+  
+  const groupedQuizzes = useMemo(() => {
+    const groups: Record<string, Record<string, Quiz[]>> = {
+      vocabulary: {},
+      grammar: {},
+    };
+
+    appData.quizzes.forEach(quiz => {
+      if (!groups[quiz.category][quiz.level]) {
+        groups[quiz.category][quiz.level] = [];
+      }
+      groups[quiz.category][quiz.level].push(quiz);
+    });
+
+    return groups;
+  }, [appData.quizzes]);
+  
+  const handleDeleteConfirm = () => {
+    if (!quizToDelete) return;
+    deleteQuiz(quizToDelete.id);
+    toast({
+        title: "Quiz Deleted",
+        description: "The quiz has been successfully deleted.",
+        variant: "destructive",
+    });
+    setQuizToDelete(null);
+  };
 
   return (
     <div className="space-y-8">
@@ -91,12 +193,10 @@ export function QuizzesView() {
             <CardContent>
                 <Accordion type="single" collapsible className="w-full">
                     {levels.map(level => {
-                        const quizzesForLevel = allQuizzes[category.type]?.[level] ?? [];
-                        if (quizzesForLevel.length === 0) return null;
-
+                        const quizzesForLevel = groupedQuizzes[category.type]?.[level] ?? [];
                         const completedCount = quizzesForLevel.filter(q => getHighestScore(q.id) !== null).length;
                         const totalCount = quizzesForLevel.length;
-                        const isLevelCompleted = completedCount === totalCount;
+                        const isLevelCompleted = totalCount > 0 && completedCount === totalCount;
 
                         return (
                             <AccordionItem value={level} key={level}>
@@ -110,37 +210,65 @@ export function QuizzesView() {
                                     </span>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
-                                        {Array.from({ length: quizzesPerLevel }).map((_, i) => {
-                                          const quizNum = i + 1;
-                                          const quiz = quizzesForLevel[i];
-                                          if (!quiz) return null;
-
-                                          const highestScore = getHighestScore(quiz.id);
-                                          const isCompleted = highestScore !== null;
-
-                                          return (
-                                            <Link 
-                                                key={quiz.id} 
-                                                href={`/quizzes/${category.type}/${level.toLowerCase()}?num=${quizNum}`} 
-                                                passHref
-                                                className="block"
-                                            >
-                                                <div className="relative rounded-lg border p-4 hover:bg-accent hover:text-accent-foreground transition-colors h-full flex flex-col justify-center">
-                                                    {isCompleted && (
-                                                        <Badge variant="secondary" className="absolute top-2 right-2 flex items-center gap-1 bg-green-100 text-green-800">
-                                                            <CheckCircle2 className="h-3 w-3" />
-                                                            Completed
-                                                        </Badge>
-                                                    )}
-                                                    <p className="font-semibold text-center">{`Quiz #${quizNum}`}</p>
-                                                    <p className="text-xs text-muted-foreground text-center mt-1">
-                                                        {highestScore !== null ? `Highest: ${highestScore}%` : 'Not taken yet'}
-                                                    </p>
-                                                </div>
-                                            </Link>
-                                          )
-                                        })}
+                                    <div className="space-y-2 pt-2">
+                                       <div className="flex items-center gap-2 mb-4">
+                                            <Button size="sm" onClick={() => handleAddNew(category.type, level)}>
+                                                <PlusCircle className="mr-2 h-4 w-4"/> Add New Quiz
+                                            </Button>
+                                            <Button size="sm" variant="outline" onClick={() => handleGenerateNew(category.type, level)}>
+                                                <Wand2 className="mr-2 h-4 w-4"/> Generate with AI
+                                            </Button>
+                                        </div>
+                                        {quizzesForLevel.length > 0 ? (
+                                            quizzesForLevel.map((quiz) => {
+                                                const highestScore = getHighestScore(quiz.id);
+                                                const isCompleted = highestScore !== null;
+                                                return (
+                                                    <div key={quiz.id} className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50">
+                                                        <div>
+                                                            <Link 
+                                                                href={`/quizzes/${quiz.id}`}
+                                                                className="font-medium hover:underline"
+                                                            >
+                                                                {quiz.title}
+                                                            </Link>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {highestScore !== null ? `Highest: ${highestScore}%` : 'Not taken yet'}
+                                                                <span className="mx-2">•</span>
+                                                                {quiz.questions.length} questions
+                                                            </p>
+                                                        </div>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                    <MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <Link href={`/quizzes/${quiz.id}/manage`}>
+                                                                    <DropdownMenuItem>
+                                                                        <Settings className="mr-2 h-4 w-4" />
+                                                                        Manage
+                                                                    </DropdownMenuItem>
+                                                                </Link>
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem
+                                                                    className="text-destructive focus:text-destructive"
+                                                                    onSelect={() => setQuizToDelete(quiz)}
+                                                                >
+                                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                                    Delete
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
+                                                )
+                                            })
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground text-center py-4">
+                                                No quizzes for this level yet. Add one to get started!
+                                            </p>
+                                        )}
                                     </div>
                                 </AccordionContent>
                             </AccordionItem>
@@ -150,6 +278,30 @@ export function QuizzesView() {
             </CardContent>
         </Card>
       ))}
+
+        <AlertDialog open={!!quizToDelete} onOpenChange={() => setQuizToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the quiz "{quizToDelete?.title}".
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Delete
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+        
+         <GenerateQuizForm
+          isOpen={isGenerateFormOpen}
+          onOpenChange={setIsGenerateFormOpen}
+          onGenerate={handleGenerateQuiz}
+          context={generationContext}
+        />
     </div>
   );
 }
