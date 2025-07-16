@@ -125,7 +125,7 @@ export function QuizzesView() {
     const total = appData.quizzes.length;
     let completed = 0;
     appData.quizzes.forEach(quiz => {
-        if(appData.quizScores.some(score => score.quizId === quiz.id)) {
+        if(appData.quizScores.find(score => score.quizId === quiz.id)) {
             completed++;
         }
     });
@@ -191,7 +191,12 @@ export function QuizzesView() {
                 </div>
             </CardHeader>
             <CardContent>
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion 
+                    type="single" 
+                    collapsible 
+                    className="w-full"
+                    defaultValue={category.type === 'vocabulary' ? 'N5' : undefined}
+                >
                     {levels.map(level => {
                         const quizzesForLevel = groupedQuizzes[category.type]?.[level] ?? [];
                         const completedCount = quizzesForLevel.filter(q => getHighestScore(q.id) !== null).length;
@@ -222,7 +227,6 @@ export function QuizzesView() {
                                         {quizzesForLevel.length > 0 ? (
                                             quizzesForLevel.map((quiz) => {
                                                 const highestScore = getHighestScore(quiz.id);
-                                                const isCompleted = highestScore !== null;
                                                 return (
                                                     <div key={quiz.id} className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50">
                                                         <div>
@@ -233,7 +237,7 @@ export function QuizzesView() {
                                                                 {quiz.title}
                                                             </Link>
                                                             <p className="text-xs text-muted-foreground">
-                                                                {highestScore !== null ? `Highest: ${highestScore}%` : 'Not taken yet'}
+                                                                {highestScore !== null ? `Highest: ${highestScore}/${quiz.questions.length}` : 'Not taken yet'}
                                                                 <span className="mx-2">•</span>
                                                                 {quiz.questions.length} questions
                                                             </p>
