@@ -31,9 +31,9 @@ export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; sta
           </p>
         </div>
         <div className="p-6 pt-0">
-          <div className="h-[300px] w-full">
+          <div className="h-[160px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 60 }}>
+              <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 10 }}>
                 <XAxis 
                   dataKey="name" 
                   stroke="hsl(var(--muted-foreground))"

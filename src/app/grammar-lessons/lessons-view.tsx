@@ -151,7 +151,7 @@ export function GrammarLessonsView() {
       <div>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
             <div>
-                <h1 className="text-3xl font-bold font-headline">Grammar Lessons</h1>
+                <h1 className="text-3xl font-bold font-headline">Grammar</h1>
                 <p className="text-muted-foreground">
                 Explore grammar points, check your sentences, and build your own library.
                 </p>

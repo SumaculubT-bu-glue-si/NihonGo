@@ -24,7 +24,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const menuItems = [
     { href: '/decks', label: 'Home', icon: Home },
-    { href: '/grammar-lessons', label: 'Grammar Lessons', icon: BookMarked },
+    { href: '/grammar-lessons', label: 'Grammar', icon: BookMarked },
     { href: '/vocabulary', label: 'Vocabulary', icon: BookText },
     { href: '/stats', label: 'Stats', icon: BarChart3 },
   ];
