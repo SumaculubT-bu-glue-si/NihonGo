@@ -55,9 +55,11 @@ function AudioPlayer({ src }: { src: string }) {
 export function QuizClientPage({
   category,
   level,
+  quizNumber,
 }: {
   category: 'vocabulary' | 'grammar' | 'listening';
   level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+  quizNumber: number;
 }) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,7 +80,7 @@ export function QuizClientPage({
       const generatedQuiz = await generateQuiz({
         category,
         level,
-        existingQuestionContext: [],
+        existingQuestionContext: [ `Quiz number ${quizNumber}` ],
       });
       setQuiz(generatedQuiz);
     } catch (e) {
@@ -92,7 +94,7 @@ export function QuizClientPage({
     } finally {
       setIsLoading(false);
     }
-  }, [category, level, toast]);
+  }, [category, level, quizNumber, toast]);
 
   useEffect(() => {
     loadQuiz();
@@ -132,13 +134,15 @@ export function QuizClientPage({
     setUserAnswers([]);
     loadQuiz();
   };
+  
+  const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
 
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <h2 className="mt-4 text-2xl font-semibold">Generating Your Quiz...</h2>
-        <p className="text-muted-foreground">The AI is crafting questions just for you.</p>
+        <p className="text-muted-foreground">The AI is crafting questions for {categoryTitle} Quiz #{quizNumber} ({level}).</p>
       </div>
     );
   }
@@ -162,7 +166,7 @@ export function QuizClientPage({
       <div className="mx-auto max-w-2xl">
         <Card>
             <CardHeader className="text-center">
-                <CardTitle className="text-3xl">Quiz Results</CardTitle>
+                <CardTitle className="text-3xl">Quiz Results for {categoryTitle} Quiz #{quizNumber}</CardTitle>
                 <CardDescription>
                 You scored {score} out of {quiz.questions.length}!
                 </CardDescription>
@@ -201,10 +205,10 @@ export function QuizClientPage({
                         <Repeat className="mr-2 h-4 w-4" />
                         Take Another Quiz
                     </Button>
-                    <Link href="/quizzes" passHref>
+                    <Link href={`/quizzes/${category}`} passHref>
                         <Button variant="outline">
                             <ChevronLeft className="mr-2 h-4 w-4" />
-                            Back to Quizzes
+                            Back to Quiz List
                         </Button>
                     </Link>
                 </div>
@@ -224,8 +228,8 @@ export function QuizClientPage({
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4">
-        <Link href="/quizzes" className="text-sm text-primary hover:underline">
-          &larr; Back to Quizzes
+        <Link href={`/quizzes/${category}`} className="text-sm text-primary hover:underline">
+          &larr; Back to Quiz List
         </Link>
         <Progress value={progress} className="mt-2 h-2" />
         <p className="mt-1 text-right text-sm text-muted-foreground">
