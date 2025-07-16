@@ -104,8 +104,10 @@ export function GrammarCheckerTool() {
                         <Lightbulb className="mr-2 h-4 w-4" />
                         Explanation
                     </h3>
-                    <div className="prose prose-sm max-w-none rounded-md border bg-transparent p-4 text-card-foreground leading-relaxed">
-                        <p>{result.explanation}</p>
+                    <div className="prose prose-sm max-w-none space-y-2 rounded-md border bg-transparent p-4 text-card-foreground leading-relaxed">
+                       {result.explanation.split('\n').map((paragraph, index) => (
+                            <p key={index}>{paragraph}</p>
+                        ))}
                     </div>
                 </div>
           </CardContent>
