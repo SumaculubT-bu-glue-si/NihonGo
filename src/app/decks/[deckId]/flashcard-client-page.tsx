@@ -78,28 +78,25 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
 
     try {
       const savedSession = localStorage.getItem(getStorageKey());
+      const deckStats = appData.userStats.find(s => s.topic === deck.title);
+      const initialProgress = deckStats ? deckStats.progress : 0;
+      setMasteredCount(initialProgress);
+      
       if (savedSession) {
-        const { savedCards, savedIndex, savedMasteredCount } = JSON.parse(savedSession);
-        if (Array.isArray(savedCards) && typeof savedIndex === 'number' && typeof savedMasteredCount === 'number') {
+        const { savedCards, savedIndex } = JSON.parse(savedSession);
+        if (Array.isArray(savedCards) && typeof savedIndex === 'number') {
           setCardsToShow(savedCards);
           setCurrentIndex(savedIndex);
-          setMasteredCount(savedMasteredCount);
         } else {
           throw new Error("Invalid session data format. Starting a new session.");
         }
       } else {
-        const deckStats = appData.userStats.find(s => s.topic === deck.title);
-        const currentProgress = deckStats ? deckStats.progress : 0;
-        setMasteredCount(currentProgress);
-        // On a fresh session start, we filter out already mastered cards.
-        // For simplicity, we'll assume progress means the first N cards are mastered.
-        const nonMasteredCards = deck.cards.slice(currentProgress);
+        const nonMasteredCards = deck.cards.slice(initialProgress);
         setCardsToShow([...nonMasteredCards].sort(() => Math.random() - 0.5));
         setCurrentIndex(0);
       }
     } catch (error) {
       console.error("Could not load session from localStorage, starting fresh.", error);
-      // Fallback to global state if localStorage fails
       const deckStats = appData.userStats.find(s => s.topic === deck.title);
       const currentProgress = deckStats ? deckStats.progress : 0;
       setMasteredCount(currentProgress);
@@ -114,35 +111,29 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
 
   // Save session to localStorage whenever state changes that defines the session
   useEffect(() => {
-    if (cardsToShow.length > 0 || masteredCount > 0) {
+    if (cardsToShow.length > 0) {
       try {
         const sessionData = JSON.stringify({
           savedCards: cardsToShow,
           savedIndex: currentIndex,
-          savedMasteredCount: masteredCount,
         });
         localStorage.setItem(getStorageKey(), sessionData);
       } catch (error) {
         console.error("Could not save session to localStorage", error);
       }
     }
-  }, [cardsToShow, currentIndex, masteredCount, getStorageKey]);
+  }, [cardsToShow, currentIndex, getStorageKey]);
 
   // When the underlying deck data changes (e.g., from a CRUD operation), refresh the session
   useEffect(() => {
-    // We only want to run this if a session is already active
     if (!isLoading && (cardsToShow.length > 0 || deck.cards.length > 0)) {
         const deckStats = appData.userStats.find(s => s.topic === deck.title);
         const currentProgress = deckStats ? deckStats.progress : 0;
 
-        // Re-filter cards to show based on updated deck and progress
-        // This is simplified; a real implementation might need to be smarter
-        // about not re-shuffling if the user is in the middle of a card.
         const nonMasteredCards = deck.cards.slice(currentProgress);
         const shuffled = [...nonMasteredCards].sort(() => Math.random() - 0.5)
         setCardsToShow(shuffled);
         
-        // Adjust index if it's now out of bounds
         if (currentIndex >= shuffled.length && shuffled.length > 0) {
             setCurrentIndex(0);
         } else if (shuffled.length === 0) {
@@ -150,34 +141,43 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         }
     }
   }, [appData.decks, appData.userStats, deck.title, isLoading, currentIndex]);
+  
+  // This effect safely syncs the local masteredCount with the global state
+  useEffect(() => {
+    // We don't want to run this on the initial load, only on subsequent changes
+    // to masteredCount triggered by user action. A simple check is to see if masteredCount is > initial progress.
+    const deckStats = appData.userStats.find(s => s.topic === deck.title);
+    const initialProgress = deckStats ? deckStats.progress : 0;
+    if (masteredCount > initialProgress || (masteredCount === 0 && initialProgress > 0)) {
+       updateStats(deck.title, masteredCount);
+    }
+  }, [masteredCount, deck.title, updateStats, appData.userStats]);
 
 
   const handleDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
     if (cardsToShow.length === 0) return;
 
-    setCardsToShow(currentCards => {
-        let newCardsToShow = [...currentCards];
-        const cardToMove = newCardsToShow.splice(currentIndex, 1)[0];
+    let newCardsToShow = [...cardsToShow];
+    const cardToMove = newCardsToShow.splice(currentIndex, 1)[0];
+    
+    if (difficulty === 'easy') {
+        // Just remove from queue, the mastered count is updated separately
+        setMasteredCount(prev => prev + 1);
+    } else if (difficulty === 'medium') {
+        const halfway = Math.ceil((newCardsToShow.length - currentIndex) / 2) + currentIndex;
+        newCardsToShow.splice(halfway, 0, cardToMove);
+    } else { // 'hard'
+        const position = Math.min(currentIndex + 3, newCardsToShow.length);
+        newCardsToShow.splice(position, 0, cardToMove);
+    }
 
-        if (difficulty === 'easy') {
-            const newMasteredCount = masteredCount + 1;
-            setMasteredCount(newMasteredCount);
-            updateStats(deck.title, newMasteredCount);
-        } else if (difficulty === 'medium') {
-            const halfway = Math.ceil((newCardsToShow.length - currentIndex) / 2) + currentIndex;
-            newCardsToShow.splice(halfway, 0, cardToMove);
-        } else if (difficulty === 'hard') {
-            const position = Math.min(currentIndex + 3, newCardsToShow.length);
-            newCardsToShow.splice(position, 0, cardToMove);
-        }
-        
-        if (currentIndex >= newCardsToShow.length && newCardsToShow.length > 0) {
-            setCurrentIndex(0);
-        }
-        
-        setIsFlipped(false);
-        return newCardsToShow;
-    });
+    setCardsToShow(newCardsToShow);
+    
+    if (currentIndex >= newCardsToShow.length && newCardsToShow.length > 0) {
+        setCurrentIndex(0);
+    }
+    
+    setIsFlipped(false);
   };
   
   const resetSession = () => {
@@ -186,10 +186,9 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     } catch (error) {
         console.error("Could not remove session from localStorage", error);
     }
+    setMasteredCount(0); // This will trigger the useEffect to updateStats
     setCardsToShow([...deck.cards].sort(() => Math.random() - 0.5));
     setCurrentIndex(0);
-    setMasteredCount(0);
-    updateStats(deck.title, 0);
     setIsFlipped(false);
   }
   
@@ -214,14 +213,11 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const handleDeleteConfirm = () => {
     if (!cardToDelete) return;
 
-    // Delete the card from global state
     deleteCard(deck.id, cardToDelete.id);
     
-    // Remove the card from the current session
     const newCardsToShow = cardsToShow.filter(c => c.id !== cardToDelete.id);
     setCardsToShow(newCardsToShow);
 
-    // If the deleted card was the last one, reset index
     if (currentIndex >= newCardsToShow.length && newCardsToShow.length > 0) {
       setCurrentIndex(0);
     }
@@ -234,12 +230,10 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   };
 
   const mapDeckLevelToCardLevel = (level: Deck['level']): FlashcardType['level'] => {
-    // This is a simple mapping. You might need a more complex one.
-    // Assuming 'Beginner' maps to 'N5', 'Intermediate' to 'N3', etc.
     if (level === 'Beginner') return 'N5';
     if (level === 'Intermediate') return 'N3';
     if (level === 'Advanced') return 'N1';
-    return 'N5'; // Default fallback
+    return 'N5';
   }
 
   const mapDeckCategoryToCardType = (category: Deck['category']): FlashcardType['type'] => {
@@ -247,7 +241,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         case 'Vocabulary': return 'vocabulary';
         case 'Grammar': return 'grammar';
         case 'Kanji': return 'kanji';
-        case 'Phrases': return 'vocabulary'; // Phrases are treated as vocabulary cards
+        case 'Phrases': return 'vocabulary';
         default: return 'vocabulary';
     }
   }
@@ -262,7 +256,6 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     if (editingCard) {
       updateCard(deck.id, editingCard.id, cardData);
       
-      // Update the card in the local session state as well
       const updatedCardsToShow = cardsToShow.map(c => c.id === editingCard.id ? { ...c, ...cardData } : c);
       setCardsToShow(updatedCardsToShow);
 
