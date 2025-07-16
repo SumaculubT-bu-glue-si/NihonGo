@@ -39,8 +39,10 @@ export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; sta
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={12}
                   tickLine={false}
-                  axisLine={false}
+                  axisLine={true}
+                  padding={{ left: 10, right: 10 }}
                   interval={0}
+                  tick={{ width: 80, wordWrap: 'break-word' }}
                 />
                 <YAxis 
                   stroke="hsl(var(--muted-foreground))"
