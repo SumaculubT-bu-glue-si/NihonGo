@@ -31,3 +31,16 @@ export interface GrammarLesson {
     examples: string[];
     read: boolean;
 }
+
+export interface QuizQuestion {
+  questionText: string;
+  options: string[];
+  correctAnswer: string;
+  audioDataUri?: string;
+  explanation: string;
+}
+
+export interface Quiz {
+  title: string;
+  questions: QuizQuestion[];
+}
