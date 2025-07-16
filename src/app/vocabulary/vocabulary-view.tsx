@@ -1,19 +1,22 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
-import { decks, type Flashcard } from '@/lib/data';
+import type { Flashcard } from '@/lib/data';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { PronunciationButton } from '@/components/pronunciation-button';
 import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
+import { useGlobalState } from '@/hooks/use-global-state';
 
 export function VocabularyView() {
   const [searchTerm, setSearchTerm] = useState('');
+  const { appData, isLoading } = useGlobalState();
 
   const allVocabulary = useMemo(() => {
     const vocabSet = new Map<string, Flashcard>();
-    decks.forEach(deck => {
+    appData.decks.forEach(deck => {
         deck.cards.forEach(card => {
             if ((card.type === 'vocabulary' || card.type === 'kanji') && !vocabSet.has(card.front)) {
                 vocabSet.set(card.front, card);
@@ -21,7 +24,7 @@ export function VocabularyView() {
         })
     });
     return Array.from(vocabSet.values()).sort((a, b) => a.front.localeCompare(b.front, 'ja'));
-  }, []);
+  }, [appData.decks]);
 
   const filteredVocabulary = useMemo(() => {
     if (!searchTerm) {
@@ -35,6 +38,14 @@ export function VocabularyView() {
         card.reading?.toLowerCase().includes(lowercasedTerm)
     );
   }, [allVocabulary, searchTerm]);
+
+  if (isLoading) {
+    return (
+        <div className="flex h-64 w-full items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+    );
+  }
 
   return (
     <div className="container mx-auto">
