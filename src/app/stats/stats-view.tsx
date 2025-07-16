@@ -8,7 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; stats: StatsData[] }) {
   const chartData = stats.map(stat => ({
     name: stat.topic,
-    progress: stat.total > 0 ? Math.round((stat.progress / stat.total) * 100) : 0,
+    percentage: stat.total > 0 ? Math.round((stat.progress / stat.total) * 100) : 0,
+    progress: stat.progress,
+    total: stat.total,
   }));
 
   return (
@@ -22,14 +24,14 @@ export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; sta
             </>
         )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Deck Completion</CardTitle>
-          <CardDescription>
+      <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+        <div className="flex flex-col space-y-1.5 p-6">
+          <h3 className="text-2xl font-semibold leading-none tracking-tight">Deck Completion</h3>
+          <p className="text-sm text-muted-foreground">
             Percentage of cards completed in each deck.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div className="p-6 pt-0">
           <div className="h-[400px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 60 }}>
@@ -49,28 +51,28 @@ export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; sta
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(value) => `${value}%`}
+                  domain={[0, 100]}
                 />
                 <Tooltip
-                  cursor={{ fill: '#e5e7eb' }}
+                  cursor={{ fill: 'hsl(var(--accent))', opacity: 0.3 }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
+                      const data = payload[0].payload;
                       return (
                         <div className="rounded-lg border bg-background p-2 shadow-sm">
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="flex flex-col">
-                              <span className="text-[0.70rem] uppercase text-muted-foreground">
-                                Deck
+                          <div className="grid grid-cols-1 gap-2 text-center">
+                             <span className="text-[0.8rem] font-bold text-foreground">
+                                {data.name}
                               </span>
-                              <span className="font-bold text-muted-foreground">
-                                {payload[0].payload.name}
-                              </span>
-                            </div>
                             <div className="flex flex-col">
                               <span className="text-[0.70rem] uppercase text-muted-foreground">
                                 Progress
                               </span>
                               <span className="font-bold">
-                                {`${payload[0].value}%`}
+                                {`${data.progress} / ${data.total} cards`}
+                              </span>
+                               <span className="font-bold text-primary">
+                                {`(${data.percentage}%)`}
                               </span>
                             </div>
                           </div>
@@ -80,12 +82,12 @@ export function StatsView({ fullPage = false, stats }: { fullPage?: boolean; sta
                     return null
                   }}
                 />
-                <Bar dataKey="progress" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="percentage" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={30} />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
