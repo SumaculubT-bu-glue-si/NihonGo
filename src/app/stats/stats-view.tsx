@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Pie, PieChart, Cell, Legend } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Pie, PieChart, Cell, Legend, RadialBarChart, RadialBar, PolarAngleAxis } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { type AppData, type StatsData, type QuizScore, type Quiz } from '@/lib/data';
 import { analyzeProgress } from '@/ai/flows/analyze-progress-flow';
@@ -97,9 +97,18 @@ export function StatsView({ appData }: StatsViewProps) {
       }, {} as Record<string, {average: number; count: number}>)
     };
     
+    const levelColors = {
+        N5: 'hsl(var(--chart-1))',
+        N4: 'hsl(var(--chart-2))',
+        N3: 'hsl(var(--chart-3))',
+        N2: 'hsl(var(--chart-4))',
+        N1: 'hsl(var(--chart-5))',
+    };
+
     const quizChartData = Object.entries(scoresByLevel).map(([name, data]) => ({
         name,
-        Average: data.average
+        average: data.average,
+        fill: levelColors[name as keyof typeof levelColors]
     })).sort((a,b) => a.name.localeCompare(b.name));
 
 
@@ -241,46 +250,51 @@ export function StatsView({ appData }: StatsViewProps) {
                 <CardTitle>Quiz Performance</CardTitle>
                 <CardDescription>Average scores by JLPT level.</CardDescription>
             </CardHeader>
-            <CardContent className="h-64">
+            <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={quizChartData}>
-                    <XAxis
-                    dataKey="name"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    />
-                    <YAxis 
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) => `${value}%`}
-                        domain={[0, 100]}
-                    />
-                    <Tooltip
-                        cursor={{ fill: 'hsl(var(--accent))', opacity: 0.3 }}
-                        content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            const quizData = quizStats.scoresByLevel[data.name];
-                            return (
-                                <div className="rounded-lg border bg-background p-2 shadow-sm text-center">
-                                    <span className="text-sm font-bold text-foreground">{data.name} Quizzes</span>
-                                    <p className="text-xs text-muted-foreground">{`Average score: ${data.Average}%`}</p>
-                                    <p className="text-xs text-muted-foreground">{`(${quizData.count} quiz(zes) taken)`}</p>
-                                </div>
-                            )
-                            }
-                            return null
-                        }}
-                    />
-                    <Bar dataKey="Average" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                    <RadialBarChart 
+                        cx="50%" 
+                        cy="50%" 
+                        innerRadius="10%" 
+                        outerRadius="80%" 
+                        barSize={10} 
+                        data={quizChartData}
+                        startAngle={90}
+                        endAngle={-270}
+                    >
+                        <PolarAngleAxis
+                            type="number"
+                            domain={[0, 100]}
+                            angleAxisId={0}
+                            tick={false}
+                        />
+                        <RadialBar
+                            background
+                            clockWise
+                            dataKey="average"
+                            angleAxisId={0}
+                        />
+                        <Legend iconSize={10} layout="vertical" verticalAlign="middle" align="right" />
+                         <Tooltip
+                            cursor={{ strokeDasharray: '3 3' }}
+                            content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                const data = payload[0].payload;
+                                return (
+                                    <div className="rounded-lg border bg-background p-2 shadow-sm text-center">
+                                        <span className="text-sm font-bold text-foreground">{data.name}</span>
+                                        <p className="text-xs text-muted-foreground">{`Average Score: ${data.average}%`}</p>
+                                    </div>
+                                )
+                                }
+                                return null
+                            }}
+                        />
+                    </RadialBarChart>
                 </ResponsiveContainer>
             </CardContent>
         </Card>
     </div>
   );
 }
+
