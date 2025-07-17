@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Volume2, Loader2, Play, Square, AlertCircle } from 'lucide-react';
+import { Volume2, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,23 +11,17 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
   const { toast } = useToast();
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // This effect pre-loads voices and handles API readiness
+  // Ensure voices are loaded.
   useEffect(() => {
-    const handleVoicesChanged = () => {
-        // This is a common pattern to ensure voices are loaded.
-        speechSynthesis.getVoices();
-    };
-
+    const loadVoices = () => speechSynthesis.getVoices();
     if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
-        // Initial load
-        handleVoicesChanged();
+      loadVoices(); // Initial attempt
+      speechSynthesis.onvoiceschanged = loadVoices;
     }
-
     return () => {
         if (typeof window !== 'undefined' && window.speechSynthesis) {
-            window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
-            window.speechSynthesis.cancel();
+            speechSynthesis.onvoiceschanged = null;
+            speechSynthesis.cancel();
         }
     };
   }, []);
@@ -44,8 +38,10 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
         return;
     }
 
+    // Always cancel any ongoing speech before starting a new one.
+    window.speechSynthesis.cancel();
+
     if (isSpeaking) {
-        window.speechSynthesis.cancel();
         setIsSpeaking(false);
         return;
     }
@@ -53,7 +49,6 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'ja-JP';
 
-    // Find a Japanese voice
     const voices = window.speechSynthesis.getVoices();
     const japaneseVoice = voices.find(voice => voice.lang === 'ja-JP');
     if (japaneseVoice) {
@@ -63,7 +58,6 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = (event) => {
-        // Check if the error is a cancellation, which is not a true error.
         if (event.error !== 'cancelled') {
             console.error('Speech synthesis error', event);
             toast({
@@ -88,8 +82,7 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
     }
   }, [isSpeaking]);
 
-  let Icon = Volume2;
-  if(isSpeaking) Icon = Square;
+  let Icon = isSpeaking ? Square : Volume2;
 
   return (
     <Button
