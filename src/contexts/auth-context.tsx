@@ -7,9 +7,13 @@ import {
   useState,
   useEffect,
   type ReactNode,
+  useCallback,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { allUsers } from '@/lib/user-data';
+import { allUsers as initialAllUsers } from '@/lib/user-data';
+
+const USER_DATA_STORAGE_KEY = 'nihongo-all-users-data';
+const LOGGED_IN_USER_ID_KEY = 'loggedInUserId';
 
 // Mock User type
 export interface User {
@@ -23,66 +27,90 @@ export interface User {
 // Mock Auth context type
 interface AuthContextType {
   user: User | null;
+  allUsers: User[];
   loading: boolean;
   signInAs: (userId: string) => Promise<void>;
   signOut: () => Promise<void>;
-  updateUser: (data: { displayName?: string; photoURL?: string }) => Promise<void>;
+  updateUser: (data: {
+    displayName?: string;
+    photoURL?: string;
+    email?: string;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [allUsers, setAllUsers] = useState<User[]>(initialAllUsers);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Check for a logged-in user ID in localStorage to persist session
-    const loggedInUserId = localStorage.getItem('loggedInUserId');
-    if (loggedInUserId) {
-       const foundUser = allUsers.find(u => u.uid === loggedInUserId);
-       setUser(foundUser || null);
+    // Load all user data from localStorage
+    try {
+      const storedUsers = localStorage.getItem(USER_DATA_STORAGE_KEY);
+      const users = storedUsers ? JSON.parse(storedUsers) : initialAllUsers;
+      setAllUsers(users);
+
+      const loggedInUserId = localStorage.getItem(LOGGED_IN_USER_ID_KEY);
+      if (loggedInUserId) {
+        const foundUser = users.find((u: User) => u.uid === loggedInUserId);
+        setUser(foundUser || null);
+      }
+    } catch (e) {
+      // If parsing fails, start fresh
+      setAllUsers(initialAllUsers);
     }
     setLoading(false);
   }, []);
 
-  const signInAs = async (userId: string) => {
+  // Persist all user data to localStorage whenever it changes
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem(USER_DATA_STORAGE_KEY, JSON.stringify(allUsers));
+    }
+  }, [allUsers, loading]);
+
+
+  const signInAs = useCallback(async (userId: string) => {
     setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API call
     const selectedUser = allUsers.find(u => u.uid === userId);
     if (selectedUser) {
         setUser(selectedUser);
-        localStorage.setItem('loggedInUserId', selectedUser.uid);
+        localStorage.setItem(LOGGED_IN_USER_ID_KEY, selectedUser.uid);
     }
     setLoading(false);
-  };
+  }, [allUsers]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 500));
     setUser(null);
-    localStorage.removeItem('loggedInUserId');
-    // We do NOT clear app data on sign out, so A/B settings persist
-    // localStorage.removeItem('nihongo-app-data');
+    localStorage.removeItem(LOGGED_IN_USER_ID_KEY);
     setLoading(false);
     router.push('/');
-  };
+  }, [router]);
 
-  const updateUser = async (data: { displayName?: string; photoURL?: string }) => {
-     // This function is now more complex with multiple users.
-     // For this mock, we won't update the central `allUsers` list,
-     // but we will update the currently logged-in user's state.
-     // A real implementation would require a backend.
-    setUser(currentUser => {
+  const updateUser = useCallback(async (data: { displayName?: string; photoURL?: string, email?: string }) => {
+     setUser(currentUser => {
         if (!currentUser) return null;
-        const updatedUser = { ...currentUser, ...data };
-        // We aren't saving this back to `allUsers` or localStorage in this mock,
-        // so changes will be lost on refresh.
+        
+        const updatedUser = { 
+            ...currentUser, 
+            ...data 
+        };
+
+        setAllUsers(currentUsers => {
+            return currentUsers.map(u => u.uid === currentUser.uid ? updatedUser : u);
+        });
+
         return updatedUser;
     });
-  }
+  }, []);
 
-  const value = { user, loading, signInAs, signOut, updateUser };
+  const value = { user, allUsers, loading, signInAs, signOut, updateUser };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

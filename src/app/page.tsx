@@ -2,17 +2,17 @@
 'use client';
 
 import { NihonGoLogo } from '@/components/icons';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth, type User } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { allUsers, User } from '@/lib/user-data';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function LoginForm({ role, onSignIn }: { role: 'admin' | 'learner', onSignIn: (email: string, role: 'admin' | 'learner') => Promise<void> }) {
+  const { allUsers } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +41,7 @@ function LoginForm({ role, onSignIn }: { role: 'admin' | 'learner', onSignIn: (e
         <Input
           id={`${role}-email`}
           type="email"
-          placeholder={role === 'admin' ? adminUser?.email : learnerUsers[0]?.email}
+          placeholder={role === 'admin' ? adminUser?.email ?? '' : learnerUsers[0]?.email ?? ''}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -66,7 +66,7 @@ function LoginForm({ role, onSignIn }: { role: 'admin' | 'learner', onSignIn: (e
 }
 
 export default function LoginPage() {
-  const { user, loading, signInAs } = useAuth();
+  const { user, allUsers, loading, signInAs } = useAuth();
   const router = useRouter();
 
   useEffect(() => {

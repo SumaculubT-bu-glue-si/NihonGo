@@ -31,6 +31,7 @@ import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   displayName: z.string().min(1, 'Display name is required.'),
+  email: z.string().email('Please enter a valid email.'),
   photo: z.any().optional(),
 });
 
@@ -52,13 +53,17 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
     resolver: zodResolver(formSchema),
     defaultValues: {
       displayName: user?.displayName || '',
+      email: user?.email || '',
       photo: undefined,
     },
   });
 
   useEffect(() => {
-    if (user) {
-      form.reset({ displayName: user.displayName || '' });
+    if (user && isOpen) {
+      form.reset({
+        displayName: user.displayName || '',
+        email: user.email || '',
+      });
       setPreview(user.photoURL || null);
     }
   }, [user, form, isOpen]);
@@ -80,8 +85,6 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
     try {
       let photoURL = user?.photoURL;
       if (data.photo) {
-        // In a real app, you'd upload the file and get a URL.
-        // For this mock, we'll use the base64 data URI directly.
         photoURL = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result as string);
@@ -91,6 +94,7 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
 
       await updateUser({
         displayName: data.displayName,
+        email: data.email,
         photoURL: photoURL ?? undefined,
       });
 
@@ -123,7 +127,7 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
             <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
-                    <AvatarImage src={preview || ''} alt={user?.displayName || ''}/>
+                    <AvatarImage src={preview || ''} alt={user?.displayName || ''} data-ai-hint="person" />
                     <AvatarFallback>{user?.displayName?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
@@ -146,6 +150,19 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
                   <FormLabel>Display Name</FormLabel>
                   <FormControl>
                     <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
