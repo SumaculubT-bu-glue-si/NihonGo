@@ -31,14 +31,14 @@ export function StatsView({ appData }: StatsViewProps) {
   const [analysis, setAnalysis] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(true); // Start analyzing on load
 
-  const { deckStats, grammarStats, quizStats, quizChartData, deckChartStats } = useMemo(() => {
+  const { deckStats, grammarStats, quizStats, deckChartStats, grammarChartData, quizChartData } = useMemo(() => {
     // Deck Stats
     const deckStatsForAI = appData.userStats.map(stat => ({
         title: stat.topic,
         progress: stat.progress,
         total: stat.total,
     }));
-    
+
     const deckChartStatsData = appData.userStats.map(stat => ({
         topic: stat.topic,
         progress: stat.progress,
@@ -73,11 +73,35 @@ export function StatsView({ appData }: StatsViewProps) {
     });
     
     Object.keys(scoresByLevel).forEach(level => {
-        const quizCountForLevel = appData.quizzes.filter(q => q.level === level && scoresByLevel[level].count > 0).reduce((acc, q) => acc + q.questions.length, 0);
-        const averageRawScore = scoresByLevel[level].totalScore / scoresByLevel[level].count;
-        const totalPossibleScore = quizCountForLevel > 0 ? (appData.quizzes.find(q => q.level === level)?.questions.length ?? 10) * scoresByLevel[level].count : 1;
-        // The average is now based on percentage of raw scores
-        scoresByLevel[level].average = Math.round((scoresByLevel[level].totalScore / totalPossibleScore) * 100);
+        const quizzesForLevel = appData.quizzes.filter(q => q.level === level);
+        const totalPossibleScoreForLevel = quizzesForLevel.reduce((acc, q) => acc + q.questions.length, 0);
+
+        if (scoresByLevel[level].count > 0 && totalPossibleScoreForLevel > 0) {
+            // Calculate total score for all attempts on quizzes of this level
+            const totalScoreForAttempts = appData.quizScores
+                .filter(score => {
+                    const quiz = appData.quizzes.find(q => q.id === score.quizId);
+                    return quiz && quiz.level === level;
+                })
+                .reduce((acc, score) => acc + score.highestScore, 0);
+
+            // Calculate total possible score for all quizzes attempted at this level
+            const totalPossibleScoreForAttempts = appData.quizScores
+                .filter(score => {
+                    const quiz = appData.quizzes.find(q => q.id === score.quizId);
+                    return quiz && quiz.level === level;
+                })
+                .reduce((acc, score) => {
+                    const quiz = appData.quizzes.find(q => q.id === score.quizId);
+                    return acc + (quiz?.questions.length || 0);
+                }, 0);
+            
+            if (totalPossibleScoreForAttempts > 0) {
+                 scoresByLevel[level].average = Math.round((totalScoreForAttempts / totalPossibleScoreForAttempts) * 100);
+            } else {
+                 scoresByLevel[level].average = 0;
+            }
+        }
     });
     
     const quizzesTakenCount = appData.quizScores.length;
@@ -117,7 +141,7 @@ export function StatsView({ appData }: StatsViewProps) {
     });
 
 
-    return { deckStats: deckStatsForAI, grammarStats, grammarChartData, quizStats: quizStatsForAI, quizChartData, deckChartStats: deckChartStatsData };
+    return { deckStats: deckStatsForAI, grammarStats, deckChartStats: deckChartStatsData, grammarChartData, quizStats: quizStatsForAI, quizChartData };
   }, [appData]);
   
   useEffect(() => {
