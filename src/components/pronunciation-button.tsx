@@ -11,18 +11,20 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
   const { toast } = useToast();
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // Ensure voices are loaded.
+  // Ensure voices are loaded and clean up on unmount.
   useEffect(() => {
     const loadVoices = () => speechSynthesis.getVoices();
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       loadVoices(); // Initial attempt
       speechSynthesis.onvoiceschanged = loadVoices;
     }
+    
+    // Cleanup function
     return () => {
         if (typeof window !== 'undefined' && window.speechSynthesis) {
             speechSynthesis.onvoiceschanged = null;
             // Cancel any speech if the component unmounts while speaking
-            if (speechSynthesis.speaking) {
+            if (speechSynthesis.speaking && utteranceRef.current) {
                 speechSynthesis.cancel();
             }
         }
@@ -87,7 +89,7 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
       onClick={handleSpeak}
       aria-label={isSpeaking ? "Stop pronunciation" : "Listen to pronunciation"}
     >
-      <Icon />
+      <Icon className="h-4 w-4" />
     </Button>
   );
 }
