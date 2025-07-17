@@ -8,9 +8,9 @@ import { QuizClientPage } from './quiz-client-page';
 import { useGlobalState } from '@/hooks/use-global-state';
 
 export default function QuizPage() {
-  const params = useParams();
+  const params = useParams<{ quizId: string }>();
   const { appData, isLoading } = useGlobalState();
-  const quizId = params.quizId as string;
+  const quizId = params.quizId;
   
   if (isLoading) {
     return (

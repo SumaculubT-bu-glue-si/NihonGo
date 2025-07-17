@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AuthGuard } from '@/components/auth-guard';
@@ -7,8 +8,8 @@ import { notFound, useParams } from 'next/navigation';
 import { useGlobalState } from '@/hooks/use-global-state';
 
 export default function DeckPage() {
-  const params = useParams();
-  const deckId = params.deckId as string;
+  const params = useParams<{ deckId: string }>();
+  const deckId = params.deckId;
   const { appData, isLoading } = useGlobalState();
 
   if (isLoading) {

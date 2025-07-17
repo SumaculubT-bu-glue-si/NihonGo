@@ -8,8 +8,8 @@ import { useGlobalState } from '@/hooks/use-global-state';
 import { ManageCardsClientPage } from './manage-cards-client-page';
 
 export default function ManageCardsPage() {
-  const params = useParams();
-  const deckId = params.deckId as string;
+  const params = useParams<{ deckId: string }>();
+  const deckId = params.deckId;
   const { appData, isLoading } = useGlobalState();
 
   if (isLoading) {
