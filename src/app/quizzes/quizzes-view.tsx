@@ -30,7 +30,7 @@ import { useRouter } from 'next/navigation';
 import type { Quiz } from '@/lib/data';
 import { generateQuiz } from '@/ai/flows/generate-quiz-flow';
 import { GenerateQuizForm } from './generate-quiz-form';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 
 const quizCategories = [
