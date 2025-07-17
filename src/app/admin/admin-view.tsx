@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Clock, Target } from 'lucide-react';
+import { Users, Clock, Target, BarChart as BarChartIcon } from 'lucide-react';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 
 interface LearnerStats {
   uid: string;
@@ -32,8 +33,14 @@ interface AggregateStats {
   avgGrammarAccuracy: number;
 }
 
+interface UserProgressChartData {
+    name: string;
+    vocabulary: number;
+    grammar: number;
+}
+
 export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
-  const { learnerStats, aggregateStats } = useMemo(() => {
+  const { learnerStats, aggregateStats, userProgressChartData } = useMemo(() => {
     const learners = allUsers.filter(user => user.role === 'learner');
 
     const stats: LearnerStats[] = learners.map((user, index) => {
@@ -115,7 +122,33 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
         avgGrammarAccuracy: totalGrammarQuizzes > 0 ? Math.round(totalGrammarScore / totalGrammarQuizzes) : 0,
     };
     
-    return { learnerStats: stats, aggregateStats: aggStats };
+     // Calculate chart data
+    const chartData: UserProgressChartData[] = learners.map(user => {
+        const data = allUsersData[user.uid];
+        if (!data) {
+            return {
+                name: user.displayName?.split(' ')[0] || 'Unknown',
+                vocabulary: 0,
+                grammar: 0,
+            };
+        }
+
+        const vocabDecks = data.decks.filter(d => d.category === 'Vocabulary' || d.category === 'Kanji' || d.category === 'Phrases');
+        const vocabProgress = vocabDecks.reduce((acc, deck) => {
+            const stat = data.userStats.find(s => s.topic === deck.title);
+            return acc + (stat ? stat.progress : 0);
+        }, 0);
+
+        const grammarProgress = data.grammarLessons.filter(l => l.read).length;
+
+        return {
+            name: user.displayName?.split(' ')[0] || 'Unknown',
+            vocabulary: vocabProgress,
+            grammar: grammarProgress,
+        };
+    });
+    
+    return { learnerStats: stats, aggregateStats: aggStats, userProgressChartData: chartData };
 
   }, [allUsersData]);
 
@@ -236,6 +269,57 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
               ))}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+      
+       <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChartIcon className="h-5 w-5" />
+            Topic Engagement
+          </CardTitle>
+          <CardDescription>
+            Comparison of completed vocabulary/kanji cards vs. completed grammar lessons per user.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={userProgressChartData}>
+              <XAxis
+                dataKey="name"
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${value}`}
+              />
+              <Tooltip
+                cursor={{ fill: 'hsl(var(--accent))', opacity: 0.2 }}
+                content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                        <div className="rounded-lg border bg-background p-2 shadow-sm text-center">
+                            <span className="text-sm font-bold text-foreground">{data.name}</span>
+                            <p className="text-xs text-pink-500">{`Vocabulary: ${payload[0].value} items`}</p>
+                            <p className="text-xs text-blue-400">{`Grammar: ${payload[1].value} lessons`}</p>
+                        </div>
+                    )
+                    }
+                    return null
+                }}
+              />
+              <Legend />
+              <Bar dataKey="vocabulary" fill="#ec4899" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="grammar" fill="#60a5fa" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>
