@@ -3,7 +3,6 @@
 
 import { useMemo, useRef, useState, useEffect } from 'react';
 import type { FullAppData } from '@/hooks/use-global-state';
-import { allUsers } from '@/lib/user-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
@@ -15,6 +14,7 @@ import { utils, writeFile } from 'xlsx';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { analyzeTopicEngagement } from '@/ai/flows/analyze-topic-engagement-flow';
+import type { User } from '@/contexts/auth-context';
 
 
 interface LearnerStats {
@@ -46,7 +46,7 @@ interface UserProgressChartData {
     quizzes: number;
 }
 
-export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
+export function AdminView({ allUsersData, allUsers }: { allUsersData: FullAppData, allUsers: User[] }) {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [topicAnalysis, setTopicAnalysis] = useState<string[]>([]);
@@ -171,7 +171,7 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
     
     return { learnerStats: stats, aggregateStats: aggStats, userProgressChartData: chartData };
 
-  }, [allUsersData]);
+  }, [allUsersData, allUsers]);
 
    useEffect(() => {
     const handleAnalyzeTopics = async () => {

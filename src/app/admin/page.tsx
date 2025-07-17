@@ -5,9 +5,13 @@ import { AdminGuard } from '@/components/admin-guard';
 import { AppLayout } from '@/components/app-layout';
 import { useGlobalState } from '@/hooks/use-global-state';
 import { AdminView } from './admin-view';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function AdminPage() {
-  const { allUsersData, isLoading } = useGlobalState();
+  const { allUsersData, isLoading: isGlobalStateLoading } = useGlobalState();
+  const { allUsers, loading: isAuthLoading } = useAuth();
+
+  const isLoading = isGlobalStateLoading || isAuthLoading;
 
   if (isLoading) {
     return (
@@ -24,7 +28,7 @@ export default function AdminPage() {
   return (
     <AdminGuard>
       <AppLayout>
-        <AdminView allUsersData={allUsersData} />
+        <AdminView allUsersData={allUsersData} allUsers={allUsers} />
       </AppLayout>
     </AdminGuard>
   );
