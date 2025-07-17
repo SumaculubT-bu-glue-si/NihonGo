@@ -25,7 +25,7 @@ const deriveLevelFromCard = (card: Flashcard): ProficiencyLevel => {
 };
 
 export const SentenceGenerator = memo(function SentenceGenerator({ card }: { card: Flashcard }) {
-  const [level, setLevel] = useState<ProficiencyLevel>(() => deriveLevelFromCard(card));
+  const [level, setLevel] = useState<ProficiencyLevel>(deriveLevelFromCard(card));
   const [sentences, setSentences] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
