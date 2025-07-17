@@ -123,35 +123,44 @@ export default function UsageAnalysisPage() {
                         Control which UI variant is active for each section of the app. Changes are saved globally for all users.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-semibold text-sm text-muted-foreground px-4">
-                        <div className="md:col-span-1">Section</div>
-                        <div className="text-center">Variant A (Default)</div>
-                        <div className="text-center">Variant B (Test)</div>
-                    </div>
-                    <Separator />
+                <CardContent className="space-y-4">
                     {navItems.map((item) => {
                         const navId = item.id as NavItemId;
                         const hasVariantB = implementedVariants.includes(navId);
 
                         return (
-                            <div key={item.id} className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 p-4 border rounded-lg">
+                            <div key={item.id} className="grid grid-cols-1 md:grid-cols-2 items-center gap-4 p-4 border rounded-lg">
                                 <div>
-                                    <Label className="font-semibold">{item.name}</Label>
+                                    <Label className="font-semibold text-base">{item.name}</Label>
                                 </div>
                                 <RadioGroup 
                                     value={currentVariants[navId]} 
                                     onValueChange={(value) => handleVariantChange(navId, value as 'A' | 'B')} 
-                                    className="col-span-2 grid grid-cols-2"
+                                    className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-1"
                                 >
-                                    <div className="flex items-center justify-center space-x-2">
-                                        <RadioGroupItem value="A" id={`${item.id}-a`} />
-                                        <Label htmlFor={`${item.id}-a`} className="cursor-pointer">Active</Label>
+                                    <div>
+                                        <RadioGroupItem value="A" id={`${item.id}-a`} className="sr-only" />
+                                        <Label 
+                                            htmlFor={`${item.id}-a`}
+                                            className={cn(
+                                                "block w-full cursor-pointer rounded-md p-2 text-center font-semibold",
+                                                currentVariants[navId] === 'A' && "bg-background shadow"
+                                            )}
+                                        >
+                                            Variant A
+                                        </Label>
                                     </div>
-                                    <div className="flex items-center justify-center space-x-2">
-                                        <RadioGroupItem value="B" id={`${item.id}-b`} disabled={!hasVariantB} />
-                                        <Label htmlFor={`${item.id}-b`} className={cn("cursor-pointer", !hasVariantB && "text-muted-foreground/50")}>
-                                            Activate
+                                    <div>
+                                        <RadioGroupItem value="B" id={`${item.id}-b`} disabled={!hasVariantB} className="sr-only" />
+                                        <Label 
+                                            htmlFor={`${item.id}-b`}
+                                            className={cn(
+                                                "block w-full cursor-pointer rounded-md p-2 text-center font-semibold",
+                                                currentVariants[navId] === 'B' && "bg-background shadow",
+                                                !hasVariantB && "cursor-not-allowed text-muted-foreground/50"
+                                            )}
+                                        >
+                                            Variant B
                                         </Label>
                                     </div>
                                 </RadioGroup>
