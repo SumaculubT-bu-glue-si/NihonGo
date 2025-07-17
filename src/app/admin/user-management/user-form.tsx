@@ -47,6 +47,7 @@ interface UserFormProps {
 export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(formSchema),
@@ -74,6 +75,17 @@ export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) 
         });
     }
   }, [user, form, isOpen]);
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue('photoURL', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmit = async (data: UserFormData) => {
     setIsSaving(true);
@@ -107,13 +119,27 @@ export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) 
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4 py-4"
           >
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-4">
               <Avatar className="h-24 w-24">
                 <AvatarImage src={photoUrlValue || ''} alt={form.getValues('displayName') || ''} data-ai-hint="person" />
                 <AvatarFallback>
                   {form.getValues('displayName')?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
+               <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Change Photo
+              </Button>
+              <Input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+              />
             </div>
             
             <FormField
@@ -142,18 +168,18 @@ export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) 
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="photoURL"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Photo URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://placehold.co/100x100" {...field} />
-                  </FormControl>
-                   <FormMessage />
-                </FormItem>
-              )}
+             <FormField
+                control={form.control}
+                name="photoURL"
+                render={({ field }) => (
+                    <FormItem className="hidden">
+                    <FormLabel>Photo URL</FormLabel>
+                    <FormControl>
+                        <Input placeholder="https://placehold.co/100x100" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
             />
             <DialogFooter>
               <Button
