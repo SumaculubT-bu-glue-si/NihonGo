@@ -23,8 +23,7 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
     return () => {
         if (typeof window !== 'undefined' && window.speechSynthesis) {
             speechSynthesis.onvoiceschanged = null;
-            // Cancel any speech if the component unmounts while speaking
-            if (speechSynthesis.speaking && utteranceRef.current) {
+            if (speechSynthesis.speaking) {
                 speechSynthesis.cancel();
             }
         }
@@ -64,8 +63,9 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = (event) => {
-        // Check if the error is a cancellation, which is not a true error.
-        if (event.error !== 'cancelled') {
+        // This is a more robust check. If isSpeaking is already false,
+        // it means we've intentionally cancelled it, so we can ignore the error.
+        if (isSpeaking) {
             console.error('Speech synthesis error', event);
             toast({
                 title: 'Pronunciation Error',
