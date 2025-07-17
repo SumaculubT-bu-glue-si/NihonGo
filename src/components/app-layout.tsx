@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { NihonGoLogo } from './icons';
-import { Home, BookMarked, BookOpen, ClipboardList, BarChart3, Settings, LogOut, ShieldCheck, ChevronDown } from 'lucide-react';
+import { Home, BookMarked, BookOpen, ClipboardList, BarChart3, Settings, LogOut, ShieldCheck, ChevronDown, Users } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -78,6 +78,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
                                     <Link href="/admin/usage-analysis">Usage Analysis</Link>
+                                </DropdownMenuItem>
+                                 <DropdownMenuItem asChild>
+                                    <Link href="/admin/user-management">User Management</Link>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </div>
