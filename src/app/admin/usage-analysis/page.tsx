@@ -7,17 +7,17 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Separator } from '@/components/ui/separator';
 import { useGlobalState } from '@/hooks/use-global-state';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
-import { BarChart as BarChartIcon, Lightbulb, Loader2 } from 'lucide-react';
+import { BarChart as BarChartIcon, Lightbulb, Loader2, MousePointerClick } from 'lucide-react';
 import { analyzeABTest } from '@/ai/flows/analyze-ab-test-flow';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type NavItemId = 'home' | 'grammar' | 'dictionary' | 'quizzes' | 'dashboard';
+type HeatmapSelection = NavItemId;
 
 const abComparisonData = [
   {
@@ -51,6 +51,90 @@ const abComparisonData = [
 ];
 
 
+const HeatmapSpot = ({ top, left, size, color }: { top: string, left: string, size: string, color: string }) => (
+  <div
+    className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+    style={{
+      top,
+      left,
+      width: size,
+      height: size,
+      background: `radial-gradient(${color} 0%, transparent 70%)`,
+      opacity: 0.6,
+    }}
+  />
+);
+
+const HeatmapDisplay = ({ selection }: { selection: HeatmapSelection }) => {
+  const heatmaps = {
+    home: (
+      <div className="bg-muted p-4 rounded-lg">
+        <div className="flex justify-between items-center mb-4">
+          <div className="w-1/4 h-8 bg-background rounded-md" />
+          <div className="w-1/4 h-8 bg-primary rounded-md relative">
+              <HeatmapSpot top="50%" left="80%" size="40px" color="rgba(255, 0, 0, 1)" />
+          </div>
+        </div>
+        <div className="w-full h-8 bg-muted-foreground/20 rounded-md mb-4" />
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-40 bg-background rounded-lg relative">
+              <HeatmapSpot top="80%" left="50%" size="60px" color="rgba(255, 0, 0, 1)" />
+          </div>
+          <div className="h-40 bg-background rounded-lg relative">
+              <HeatmapSpot top="80%" left="50%" size="50px" color="rgba(255, 255, 0, 1)" />
+          </div>
+          <div className="h-40 bg-background rounded-lg relative">
+              <HeatmapSpot top="80%" left="50%" size="40px" color="rgba(0, 255, 0, 1)" />
+          </div>
+        </div>
+      </div>
+    ),
+    grammar: (
+       <div className="bg-muted p-4 rounded-lg">
+        <div className="h-10 bg-background rounded-md mb-4 relative">
+             <HeatmapSpot top="50%" left="50%" size="60px" color="rgba(255, 0, 0, 1)" />
+        </div>
+        <div className="space-y-2">
+            <div className="h-12 bg-background rounded-md"/>
+            <div className="h-12 bg-background rounded-md relative">
+                <HeatmapSpot top="50%" left="90%" size="40px" color="rgba(255, 255, 0, 1)" />
+            </div>
+            <div className="h-12 bg-background rounded-md"/>
+        </div>
+      </div>
+    ),
+    quizzes: (
+      <div className="bg-muted p-4 rounded-lg space-y-4">
+          <div className="h-24 bg-background rounded-md relative">
+              <HeatmapSpot top="50%" left="50%" size="80px" color="rgba(255, 0, 0, 1)" />
+          </div>
+          <div className="h-24 bg-background rounded-md relative">
+              <HeatmapSpot top="50%" left="50%" size="60px" color="rgba(255, 255, 0, 1)" />
+          </div>
+      </div>
+    ),
+     dashboard: (
+      <div className="bg-muted p-4 rounded-lg space-y-4">
+          <div className="h-64 bg-background rounded-md relative">
+              <HeatmapSpot top="30%" left="20%" size="80px" color="rgba(255, 0, 0, 1)" />
+              <HeatmapSpot top="70%" left="80%" size="60px" color="rgba(255, 255, 0, 1)" />
+          </div>
+      </div>
+    ),
+    dictionary: (
+      <div className="bg-muted p-4 rounded-lg space-y-4">
+          <div className="h-12 bg-background rounded-md relative">
+              <HeatmapSpot top="50%" left="90%" size="70px" color="rgba(255, 0, 0, 1)" />
+          </div>
+          <div className="h-40 bg-background rounded-md mt-4"/>
+      </div>
+    ),
+  };
+
+  return <div className="relative overflow-hidden">{heatmaps[selection]}</div>;
+}
+
+
 export default function UsageAnalysisPage() {
     const { appData, setActiveVariants } = useGlobalState();
     const { toast } = useToast();
@@ -59,6 +143,8 @@ export default function UsageAnalysisPage() {
     const [isDirty, setIsDirty] = useState(false);
     const [analysis, setAnalysis] = useState<string[]>([]);
     const [isAnalyzing, setIsAnalyzing] = useState(true);
+    const [heatmapSelection, setHeatmapSelection] = useState<HeatmapSelection>('home');
+
 
     useEffect(() => {
         setCurrentVariants(appData.activeVariants);
@@ -249,14 +335,33 @@ export default function UsageAnalysisPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Heatmap Analysis</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        <MousePointerClick className="h-5 w-5" />
+                        Heatmap Analysis
+                    </CardTitle>
                     <CardDescription>
-                        Visualize where users are clicking the most. This feature is under construction.
+                        Visualize where users are clicking on different pages. This is a visual simulation.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex items-center justify-center bg-muted/50 rounded-lg h-64">
-                        <p className="text-muted-foreground">Heatmap data will be displayed here.</p>
+                    <div className="space-y-4">
+                        <div className="w-full sm:w-1/3">
+                            <Select value={heatmapSelection} onValueChange={(v) => setHeatmapSelection(v as HeatmapSelection)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a page" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="home">Home (Decks)</SelectItem>
+                                    <SelectItem value="grammar">Grammar</SelectItem>
+                                    <SelectItem value="dictionary">Dictionary</SelectItem>
+                                    <SelectItem value="quizzes">Quizzes</SelectItem>
+                                    <SelectItem value="dashboard">Dashboard</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                         <div className="rounded-lg border bg-card p-4">
+                           <HeatmapDisplay selection={heatmapSelection} />
+                        </div>
                     </div>
                 </CardContent>
             </Card>
