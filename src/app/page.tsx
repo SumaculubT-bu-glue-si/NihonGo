@@ -98,7 +98,7 @@ export default function LoginPage() {
   }
   
   const adminUser = allUsers.find(u => u.role === 'admin');
-  const learnerUser = allUsers.find(u => u.role === 'learner');
+  const learnerUsers = allUsers.filter(u => u.role === 'learner');
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
@@ -126,9 +126,16 @@ export default function LoginPage() {
                         <LoginForm role="learner" onSignIn={handleSignIn} />
                     </CardContent>
                      <CardFooter>
-                        <p className="text-xs text-muted-foreground">
-                            Use email: <code className="bg-muted p-1 rounded">{learnerUser?.email}</code>
-                        </p>
+                        <div className="text-xs text-muted-foreground">
+                            <p className="mb-1">Use one of these emails:</p>
+                            <ul className="space-y-1">
+                                {learnerUsers.map(learner => (
+                                    <li key={learner.uid}>
+                                        <code className="bg-muted p-1 rounded">{learner.email}</code>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     </CardFooter>
                 </Card>
             </TabsContent>
