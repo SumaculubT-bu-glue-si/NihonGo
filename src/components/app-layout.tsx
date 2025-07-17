@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 
@@ -57,7 +57,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-primary/90">
                     <Avatar className="h-10 w-10 border-2 border-primary-foreground/50">
-                      <AvatarImage src={user?.photoURL ?? ''} alt={user?.displayName ?? 'User'} />
+                      <AvatarImage src={user?.photoURL ?? ''} alt={user?.displayName ?? 'User'} data-ai-hint="person" />
                       <AvatarFallback>
                         {user?.displayName?.charAt(0).toUpperCase()}
                       </AvatarFallback>

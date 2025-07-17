@@ -32,7 +32,7 @@ const mockUser: User = {
   uid: 'mock-user-id-123',
   displayName: 'Alex Tanaka',
   email: 'alex.tanaka@example.com',
-  photoURL: 'https://placehold.co/100x100',
+  photoURL: 'https://placehold.co/100x100.png',
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
