@@ -4,12 +4,66 @@
 import { NihonGoLogo } from '@/components/icons';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useEffect, useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { allUsers } from '@/lib/user-data';
+import { allUsers, User } from '@/lib/user-data';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+function LoginForm({ role, onSignIn }: { role: 'admin' | 'learner', onSignIn: (email: string, role: 'admin' | 'learner') => Promise<void> }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const adminUser = allUsers.find(u => u.role === 'admin');
+  const learnerUsers = allUsers.filter(u => u.role === 'learner');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      await onSignIn(email, role);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor={`${role}-email`}>Email</Label>
+        <Input
+          id={`${role}-email`}
+          type="email"
+          placeholder={role === 'admin' ? adminUser?.email : learnerUsers[0]?.email}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${role}-password`}>Password</Label>
+        <Input
+          id={`${role}-password`}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password (any value is fine)"
+        />
+      </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? 'Signing In...' : 'Sign In'}
+      </Button>
+    </form>
+  );
+}
 
 export default function LoginPage() {
   const { user, loading, signInAs } = useAuth();
@@ -25,8 +79,14 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
-  const handleSignIn = async (userId: string) => {
-    await signInAs(userId);
+  const handleSignIn = async (email: string, role: 'admin' | 'learner') => {
+    const foundUser = allUsers.find(u => u.email === email && u.role === role);
+
+    if (foundUser) {
+      await signInAs(foundUser.uid);
+    } else {
+      throw new Error('Invalid email for the selected role.');
+    }
   };
 
   if (loading || user) {
@@ -36,43 +96,59 @@ export default function LoginPage() {
       </div>
     );
   }
+  
+  const adminUser = allUsers.find(u => u.role === 'admin');
+  const learnerUser = allUsers.find(u => u.role === 'learner');
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
-      <div className="flex w-full max-w-lg flex-col items-center">
+      <div className="flex w-full max-w-sm flex-col items-center">
         <NihonGoLogo className="mb-6 h-20 w-20 text-primary" />
         <h1 className="mb-2 text-4xl font-bold font-headline text-foreground">
           Welcome to Nihon GO
         </h1>
         <p className="mb-8 text-center text-muted-foreground">
-          Select a user to begin.
+          An AI-powered Japanese learning app.
         </p>
         
-        <Card className="w-full">
-            <CardHeader>
-                <CardTitle>Select a Profile</CardTitle>
-                <CardDescription>Choose a user to log in as. This is a mock login for demonstration.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {allUsers.map((u) => (
-                    <button
-                        key={u.uid}
-                        onClick={() => handleSignIn(u.uid)}
-                        className="flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-colors hover:bg-accent"
-                    >
-                        <Avatar className="h-12 w-12">
-                            <AvatarImage src={u.photoURL ?? ''} alt={u.displayName ?? 'User'} />
-                            <AvatarFallback>{u.displayName?.charAt(0).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                            <p className="font-semibold">{u.displayName}</p>
-                            <p className="text-sm text-muted-foreground">{u.email}</p>
-                        </div>
-                        {u.role === 'admin' && <Badge>Admin</Badge>}
-                    </button>
-                ))}
-            </CardContent>
-        </Card>
+        <Tabs defaultValue="learner" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="learner">Learner</TabsTrigger>
+                <TabsTrigger value="admin">Admin</TabsTrigger>
+            </TabsList>
+            <TabsContent value="learner">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Login as Learner</CardTitle>
+                        <CardDescription>Enter a learner's email to continue.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <LoginForm role="learner" onSignIn={handleSignIn} />
+                    </CardContent>
+                     <CardFooter>
+                        <p className="text-xs text-muted-foreground">
+                            Use email: <code className="bg-muted p-1 rounded">{learnerUser?.email}</code>
+                        </p>
+                    </CardFooter>
+                </Card>
+            </TabsContent>
+            <TabsContent value="admin">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Login as Admin</CardTitle>
+                        <CardDescription>Enter the admin's email to continue.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <LoginForm role="admin" onSignIn={handleSignIn} />
+                    </CardContent>
+                    <CardFooter>
+                        <p className="text-xs text-muted-foreground">
+                           Use email: <code className="bg-muted p-1 rounded">{adminUser?.email}</code>
+                        </p>
+                    </CardFooter>
+                </Card>
+            </TabsContent>
+        </Tabs>
       </div>
     </main>
   );
