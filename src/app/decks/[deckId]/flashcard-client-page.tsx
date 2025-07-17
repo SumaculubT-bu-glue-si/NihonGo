@@ -128,7 +128,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
 
   // When the underlying deck data changes (e.g., from a CRUD operation), refresh the session
   useEffect(() => {
-    if (!isLoading && (cardsToShow.length > 0 || deck.cards.length > 0)) {
+    if (!isLoading) {
         const deckStats = appData.userStats.find(s => s.topic === deck.title);
         const currentProgress = deckStats ? deckStats.progress : 0;
 
@@ -142,7 +142,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
             setCurrentIndex(0);
         }
     }
-  }, [appData.decks, appData.userStats, deck.title, isLoading, currentIndex]);
+  }, [deck.cards, deck.title, isLoading, appData.userStats]);
   
   // This effect safely syncs the local masteredCount with the global state after render.
   useEffect(() => {
