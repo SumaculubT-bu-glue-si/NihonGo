@@ -15,6 +15,7 @@ interface LearnerStats {
   name: string;
   email: string;
   photoURL: string;
+  studyTime: string;
   decksCompleted: number;
   totalDecks: number;
   deckCompletionPercent: number;
@@ -35,7 +36,7 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
   const { learnerStats, aggregateStats } = useMemo(() => {
     const learners = allUsers.filter(user => user.role === 'learner');
 
-    const stats: LearnerStats[] = learners.map(user => {
+    const stats: LearnerStats[] = learners.map((user, index) => {
       const data = allUsersData[user.uid];
       if (!data) {
         return {
@@ -43,6 +44,7 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
           name: user.displayName || 'Unknown',
           email: user.email || 'No email',
           photoURL: user.photoURL || '',
+          studyTime: '0m',
           decksCompleted: 0,
           totalDecks: 0,
           deckCompletionPercent: 0,
@@ -65,12 +67,16 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
       const quizzesTaken = data.quizScores.length;
       const totalScore = data.quizScores.reduce((acc, score) => acc + score.highestScore, 0);
       const avgQuizScore = quizzesTaken > 0 ? Math.round(totalScore / quizzesTaken) : 0;
+      
+      // Mock study time data
+      const mockTimes = ['1h 15m', '45m', '2h 5m', '1h 30m', '55m'];
 
       return {
         uid: user.uid,
         name: user.displayName || 'Unknown',
         email: user.email || 'No email',
         photoURL: user.photoURL || '',
+        studyTime: mockTimes[index % mockTimes.length],
         decksCompleted,
         totalDecks,
         deckCompletionPercent,
@@ -177,6 +183,7 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[250px]">Learner</TableHead>
+                <TableHead>Study Time</TableHead>
                 <TableHead>Deck Completion</TableHead>
                 <TableHead>Grammar Progress</TableHead>
                 <TableHead>Average Quiz Score</TableHead>
@@ -196,6 +203,10 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
                         <p className="text-xs text-muted-foreground">{stats.email}</p>
                       </div>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium">{stats.studyTime}</div>
+                    <div className="text-xs text-muted-foreground">(mock data)</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
