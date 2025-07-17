@@ -1,19 +1,20 @@
 
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import type { FullAppData } from '@/hooks/use-global-state';
 import { allUsers } from '@/lib/user-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Clock, Target, BarChart as BarChartIcon, Download, FileText, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { Users, Clock, Target, BarChart as BarChartIcon, Download, FileText, FileSpreadsheet, Loader2, Wand2, Lightbulb } from 'lucide-react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { utils, writeFile } from 'xlsx';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { analyzeTopicEngagement } from '@/ai/flows/analyze-topic-engagement-flow';
 
 
 interface LearnerStats {
@@ -48,6 +49,8 @@ interface UserProgressChartData {
 export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [topicAnalysis, setTopicAnalysis] = useState<string[]>([]);
+  const [isAnalyzingTopics, setIsAnalyzingTopics] = useState(true);
   
   const { learnerStats, aggregateStats, userProgressChartData } = useMemo(() => {
     const learners = allUsers.filter(user => user.role === 'learner');
@@ -170,6 +173,27 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
 
   }, [allUsersData]);
 
+   useEffect(() => {
+    const handleAnalyzeTopics = async () => {
+      if (!userProgressChartData || userProgressChartData.length === 0) {
+          setIsAnalyzingTopics(false);
+          return;
+      }
+      setIsAnalyzingTopics(true);
+      try {
+        const result = await analyzeTopicEngagement({ chartData: userProgressChartData });
+        setTopicAnalysis(result.analysis);
+      } catch (error) {
+        console.error("Failed to analyze topic engagement:", error);
+        setTopicAnalysis(["Could not retrieve AI analysis at this time."]);
+      } finally {
+        setIsAnalyzingTopics(false);
+      }
+    };
+    handleAnalyzeTopics();
+  }, [userProgressChartData]);
+
+
   const handleDownloadExcel = () => {
     const dataToExport = learnerStats.map(stat => ({
         'Learner Name': stat.name,
@@ -182,6 +206,18 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
     }));
 
     const worksheet = utils.json_to_sheet(dataToExport);
+    
+    // Set column widths
+    worksheet['!cols'] = [
+        { wch: 20 }, // Learner Name
+        { wch: 25 }, // Email
+        { wch: 18 }, // Study Time
+        { wch: 20 }, // Decks Completed
+        { wch: 20 }, // Grammar Read
+        { wch: 20 }, // Avg Quiz Score
+        { wch: 15 }  // Quizzes Taken
+    ];
+
     const workbook = utils.book_new();
     utils.book_append_sheet(workbook, worksheet, 'Learner Progress');
 
@@ -193,25 +229,29 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
     if (!dashboardElement) return;
     
     setIsDownloadingPdf(true);
-
-    // Give a moment for any final renders
     await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
       const canvas = await html2canvas(dashboardElement, {
-        scale: 2, // Higher scale for better quality
+        scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#f9fafb' // Tailwind gray-50
       });
-      const imgData = canvas.toDataURL('image/png');
       
+      const contentWidth = canvas.width;
+      const contentHeight = canvas.height;
+      const padding = 40;
+
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'px',
-        format: [canvas.width, canvas.height]
+        format: [contentWidth + padding * 2, contentHeight + padding * 2]
       });
 
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.setFillColor('#f9fafb');
+      pdf.rect(0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height, 'F');
+      
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', padding, padding, contentWidth, contentHeight);
       pdf.save('AdminDashboard.pdf');
 
     } catch(e) {
@@ -241,7 +281,7 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
             </Button>
         </div>
       </div>
-      <div ref={dashboardRef} className="space-y-6">
+      <div ref={dashboardRef} className="space-y-6 bg-background p-4 rounded-lg">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -353,59 +393,89 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
             </CardContent>
         </Card>
         
-        <Card>
-            <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-                <BarChartIcon className="h-5 w-5" />
-                Topic Engagement
-            </CardTitle>
-            <CardDescription>
-                Comparison of topic completion percentage per user.
-            </CardDescription>
-            </CardHeader>
-            <CardContent>
-            <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={userProgressChartData}>
-                <XAxis
-                    dataKey="name"
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                />
-                <YAxis
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `${value}%`}
-                    domain={[0, 100]}
-                />
-                <Tooltip
-                    cursor={{ fill: 'hsl(var(--accent))', opacity: 0.2 }}
-                    content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                        const data = payload[0].payload;
-                        return (
-                            <div className="rounded-lg border bg-background p-2 shadow-sm text-center">
-                                <span className="text-sm font-bold text-foreground">{data.name}</span>
-                                <p className="text-xs" style={{ color: '#ec4899' }}>{`Vocabulary: ${payload[0].value}%`}</p>
-                                <p className="text-xs" style={{ color: '#60a5fa' }}>{`Grammar: ${payload[1].value}%`}</p>
-                                <p className="text-xs" style={{ color: '#81C784' }}>{`Quizzes: ${payload[2].value}%`}</p>
-                            </div>
-                        )
-                        }
-                        return null
-                    }}
-                />
-                <Legend />
-                <Bar dataKey="vocabulary" fill="#ec4899" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="grammar" fill="#60a5fa" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="quizzes" fill="#81C784" radius={[4, 4, 0, 0]} />
-                </BarChart>
-            </ResponsiveContainer>
-            </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <BarChartIcon className="h-5 w-5" />
+                    Topic Engagement
+                </CardTitle>
+                <CardDescription>
+                    Comparison of topic completion percentage per user.
+                </CardDescription>
+                </CardHeader>
+                <CardContent>
+                <ResponsiveContainer width="100%" height={350}>
+                    <BarChart data={userProgressChartData}>
+                    <XAxis
+                        dataKey="name"
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                    />
+                    <YAxis
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => `${value}%`}
+                        domain={[0, 100]}
+                    />
+                    <Tooltip
+                        cursor={{ fill: 'hsl(var(--accent))', opacity: 0.2 }}
+                        content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                                <div className="rounded-lg border bg-background p-2 shadow-sm text-center">
+                                    <span className="text-sm font-bold text-foreground">{data.name}</span>
+                                    <p className="text-xs" style={{ color: '#ec4899' }}>{`Vocabulary: ${payload[0].value}%`}</p>
+                                    <p className="text-xs" style={{ color: '#60a5fa' }}>{`Grammar: ${payload[1].value}%`}</p>
+                                    <p className="text-xs" style={{ color: '#81C784' }}>{`Quizzes: ${payload[2].value}%`}</p>
+                                </div>
+                            )
+                            }
+                            return null
+                        }}
+                    />
+                    <Legend />
+                    <Bar dataKey="vocabulary" fill="#ec4899" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="grammar" fill="#60a5fa" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="quizzes" fill="#81C784" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                </ResponsiveContainer>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Lightbulb className="h-5 w-5 text-yellow-500" />
+                        AI Insights
+                    </CardTitle>
+                    <CardDescription>
+                        An AI-generated summary of the topic engagement data.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isAnalyzingTopics ? (
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <p>Analyzing engagement...</p>
+                        </div>
+                    ) : (
+                        <ul className="space-y-3 text-sm text-muted-foreground">
+                            {topicAnalysis.map((item, index) => (
+                                <li key={index} className="flex items-start gap-3">
+                                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                                    <span>{item}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
       </div>
     </div>
   );
