@@ -32,10 +32,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen pb-72 w-full flex flex-col">
-       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+       <header className="sticky top-0 z-50 w-full border-b bg-primary text-primary-foreground">
         <div className="container flex h-16 items-center">
             <Link href="/decks" className="mr-6 flex items-center gap-2">
-                <NihonGoLogo className="h-8 w-8 text-primary" />
+                <NihonGoLogo className="h-8 w-8 text-primary-foreground" />
                 <span className="font-bold font-headline text-lg">Nihon GO</span>
             </Link>
             <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
@@ -44,8 +44,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "transition-colors hover:text-primary",
-                      pathname.startsWith(item.href) ? "text-primary" : "text-muted-foreground"
+                      "transition-colors hover:text-primary-foreground/80",
+                      pathname.startsWith(item.href) ? "text-primary-foreground font-semibold" : "text-primary-foreground/70"
                     )}
                   >
                     {item.label}
@@ -55,8 +55,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex flex-1 items-center justify-end gap-4">
                <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-primary/90">
+                    <Avatar className="h-10 w-10 border-2 border-primary-foreground/50">
                       <AvatarImage src={user?.photoURL ?? ''} alt={user?.displayName ?? 'User'} />
                       <AvatarFallback>
                         {user?.displayName?.charAt(0).toUpperCase()}
