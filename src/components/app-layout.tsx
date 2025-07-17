@@ -27,7 +27,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/grammar-lessons', label: 'Grammar', icon: BookMarked },
     { href: '/dictionary', label: 'Dictionary', icon: BookOpen },
     { href: '/quizzes', label: 'Quizzes', icon: ClipboardList },
-    { href: '/stats', label: 'Stats', icon: BarChart3 },
+    { href: '/stats', label: 'Dashboard', icon: BarChart3 },
   ];
 
   return (

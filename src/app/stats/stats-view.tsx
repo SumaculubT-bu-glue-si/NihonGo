@@ -31,7 +31,7 @@ export function StatsView({ appData }: StatsViewProps) {
   const [analysis, setAnalysis] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(true); // Start analyzing on load
 
-  const { deckStats, grammarStats, quizStats, quizChartData, grammarChartData, deckChartStats } = useMemo(() => {
+  const { deckStats, grammarStats, quizStats, quizChartData, deckChartStats } = useMemo(() => {
     // Deck Stats
     const deckStatsForAI = appData.userStats.map(stat => ({
         title: stat.topic,
@@ -39,7 +39,7 @@ export function StatsView({ appData }: StatsViewProps) {
         total: stat.total,
     }));
     
-    const deckChartStats = appData.userStats.map(stat => ({
+    const deckChartStatsData = appData.userStats.map(stat => ({
         topic: stat.topic,
         progress: stat.progress,
         total: stat.total,
@@ -117,7 +117,7 @@ export function StatsView({ appData }: StatsViewProps) {
     });
 
 
-    return { deckStats: deckStatsForAI, grammarStats, grammarChartData, quizStats: quizStatsForAI, quizChartData, deckChartStats };
+    return { deckStats: deckStatsForAI, grammarStats, grammarChartData, quizStats: quizStatsForAI, quizChartData, deckChartStats: deckChartStatsData };
   }, [appData]);
   
   useEffect(() => {
@@ -144,7 +144,7 @@ export function StatsView({ appData }: StatsViewProps) {
   return (
     <div className="space-y-6">
         <div>
-            <h1 className="mb-2 text-3xl font-bold font-headline">Your Progress</h1>
+            <h1 className="mb-2 text-3xl font-bold font-headline">Your Dashboard</h1>
             <p className="mb-6 text-muted-foreground">
                 A visual overview of your learning journey so far.
             </p>
@@ -153,7 +153,7 @@ export function StatsView({ appData }: StatsViewProps) {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                    <span>AI Analysis</span>
+                    <span>Progress Analysis</span>
                 </CardTitle>
                 <CardDescription>Personalized feedback on your learning habits from your AI tutor, Go-sensei.</CardDescription>
             </CardHeader>
