@@ -451,7 +451,7 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Lightbulb className="h-5 w-5 text-yellow-500" />
-                        AI Insights
+                        Progress Insights
                     </CardTitle>
                     <CardDescription>
                         An AI-generated summary of the topic engagement data.
