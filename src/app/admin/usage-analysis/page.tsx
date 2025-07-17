@@ -16,6 +16,7 @@ import { BarChart as BarChartIcon, Lightbulb, Loader2, MousePointerClick } from 
 import { analyzeABTest } from '@/ai/flows/analyze-ab-test-flow';
 import { analyzeHeatmapData } from '@/ai/flows/analyze-heatmap-data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 
 type NavItemId = 'home' | 'grammar' | 'dictionary' | 'quizzes' | 'dashboard';
 type HeatmapSelection = NavItemId;
@@ -463,34 +464,33 @@ export default function UsageAnalysisPage() {
                             </div>
                         </div>
                     </div>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Lightbulb className="h-5 w-5 text-yellow-500" />
-                        Heatmap Insights
-                    </CardTitle>
-                    <CardDescription>
-                        An AI-generated analysis comparing user interactions on each variant.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {isAnalyzingHeatmap ? (
-                        <div className="flex items-center gap-3 text-muted-foreground">
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                            <p>Analyzing heatmaps...</p>
-                        </div>
-                    ) : (
-                        <ul className="space-y-3 text-sm text-muted-foreground">
-                            {heatmapAnalysis.map((item, index) => (
-                                <li key={index} className="flex items-start gap-3">
-                                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent" />
-                                    <span>{item}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                    
+                    <Separator className="my-4" />
+
+                    <div>
+                        <CardTitle className="flex items-center gap-2 mb-2">
+                            <Lightbulb className="h-5 w-5 text-yellow-500" />
+                            Heatmap Insights
+                        </CardTitle>
+                        <CardDescription className="mb-4">
+                            An AI-generated analysis comparing user interactions on each variant.
+                        </CardDescription>
+                        {isAnalyzingHeatmap ? (
+                            <div className="flex items-center gap-3 text-muted-foreground">
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                <p>Analyzing heatmaps...</p>
+                            </div>
+                        ) : (
+                            <ul className="space-y-3 text-sm text-muted-foreground">
+                                {heatmapAnalysis.map((item, index) => (
+                                    <li key={index} className="flex items-start gap-3">
+                                        <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent" />
+                                        <span>{item}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
         </div>
