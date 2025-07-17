@@ -31,11 +31,18 @@ interface AuthContextType {
   loading: boolean;
   signInAs: (userId: string) => Promise<void>;
   signOut: () => Promise<void>;
-  updateUser: (data: {
-    displayName?: string;
-    photoURL?: string;
-    email?: string;
-  }) => Promise<void>;
+  updateUser: (
+    userId: string,
+    data: {
+      displayName?: string;
+      photoURL?: string;
+      email?: string;
+    }
+  ) => Promise<void>;
+  addUser: (
+    data: Omit<User, 'uid' | 'role'> & { role?: 'learner' | 'admin' }
+  ) => Promise<User>;
+  deleteUser: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,17 +79,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [allUsers, loading]);
 
-
-  const signInAs = useCallback(async (userId: string) => {
-    setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API call
-    const selectedUser = allUsers.find(u => u.uid === userId);
-    if (selectedUser) {
+  const signInAs = useCallback(
+    async (userId: string) => {
+      setLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API call
+      const selectedUser = allUsers.find((u) => u.uid === userId);
+      if (selectedUser) {
         setUser(selectedUser);
         localStorage.setItem(LOGGED_IN_USER_ID_KEY, selectedUser.uid);
-    }
-    setLoading(false);
-  }, [allUsers]);
+      }
+      setLoading(false);
+    },
+    [allUsers]
+  );
 
   const signOut = useCallback(async () => {
     setLoading(true);
@@ -93,24 +102,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/');
   }, [router]);
 
-  const updateUser = useCallback(async (data: { displayName?: string; photoURL?: string, email?: string }) => {
-     setUser(currentUser => {
-        if (!currentUser) return null;
-        
-        const updatedUser = { 
-            ...currentUser, 
-            ...data 
-        };
+  const updateUser = useCallback(
+    async (
+      userId: string,
+      data: { displayName?: string; photoURL?: string; email?: string }
+    ) => {
+      setAllUsers((currentUsers) =>
+        currentUsers.map((u) => (u.uid === userId ? { ...u, ...data } : u))
+      );
+      if (user?.uid === userId) {
+        setUser((currentUser) =>
+          currentUser ? { ...currentUser, ...data } : null
+        );
+      }
+    },
+    [user]
+  );
 
-        setAllUsers(currentUsers => {
-            return currentUsers.map(u => u.uid === currentUser.uid ? updatedUser : u);
-        });
+  const addUser = useCallback(
+    async (
+      data: Omit<User, 'uid' | 'role'> & { role?: 'learner' | 'admin' }
+    ): Promise<User> => {
+      const newUser: User = {
+        uid: `user-${Date.now()}`,
+        role: data.role || 'learner',
+        ...data,
+      };
+      setAllUsers((currentUsers) => [...currentUsers, newUser]);
+      return newUser;
+    },
+    []
+  );
 
-        return updatedUser;
-    });
+  const deleteUser = useCallback(async (userId: string) => {
+    setAllUsers((currentUsers) =>
+      currentUsers.filter((u) => u.uid !== userId)
+    );
   }, []);
 
-  const value = { user, allUsers, loading, signInAs, signOut, updateUser };
+  const value = {
+    user,
+    allUsers,
+    loading,
+    signInAs,
+    signOut,
+    updateUser,
+    addUser,
+    deleteUser,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

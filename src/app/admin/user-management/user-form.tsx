@@ -4,7 +4,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth, type User } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect, useRef } from 'react';
 
@@ -35,19 +35,20 @@ const formSchema = z.object({
   photoURL: z.string().url('Please enter a valid URL.').or(z.literal('')).optional(),
 });
 
-type UserSettingsFormData = z.infer<typeof formSchema>;
+export type UserFormData = z.infer<typeof formSchema>;
 
-interface UserSettingsFormProps {
+interface UserFormProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onSave: (data: UserFormData) => Promise<void>;
+  user: User | null;
 }
 
-export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps) {
-  const { user, updateUser } = useAuth();
+export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  
-  const form = useForm<UserSettingsFormData>({
+
+  const form = useForm<UserFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       displayName: '',
@@ -65,29 +66,24 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
         email: user.email || '',
         photoURL: user.photoURL || '',
       });
+    } else if (!user && isOpen) {
+        form.reset({
+            displayName: '',
+            email: '',
+            photoURL: '',
+        });
     }
   }, [user, form, isOpen]);
 
-  const onSubmit = async (data: UserSettingsFormData) => {
-    if (!user) return;
-
+  const onSubmit = async (data: UserFormData) => {
     setIsSaving(true);
     try {
-      await updateUser(user.uid, {
-        displayName: data.displayName,
-        email: data.email,
-        photoURL: data.photoURL,
-      });
-
-      toast({
-        title: 'Settings Saved',
-        description: 'Your profile has been updated.',
-      });
+      await onSave(data);
       onOpenChange(false);
     } catch (error) {
-      toast({
+       toast({
         title: 'Error',
-        description: 'Failed to save settings.',
+        description: 'An unexpected error occurred.',
         variant: 'destructive',
       });
     } finally {
@@ -99,20 +95,27 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Profile Settings</DialogTitle>
+          <DialogTitle>{user ? 'Edit User' : 'Add New User'}</DialogTitle>
           <DialogDescription>
-            Update your display name, email, and profile picture.
+            {user
+              ? "Update the learner's details."
+              : 'Fill in the details for the new learner.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 py-4"
+          >
             <div className="flex justify-center">
-                <Avatar className="h-24 w-24">
-                    <AvatarImage src={photoUrlValue || ''} alt={form.getValues('displayName') || ''} data-ai-hint="person" />
-                    <AvatarFallback>{form.getValues('displayName')?.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={photoUrlValue || ''} alt={form.getValues('displayName') || ''} data-ai-hint="person" />
+                <AvatarFallback>
+                  {form.getValues('displayName')?.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             </div>
-
+            
             <FormField
               control={form.control}
               name="displayName"
@@ -126,7 +129,7 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
@@ -148,12 +151,17 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
                   <FormControl>
                     <Input placeholder="https://placehold.co/100x100" {...field} />
                   </FormControl>
-                  <FormMessage />
+                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isSaving}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={isSaving}>

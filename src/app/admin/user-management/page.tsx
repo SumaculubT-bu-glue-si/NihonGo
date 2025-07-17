@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { UserManagementView } from './user-management-view';
 
 export default function UserManagementPage() {
-  const { allUsers, loading } = useAuth();
+  const { allUsers, loading, addUser, updateUser, deleteUser } = useAuth();
 
   if (loading) {
     return (
@@ -21,12 +21,17 @@ export default function UserManagementPage() {
     );
   }
 
-  const learners = allUsers.filter(u => u.role === 'learner');
+  const learners = allUsers.filter((u) => u.role === 'learner');
 
   return (
     <AdminGuard>
       <AppLayout>
-        <UserManagementView users={learners} />
+        <UserManagementView
+          users={learners}
+          onAddUser={addUser}
+          onUpdateUser={updateUser}
+          onDeleteUser={deleteUser}
+        />
       </AppLayout>
     </AdminGuard>
   );
