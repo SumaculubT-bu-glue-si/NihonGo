@@ -13,8 +13,34 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
+import { BarChart as BarChartIcon } from 'lucide-react';
 
 type NavItemId = 'home' | 'grammar' | 'dictionary' | 'quizzes' | 'dashboard';
+
+const abComparisonData = [
+  {
+    name: 'Home',
+    'Variant A': 75,
+    'Variant B': 88,
+  },
+  {
+    name: 'Grammar',
+    'Variant A': 68,
+    'Variant B': 74,
+  },
+  {
+    name: 'Quizzes',
+    'Variant A': 82,
+    'Variant B': 79,
+  },
+  {
+    name: 'Dashboard',
+    'Variant A': 91,
+    'Variant B': 85,
+  },
+];
+
 
 export default function UsageAnalysisPage() {
     const { appData, setActiveVariants } = useGlobalState();
@@ -25,6 +51,7 @@ export default function UsageAnalysisPage() {
 
     useEffect(() => {
         setCurrentVariants(appData.activeVariants);
+        setIsDirty(false);
     }, [appData.activeVariants]);
 
     const handleVariantChange = (navId: NavItemId, value: 'A' | 'B') => {
@@ -95,7 +122,7 @@ export default function UsageAnalysisPage() {
                                         <Label htmlFor={`${item.id}-a`} className="cursor-pointer">Active</Label>
                                     </div>
                                     <div className="flex items-center justify-center space-x-2">
-                                        <RadioGroupItem value="B" id={`${item.id}-b`} disabled={!hasVariantB} />
+                                        <RadioGroupItem value="B" id={`${item.id}-b`} />
                                         <Label htmlFor={`${item.id}-b`} className={cn("cursor-pointer", !hasVariantB && "text-muted-foreground/50")}>
                                             Activate
                                         </Label>
@@ -108,6 +135,45 @@ export default function UsageAnalysisPage() {
                 <CardFooter className="border-t px-6 py-4">
                     <Button onClick={handleSaveChanges} disabled={!isDirty}>Save Changes</Button>
                 </CardFooter>
+            </Card>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <BarChartIcon className="h-5 w-5" />
+                        A/B Test Performance
+                    </CardTitle>
+                    <CardDescription>
+                        Comparing user engagement scores between Variant A and Variant B (mock data).
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ResponsiveContainer width="100%" height={350}>
+                        <BarChart data={abComparisonData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}%`} domain={[0, 100]} />
+                            <Tooltip
+                                cursor={{ fill: 'hsl(var(--accent))', opacity: 0.2 }}
+                                content={({ active, payload, label }) => {
+                                    if (active && payload && payload.length) {
+                                    return (
+                                        <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                            <p className="font-bold">{label}</p>
+                                            <p className="text-sm" style={{ color: '#64B5F6' }}>{`Variant A: ${payload[0].value}% engagement`}</p>
+                                            <p className="text-sm" style={{ color: '#81C784' }}>{`Variant B: ${payload[1].value}% engagement`}</p>
+                                        </div>
+                                    )
+                                    }
+                                    return null
+                                }}
+                            />
+                            <Legend />
+                            <Bar dataKey="Variant A" fill="#64B5F6" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="Variant B" fill="#81C784" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </CardContent>
             </Card>
 
             <Card>
