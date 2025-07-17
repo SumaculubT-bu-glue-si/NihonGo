@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Deck, StatsData } from '@/lib/data';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
@@ -259,13 +259,7 @@ interface DeckBrowserProps {
 
 export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: DeckBrowserProps) {
   const { appData } = useGlobalState();
-  const [favorites, setFavorites] = useState<Set<string>>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('favorite-decks');
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    }
-    return new Set();
-  });
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState('All');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false);
@@ -273,6 +267,13 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: 
   const { toast } = useToast();
   
   const activeVariant = appData.activeVariants.home;
+
+  useEffect(() => {
+    const saved = localStorage.getItem('favorite-decks');
+    if (saved) {
+      setFavorites(new Set(JSON.parse(saved)));
+    }
+  }, []);
 
   const toggleFavorite = (id: string) => {
     setFavorites((prev) => {

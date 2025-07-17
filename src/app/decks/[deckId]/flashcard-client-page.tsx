@@ -74,52 +74,44 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
 
   const getStorageKey = useCallback(() => `flashcard-session-${deck.id}`, [deck.id]);
 
-  // Effect to initialize or load a session. Runs only once on mount or when deckId changes.
+  // Effect to initialize or load a session.
   useEffect(() => {
     if (isLoading) return;
 
+    let sessionLoaded = false;
     try {
       const savedSession = localStorage.getItem(getStorageKey());
-      const deckStats = appData.userStats.find(s => s.topic === deck.title);
-      const initialProgress = deckStats ? deckStats.progress : 0;
-      setMasteredCount(initialProgress);
-      
-      let sessionCards: FlashcardType[] = [];
-      let sessionIndex = 0;
-
       if (savedSession) {
         const { savedCards, savedIndex } = JSON.parse(savedSession);
         // Validate that the saved cards still exist in the main deck data
         const validSavedCards = savedCards.filter((sc: FlashcardType) => deck.cards.some(dc => dc.id === sc.id));
         if (Array.isArray(validSavedCards) && typeof savedIndex === 'number' && validSavedCards.length > 0) {
-          sessionCards = validSavedCards;
-          sessionIndex = savedIndex < validSavedCards.length ? savedIndex : 0;
+          setCardsToShow(validSavedCards);
+          setCurrentIndex(savedIndex < validSavedCards.length ? savedIndex : 0);
+          sessionLoaded = true;
         }
-      } 
-      
-      if (sessionCards.length === 0) {
-        // If no valid session, start a new one with non-mastered cards
-        const nonMasteredCards = deck.cards.slice(initialProgress);
-        sessionCards = [...nonMasteredCards].sort(() => Math.random() - 0.5);
-        sessionIndex = 0;
       }
-
-      setCardsToShow(sessionCards);
-      setCurrentIndex(sessionIndex);
-
     } catch (error) {
       console.error("Could not load session from localStorage, starting fresh.", error);
+    }
+    
+    if (!sessionLoaded) {
+      // If no valid session, start a new one with non-mastered cards
       const deckStats = appData.userStats.find(s => s.topic === deck.title);
-      const currentProgress = deckStats ? deckStats.progress : 0;
-      setMasteredCount(currentProgress);
-      const nonMasteredCards = deck.cards.slice(currentProgress);
-      const shuffledCards = [...nonMasteredCards].sort(() => Math.random() - 0.5);
-      setCardsToShow(shuffledCards);
+      const initialProgress = deckStats ? deckStats.progress : 0;
+      const nonMasteredCards = deck.cards.slice(initialProgress);
+      const shuffled = [...nonMasteredCards].sort(() => Math.random() - 0.5);
+      setCardsToShow(shuffled);
       setCurrentIndex(0);
     }
+    
+    // Set mastered count from global state after session is handled
+    const deckStats = appData.userStats.find(s => s.topic === deck.title);
+    setMasteredCount(deckStats ? deckStats.progress : 0);
     setIsFlipped(false);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deck.id, deck.title, isLoading, getStorageKey]);
+  }, [deck.id, isLoading]);
 
 
   // Save session to localStorage whenever state changes that defines the session
