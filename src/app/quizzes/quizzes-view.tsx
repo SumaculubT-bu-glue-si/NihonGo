@@ -90,16 +90,22 @@ export function QuizzesView() {
       title: 'Generating Quiz...',
       description: 'The AI is creating your new quiz. This might take a moment.',
     });
+
+    const { category, level } = generationContext;
+    const existingQuizzes = appData.quizzes.filter(q => q.category === category && q.level === level);
+    const newQuizNumber = existingQuizzes.length + 1;
+    const newTitle = `${level} ${category.charAt(0).toUpperCase() + category.slice(1)} Quiz #${newQuizNumber}`;
     
     try {
       const result = await generateQuiz({
-        category: generationContext.category,
-        level: generationContext.level,
+        category: category,
+        level: level,
+        title: newTitle,
       });
       addGeneratedQuiz({
         ...result,
-        category: generationContext.category,
-        level: generationContext.level,
+        category: category,
+        level: level,
       });
       generatingToast.update({
         id: generatingToast.id,

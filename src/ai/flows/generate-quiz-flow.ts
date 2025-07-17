@@ -18,6 +18,7 @@ const QuizLevelSchema = z.enum(['N5', 'N4', 'N3', 'N2', 'N1']);
 const GenerateQuizInputSchema = z.object({
   category: QuizCategorySchema,
   level: QuizLevelSchema,
+  title: z.string().describe('The title for the new quiz.'),
 });
 export type GenerateQuizInput = z.infer<typeof GenerateQuizInputSchema>;
 
@@ -47,11 +48,13 @@ const prompt = ai.definePrompt({
     output: { schema: QuizSchema },
     prompt: `You are an expert Japanese language teacher creating a 10-question multiple-choice quiz for a student.
 
+The quiz title will be: {{{title}}}
+
 Quiz Details:
 - Category: {{{category}}}
 - JLPT Level: {{{level}}}
 
-Your task is to generate a quiz with exactly 10 unique and challenging questions appropriate for the specified category and level.
+Your task is to generate a quiz with exactly 10 unique and challenging questions appropriate for the specified category and level. The generated 'title' field must exactly match the provided title.
 
 - For 'vocabulary' quizzes, test knowledge of words. The question can be in Japanese or English.
 - For 'grammar' quizzes, test understanding of grammar points. The question should present a sentence with a blank and ask the user to fill it in.
