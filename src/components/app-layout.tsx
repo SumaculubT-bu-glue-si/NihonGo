@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { NihonGoLogo } from './icons';
-import { Home, BookText, SpellCheck, LogOut, Settings, BarChart3, BookMarked, ClipboardList, BookOpen } from 'lucide-react';
+import { Home, BookMarked, BookOpen, ClipboardList, BarChart3, Settings, LogOut, ShieldCheck } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -26,12 +26,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const menuItems = [
-    { href: '/decks', label: 'Home', icon: Home },
-    { href: '/grammar-lessons', label: 'Grammar', icon: BookMarked },
-    { href: '/dictionary', label: 'Dictionary', icon: BookOpen },
-    { href: '/quizzes', label: 'Quizzes', icon: ClipboardList },
-    { href: '/stats', label: 'Dashboard', icon: BarChart3 },
+    { href: '/decks', label: 'Home', icon: Home, admin: false },
+    { href: '/grammar-lessons', label: 'Grammar', icon: BookMarked, admin: false },
+    { href: '/dictionary', label: 'Dictionary', icon: BookOpen, admin: false },
+    { href: '/quizzes', label: 'Quizzes', icon: ClipboardList, admin: false },
+    { href: '/stats', label: 'Dashboard', icon: BarChart3, admin: false },
+    { href: '/admin', label: 'Admin', icon: ShieldCheck, admin: true },
   ];
+  
+  const visibleMenuItems = menuItems.filter(item => !item.admin || (item.admin && user?.role === 'admin'));
 
   return (
     <>
@@ -43,15 +46,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <span className="font-bold font-headline text-lg">Nihon GO</span>
               </Link>
               <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-                  {menuItems.map((item) => (
+                  {visibleMenuItems.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "transition-colors hover:text-primary-foreground/80",
+                        "transition-colors hover:text-primary-foreground/80 flex items-center gap-2",
                         pathname.startsWith(item.href) ? "text-primary-foreground font-semibold" : "text-primary-foreground/70"
                       )}
                     >
+                      <item.icon className="h-4 w-4" />
                       {item.label}
                     </Link>
                   ))}

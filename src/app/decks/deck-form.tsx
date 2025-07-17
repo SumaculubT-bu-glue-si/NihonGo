@@ -46,7 +46,7 @@ type DeckFormData = z.infer<typeof formSchema>;
 interface DeckFormProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSave: (data: Deck) => void;
+  onSave: (data: DeckFormData, deck: Deck | null) => void;
   deck: Deck | null;
 }
 
@@ -62,7 +62,10 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
   });
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      form.reset();
+      return;
+    };
   
     if (deck) {
       form.reset({
@@ -79,10 +82,10 @@ export function DeckForm({ isOpen, onOpenChange, onSave, deck }: DeckFormProps) 
         level: 'Beginner',
       });
     }
-  }, [isOpen, deck?.id]); 
+  }, [isOpen, deck, form]); 
 
   const onSubmit = (data: DeckFormData) => {
-    onSave(data as Deck);
+    onSave(data, deck);
   };
 
   return (

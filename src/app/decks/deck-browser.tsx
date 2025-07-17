@@ -155,7 +155,7 @@ function DeckCard({
 interface DeckBrowserProps {
   decks: Deck[];
   userStats: StatsData[];
-  onSave: (deckData: Deck, editingDeck: Deck | null) => void;
+  onSave: (deckData: Omit<Deck, 'id' | 'cards' | 'progress' | 'total'>, editingDeck: Deck | null) => void;
   onDelete: (id: string) => void;
   onGenerate: (deckData: GenerateDeckData) => void;
 }
@@ -202,7 +202,7 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: 
     setIsGenerateFormOpen(true);
   };
 
-  const handleSaveDeck = (deckData: Deck) => {
+  const handleSaveDeck = (deckData: Omit<Deck, 'id' | 'cards' | 'progress' | 'total'>) => {
     onSave(deckData, editingDeck);
     setIsFormOpen(false);
     setEditingDeck(null);

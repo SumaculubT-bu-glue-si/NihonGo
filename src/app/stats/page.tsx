@@ -8,7 +8,7 @@ import { useGlobalState } from '@/hooks/use-global-state';
 export default function StatsPage() {
   const { appData, isLoading } = useGlobalState();
 
-  if (isLoading) {
+   if (isLoading) {
     return (
         <AuthGuard>
             <AppLayout>

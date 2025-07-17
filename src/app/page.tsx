@@ -1,29 +1,32 @@
+
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { NihonGoLogo, GoogleIcon } from '@/components/icons';
+import { NihonGoLogo } from '@/components/icons';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { allUsers } from '@/lib/user-data';
 
 export default function LoginPage() {
-  const { signInWithGoogle, user, loading } = useAuth();
+  const { user, loading, signInAs } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (user) {
-      router.push('/decks');
+      if (user.role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/decks');
+      }
     }
   }, [user, router]);
 
-  const handleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-      router.push('/decks');
-    } catch (error) {
-      console.error('Failed to sign in', error);
-      // Optionally show a toast notification for the error
-    }
+  const handleSignIn = async (userId: string) => {
+    await signInAs(userId);
   };
 
   if (loading || user) {
@@ -36,23 +39,40 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
-      <div className="flex w-full max-w-sm flex-col items-center rounded-2xl bg-card p-8 shadow-2xl">
+      <div className="flex w-full max-w-lg flex-col items-center">
         <NihonGoLogo className="mb-6 h-20 w-20 text-primary" />
         <h1 className="mb-2 text-4xl font-bold font-headline text-foreground">
-          Nihon GO
+          Welcome to Nihon GO
         </h1>
         <p className="mb-8 text-center text-muted-foreground">
-          Your AI-powered journey to mastering Japanese.
+          Select a user to begin.
         </p>
-        <Button
-          onClick={handleSignIn}
-          size="lg"
-          className="w-full text-base"
-          disabled={loading}
-        >
-          <GoogleIcon className="mr-3 h-6 w-6" />
-          Sign in with Google
-        </Button>
+        
+        <Card className="w-full">
+            <CardHeader>
+                <CardTitle>Select a Profile</CardTitle>
+                <CardDescription>Choose a user to log in as. This is a mock login for demonstration.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {allUsers.map((u) => (
+                    <button
+                        key={u.uid}
+                        onClick={() => handleSignIn(u.uid)}
+                        className="flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-colors hover:bg-accent"
+                    >
+                        <Avatar className="h-12 w-12">
+                            <AvatarImage src={u.photoURL ?? ''} alt={u.displayName ?? 'User'} />
+                            <AvatarFallback>{u.displayName?.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                            <p className="font-semibold">{u.displayName}</p>
+                            <p className="text-sm text-muted-foreground">{u.email}</p>
+                        </div>
+                        {u.role === 'admin' && <Badge>Admin</Badge>}
+                    </button>
+                ))}
+            </CardContent>
+        </Card>
       </div>
     </main>
   );

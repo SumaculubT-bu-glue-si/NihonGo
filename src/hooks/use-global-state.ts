@@ -4,8 +4,9 @@
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import type { Deck, StatsData, Flashcard, GrammarLesson, Quiz, QuizScore, QuizQuestion } from '@/lib/data';
 import { decks as initialDecks, userStats as initialUserStats, grammarLessons as initialGrammarLessons, initialQuizzes } from '@/lib/initial-data';
+import { useAuth } from '@/contexts/auth-context';
 
-const STORAGE_KEY = 'nihongo-app-data';
+const STORAGE_KEY_PREFIX = 'nihongo-app-data';
 
 export interface AppData {
   decks: Deck[];
@@ -15,8 +16,13 @@ export interface AppData {
   quizScores: QuizScore[];
 }
 
+export interface FullAppData {
+  [userId: string]: AppData;
+}
+
 interface GlobalStateContextType {
   appData: AppData;
+  allUsersData: FullAppData;
   isLoading: boolean;
   addDeck: (deckData: Omit<Deck, 'id' | 'cards'>) => void;
   updateDeck: (deckId: string, deckData: Partial<Deck>) => void;
@@ -51,68 +57,58 @@ export const useGlobalState = (): GlobalStateContextType => {
   return context;
 };
 
+const getInitialData = (): AppData => ({
+    decks: initialDecks,
+    userStats: initialUserStats,
+    grammarLessons: initialGrammarLessons,
+    quizzes: initialQuizzes,
+    quizScores: [],
+});
+
+
 export const useGlobalStateData = () => {
-    const [appData, setAppData] = useState<AppData>({ decks: [], userStats: [], grammarLessons: [], quizzes: [], quizScores: [] });
+    const { user } = useAuth();
+    const [fullAppData, setFullAppData] = useState<FullAppData>({});
     const [isLoading, setIsLoading] = useState(true);
 
-    const loadFromLocalStorage = (): AppData => {
-        try {
-          const serializedState = localStorage.getItem(STORAGE_KEY);
-          if (serializedState === null) {
-            const initialData = { 
-                decks: initialDecks, 
-                userStats: initialUserStats, 
-                grammarLessons: initialGrammarLessons,
-                quizzes: initialQuizzes, 
-                quizScores: [] 
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
-            return initialData;
-          }
-          const storedData = JSON.parse(serializedState);
-          // Ensure all keys exist
-          if (!storedData.grammarLessons) storedData.grammarLessons = initialGrammarLessons;
-          if (!storedData.quizzes) storedData.quizzes = initialQuizzes;
-          if (!storedData.quizScores) storedData.quizScores = [];
-          
-          return storedData;
-        } catch (error) {
-          console.error("Error loading from localStorage", error);
-        }
-        return { decks: initialDecks, userStats: initialUserStats, grammarLessons: initialGrammarLessons, quizzes: initialQuizzes, quizScores: [] };
-    };
+    const currentUserData = user ? fullAppData[user.uid] || getInitialData() : getInitialData();
 
+    // Load all user data from localStorage on mount
     useEffect(() => {
-        const data = loadFromLocalStorage();
-        setAppData(data);
-        setIsLoading(false);
-
-        const handleStorageChange = (event: StorageEvent) => {
-            if (event.key === STORAGE_KEY && event.newValue) {
-                setAppData(JSON.parse(event.newValue));
+        try {
+            const serializedState = localStorage.getItem(STORAGE_KEY_PREFIX);
+            if (serializedState) {
+                setFullAppData(JSON.parse(serializedState));
             }
-        };
-        
-        window.addEventListener('storage', handleStorageChange);
-
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-        };
+        } catch (error) {
+            console.error("Error loading all user data from localStorage", error);
+        }
+        setIsLoading(false);
     }, []);
 
+    // Save all user data to localStorage whenever it changes
     useEffect(() => {
         if (!isLoading) {
-          try {
-            const serializedState = JSON.stringify(appData);
-            localStorage.setItem(STORAGE_KEY, serializedState);
-          } catch (error) {
-            console.error("Error saving to localStorage", error);
-          }
+            try {
+                const serializedState = JSON.stringify(fullAppData);
+                localStorage.setItem(STORAGE_KEY_PREFIX, serializedState);
+            } catch (error) {
+                console.error("Error saving all user data to localStorage", error);
+            }
         }
-    }, [appData, isLoading]);
+    }, [fullAppData, isLoading]);
+
+    // Helper to update state for the current user
+    const setCurrentUserData = useCallback((updater: (prevData: AppData) => AppData) => {
+        if (!user) return;
+        setFullAppData(prevFullData => ({
+            ...prevFullData,
+            [user.uid]: updater(prevFullData[user.uid] || getInitialData()),
+        }));
+    }, [user]);
 
     const addDeck = useCallback((deckData: Omit<Deck, 'id' | 'cards'>) => {
-        setAppData(prevData => {
+        setCurrentUserData(prevData => {
             const newDeck: Deck = {
                 ...deckData,
                 id: `deck-${Date.now()}`,
@@ -129,10 +125,10 @@ export const useGlobalStateData = () => {
                 userStats: [...prevData.userStats, newStat]
             };
         });
-    }, []);
+    }, [setCurrentUserData]);
     
     const addGeneratedDeck = useCallback((deckData: Omit<Deck, 'id'>) => {
-        setAppData(prevData => {
+        setCurrentUserData(prevData => {
             const newDeck: Deck = {
                 ...deckData,
                 id: `deck-${Date.now()}`,
@@ -149,10 +145,10 @@ export const useGlobalStateData = () => {
                 userStats: [...prevData.userStats, newStat]
             };
         });
-    }, []);
+    }, [setCurrentUserData]);
 
     const updateDeck = useCallback((deckId: string, deckData: Partial<Deck>) => {
-        setAppData(prevData => {
+        setCurrentUserData(prevData => {
             const originalDeck = prevData.decks.find(d => d.id === deckId);
             if (!originalDeck) return prevData;
 
@@ -182,10 +178,10 @@ export const useGlobalStateData = () => {
                 userStats: updatedStats
             };
         });
-    }, []);
+    }, [setCurrentUserData]);
 
     const deleteDeck = useCallback((deckId: string) => {
-        setAppData(prevData => {
+        setCurrentUserData(prevData => {
           const deckToDelete = prevData.decks.find(d => d.id === deckId);
           if (!deckToDelete) return prevData;
 
@@ -195,10 +191,10 @@ export const useGlobalStateData = () => {
             userStats: prevData.userStats.filter(s => s.topic !== deckToDelete.title)
           };
         });
-    }, []);
+    }, [setCurrentUserData]);
 
     const updateStats = useCallback((topic: string, masteredCount: number) => {
-        setAppData(prevData => {
+        setCurrentUserData(prevData => {
             const deck = prevData.decks.find(d => d.title === topic);
             const total = deck ? deck.cards.length : 0;
             return {
@@ -208,14 +204,14 @@ export const useGlobalStateData = () => {
                 )
             };
         });
-    }, []);
+    }, [setCurrentUserData]);
 
     const addCard = useCallback((deckId: string, cardData: Omit<Flashcard, 'id'>) => {
         const newCard: Flashcard = {
             ...cardData,
             id: `card-${Date.now()}`
         };
-        setAppData(prevData => {
+        setCurrentUserData(prevData => {
             const updatedDecks = prevData.decks.map(deck => {
                 if (deck.id === deckId) {
                     return { ...deck, cards: [...deck.cards, newCard] };
@@ -232,10 +228,10 @@ export const useGlobalStateData = () => {
             return { ...prevData, decks: updatedDecks, userStats: updatedStats };
         });
         return newCard;
-    }, []);
+    }, [setCurrentUserData]);
 
     const updateCard = useCallback((deckId: string, cardId: string, cardData: Partial<Flashcard>) => {
-        setAppData(prevData => ({
+        setCurrentUserData(prevData => ({
             ...prevData,
             decks: prevData.decks.map(deck => {
                 if (deck.id === deckId) {
@@ -249,10 +245,10 @@ export const useGlobalStateData = () => {
                 return deck;
             })
         }));
-    }, []);
+    }, [setCurrentUserData]);
 
     const deleteCard = useCallback((deckId: string, cardId: string) => {
-        setAppData(prevData => {
+        setCurrentUserData(prevData => {
             const updatedDecks = prevData.decks.map(deck => {
                 if (deck.id === deckId) {
                     return {
@@ -271,7 +267,7 @@ export const useGlobalStateData = () => {
             })
             return { ...prevData, decks: updatedDecks, userStats: updatedStats };
         });
-    }, []);
+    }, [setCurrentUserData]);
 
     const addGeneratedCards = useCallback((deckId: string, newCards: Omit<Flashcard, 'id'>[]) => {
         const cardsWithIds: Flashcard[] = newCards.map(card => ({
@@ -279,7 +275,7 @@ export const useGlobalStateData = () => {
             id: `card-${Date.now()}-${Math.random()}`
         }));
         
-        setAppData(prevData => {
+        setCurrentUserData(prevData => {
             const updatedDecks = prevData.decks.map(deck => {
                 if (deck.id === deckId) {
                     return { ...deck, cards: [...deck.cards, ...cardsWithIds] };
@@ -296,19 +292,19 @@ export const useGlobalStateData = () => {
             return { ...prevData, decks: updatedDecks, userStats: updatedStats };
         });
         return cardsWithIds;
-    }, []);
+    }, [setCurrentUserData]);
 
     const toggleGrammarLessonRead = useCallback((lessonId: string, read: boolean) => {
-        setAppData(prevData => ({
+        setCurrentUserData(prevData => ({
             ...prevData,
             grammarLessons: prevData.grammarLessons.map(lesson =>
                 lesson.id === lessonId ? { ...lesson, read } : lesson
             ),
         }));
-    }, []);
+    }, [setCurrentUserData]);
 
     const addGrammarLesson = useCallback((lessonData: Omit<GrammarLesson, 'id' | 'read'>) => {
-        setAppData(prevData => {
+        setCurrentUserData(prevData => {
             const newLesson: GrammarLesson = {
                 ...lessonData,
                 id: `gl-${Date.now()}`,
@@ -319,29 +315,28 @@ export const useGlobalStateData = () => {
                 grammarLessons: [newLesson, ...prevData.grammarLessons],
             };
         });
-    }, []);
+    }, [setCurrentUserData]);
 
     const updateGrammarLesson = useCallback((lessonId: string, lessonData: Partial<Omit<GrammarLesson, 'id' | 'read'>>) => {
-        setAppData(prevData => ({
+        setCurrentUserData(prevData => ({
             ...prevData,
             grammarLessons: prevData.grammarLessons.map(lesson =>
                 lesson.id === lessonId ? { ...lesson, ...lessonData } : lesson
             ),
         }));
-    }, []);
+    }, [setCurrentUserData]);
 
     const deleteGrammarLesson = useCallback((lessonId: string) => {
-        setAppData(prevData => ({
+        setCurrentUserData(prevData => ({
             ...prevData,
             grammarLessons: prevData.grammarLessons.filter(lesson => lesson.id !== lessonId),
         }));
-    }, []);
+    }, [setCurrentUserData]);
 
     const updateQuizScore = useCallback((quizId: string, newScore: number) => {
-        setAppData(prevData => {
+        setCurrentUserData(prevData => {
             const existingScore = prevData.quizScores.find(s => s.quizId === quizId);
             if (existingScore) {
-                // Update score if new one is higher
                 if (newScore > existingScore.highestScore) {
                     return {
                         ...prevData,
@@ -349,17 +344,15 @@ export const useGlobalStateData = () => {
                     };
                 }
             } else {
-                // Add new score
                 const newScoreEntry: QuizScore = { quizId, highestScore: newScore };
                 return {
                     ...prevData,
                     quizScores: [...prevData.quizScores, newScoreEntry],
                 };
             }
-            // Return previous data if no change
             return prevData;
         });
-    }, []);
+    }, [setCurrentUserData]);
 
     // Quiz CRUD
     const addQuiz = useCallback((quizData: Omit<Quiz, 'id' | 'questions'>): Quiz => {
@@ -368,12 +361,12 @@ export const useGlobalStateData = () => {
         id: `quiz-${Date.now()}`,
         questions: [],
       };
-      setAppData(prev => ({
+      setCurrentUserData(prev => ({
         ...prev,
         quizzes: [newQuiz, ...prev.quizzes],
       }));
       return newQuiz;
-    }, []);
+    }, [setCurrentUserData]);
 
     const addGeneratedQuiz = useCallback((quizData: Omit<Quiz, 'id'>) => {
         const newQuiz: Quiz = {
@@ -381,26 +374,26 @@ export const useGlobalStateData = () => {
             id: `quiz-${Date.now()}`,
             questions: quizData.questions.map(q => ({...q, id: `q-${Date.now()}-${Math.random()}`}))
         };
-        setAppData(prev => ({
+        setCurrentUserData(prev => ({
             ...prev,
             quizzes: [newQuiz, ...prev.quizzes],
         }));
-    }, []);
+    }, [setCurrentUserData]);
 
     const updateQuiz = useCallback((quizId: string, quizData: Partial<Quiz>) => {
-      setAppData(prev => ({
+      setCurrentUserData(prev => ({
         ...prev,
         quizzes: prev.quizzes.map(q => q.id === quizId ? { ...q, ...quizData } : q),
       }));
-    }, []);
+    }, [setCurrentUserData]);
 
     const deleteQuiz = useCallback((quizId: string) => {
-      setAppData(prev => ({
+      setCurrentUserData(prev => ({
         ...prev,
         quizzes: prev.quizzes.filter(q => q.id !== quizId),
         quizScores: prev.quizScores.filter(qs => qs.quizId !== quizId),
       }));
-    }, []);
+    }, [setCurrentUserData]);
 
     // Question CRUD (within a quiz)
     const addQuestionToQuiz = useCallback((quizId: string, questionData: Omit<QuizQuestion, 'id'>) => {
@@ -408,16 +401,16 @@ export const useGlobalStateData = () => {
             ...questionData,
             id: `q-${Date.now()}`,
         };
-        setAppData(prev => ({
+        setCurrentUserData(prev => ({
             ...prev,
             quizzes: prev.quizzes.map(q =>
                 q.id === quizId ? { ...q, questions: [...q.questions, newQuestion] } : q
             ),
         }));
-    }, []);
+    }, [setCurrentUserData]);
 
     const updateQuestionInQuiz = useCallback((quizId: string, questionId: string, questionData: Partial<QuizQuestion>) => {
-        setAppData(prev => ({
+        setCurrentUserData(prev => ({
             ...prev,
             quizzes: prev.quizzes.map(q =>
                 q.id === quizId
@@ -425,10 +418,10 @@ export const useGlobalStateData = () => {
                     : q
             ),
         }));
-    }, []);
+    }, [setCurrentUserData]);
 
     const deleteQuestionFromQuiz = useCallback((quizId: string, questionId: string) => {
-        setAppData(prev => ({
+        setCurrentUserData(prev => ({
             ...prev,
             quizzes: prev.quizzes.map(q =>
                 q.id === quizId
@@ -436,11 +429,12 @@ export const useGlobalStateData = () => {
                     : q
             ),
         }));
-    }, []);
+    }, [setCurrentUserData]);
 
 
     return {
-        appData,
+        appData: currentUserData,
+        allUsersData: fullAppData,
         isLoading,
         addDeck,
         updateDeck,

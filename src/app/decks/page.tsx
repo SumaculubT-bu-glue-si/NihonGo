@@ -14,7 +14,7 @@ export default function HomePage() {
   const { appData, isLoading, addDeck, updateDeck, deleteDeck, addGeneratedDeck } = useGlobalState();
   const { toast } = useToast();
 
-  const handleSaveDeck = (deckData: Deck, editingDeck: Deck | null) => {
+  const handleSaveDeck = (deckData: Omit<Deck, 'id' | 'cards' | 'progress' | 'total'>, editingDeck: Deck | null) => {
     if (editingDeck) {
       // Update existing deck
       updateDeck(editingDeck.id, deckData);

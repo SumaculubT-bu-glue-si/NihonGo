@@ -9,33 +9,27 @@ import {
   type ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
+import { allUsers } from '@/lib/user-data';
 
 // Mock User type
-interface User {
+export interface User {
   uid: string;
   displayName: string | null;
   email: string | null;
   photoURL: string | null;
+  role: 'learner' | 'admin';
 }
 
 // Mock Auth context type
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInAs: (userId: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateUser: (data: { displayName?: string; photoURL?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock Firebase User object
-const mockUser: User = {
-  uid: 'mock-user-id-123',
-  displayName: 'Alex Tanaka',
-  email: 'alex.tanaka@example.com',
-  photoURL: 'https://placehold.co/100x100.png',
-};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -43,46 +37,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for a logged-in state in localStorage to persist session
-    const loggedIn = localStorage.getItem('isLoggedIn');
-    if (loggedIn) {
-       const storedUser = localStorage.getItem('mockUser');
-       setUser(storedUser ? JSON.parse(storedUser) : mockUser);
+    // Check for a logged-in user ID in localStorage to persist session
+    const loggedInUserId = localStorage.getItem('loggedInUserId');
+    if (loggedInUserId) {
+       const foundUser = allUsers.find(u => u.uid === loggedInUserId);
+       setUser(foundUser || null);
     }
     setLoading(false);
   }, []);
 
-  const signInWithGoogle = async () => {
+  const signInAs = async (userId: string) => {
     setLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setUser(mockUser);
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('mockUser', JSON.stringify(mockUser));
+    await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API call
+    const selectedUser = allUsers.find(u => u.uid === userId);
+    if (selectedUser) {
+        setUser(selectedUser);
+        localStorage.setItem('loggedInUserId', selectedUser.uid);
+    }
     setLoading(false);
   };
 
   const signOut = async () => {
     setLoading(true);
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 500));
     setUser(null);
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('mockUser');
+    localStorage.removeItem('loggedInUserId');
+    // We also clear the app data when signing out to simulate a fresh start for the next user.
+    localStorage.removeItem('nihongo-app-data');
     setLoading(false);
     router.push('/');
   };
 
   const updateUser = async (data: { displayName?: string; photoURL?: string }) => {
+     // This function is now more complex with multiple users.
+     // For this mock, we won't update the central `allUsers` list,
+     // but we will update the currently logged-in user's state.
+     // A real implementation would require a backend.
     setUser(currentUser => {
         if (!currentUser) return null;
         const updatedUser = { ...currentUser, ...data };
-        localStorage.setItem('mockUser', JSON.stringify(updatedUser));
+        // We aren't saving this back to `allUsers` or localStorage in this mock,
+        // so changes will be lost on refresh.
         return updatedUser;
     });
   }
 
-  const value = { user, loading, signInWithGoogle, signOut, updateUser };
+  const value = { user, loading, signInAs, signOut, updateUser };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
