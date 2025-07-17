@@ -14,30 +14,39 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
-import { BarChart as BarChartIcon } from 'lucide-react';
+import { BarChart as BarChartIcon, Lightbulb, Loader2 } from 'lucide-react';
+import { analyzeABTest } from '@/ai/flows/analyze-ab-test-flow';
 
 type NavItemId = 'home' | 'grammar' | 'dictionary' | 'quizzes' | 'dashboard';
 
 const abComparisonData = [
   {
     name: 'Home',
-    'Variant A': 75,
-    'Variant B': 88,
+    'Variant A Engagement': 75,
+    'Variant B Engagement': 88,
+    'Variant A Efficiency': 90,
+    'Variant B Efficiency': 82,
   },
   {
     name: 'Grammar',
-    'Variant A': 68,
-    'Variant B': 74,
+    'Variant A Engagement': 68,
+    'Variant B Engagement': 74,
+    'Variant A Efficiency': 75,
+    'Variant B Efficiency': 85,
   },
   {
     name: 'Quizzes',
-    'Variant A': 82,
-    'Variant B': 79,
+    'Variant A Engagement': 82,
+    'Variant B Engagement': 79,
+    'Variant A Efficiency': 88,
+    'Variant B Efficiency': 91,
   },
   {
     name: 'Dashboard',
-    'Variant A': 91,
-    'Variant B': 85,
+    'Variant A Engagement': 91,
+    'Variant B Engagement': 85,
+    'Variant A Efficiency': 78,
+    'Variant B Efficiency': 89,
   },
 ];
 
@@ -48,11 +57,29 @@ export default function UsageAnalysisPage() {
     
     const [currentVariants, setCurrentVariants] = useState(appData.activeVariants);
     const [isDirty, setIsDirty] = useState(false);
+    const [analysis, setAnalysis] = useState<string[]>([]);
+    const [isAnalyzing, setIsAnalyzing] = useState(true);
 
     useEffect(() => {
         setCurrentVariants(appData.activeVariants);
         setIsDirty(false);
     }, [appData.activeVariants]);
+    
+    useEffect(() => {
+        const handleAnalyze = async () => {
+            setIsAnalyzing(true);
+            try {
+                const result = await analyzeABTest({ testData: abComparisonData });
+                setAnalysis(result.insights);
+            } catch (error) {
+                console.error("Failed to analyze A/B test data:", error);
+                setAnalysis(["Could not retrieve AI analysis at this time."]);
+            } finally {
+                setIsAnalyzing(false);
+            }
+        };
+        handleAnalyze();
+    }, []);
 
     const handleVariantChange = (navId: NavItemId, value: 'A' | 'B') => {
         setCurrentVariants(prev => ({ ...prev, [navId]: value }));
@@ -122,7 +149,7 @@ export default function UsageAnalysisPage() {
                                         <Label htmlFor={`${item.id}-a`} className="cursor-pointer">Active</Label>
                                     </div>
                                     <div className="flex items-center justify-center space-x-2">
-                                        <RadioGroupItem value="B" id={`${item.id}-b`} />
+                                        <RadioGroupItem value="B" id={`${item.id}-b`} disabled={!hasVariantB} />
                                         <Label htmlFor={`${item.id}-b`} className={cn("cursor-pointer", !hasVariantB && "text-muted-foreground/50")}>
                                             Activate
                                         </Label>
@@ -137,44 +164,79 @@ export default function UsageAnalysisPage() {
                 </CardFooter>
             </Card>
             
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <BarChartIcon className="h-5 w-5" />
-                        A/B Test Performance
-                    </CardTitle>
-                    <CardDescription>
-                        Comparing user engagement scores between Variant A and Variant B (mock data).
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ResponsiveContainer width="100%" height={350}>
-                        <BarChart data={abComparisonData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                            <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}%`} domain={[0, 100]} />
-                            <Tooltip
-                                cursor={{ fill: 'hsl(var(--accent))', opacity: 0.2 }}
-                                content={({ active, payload, label }) => {
-                                    if (active && payload && payload.length) {
-                                    return (
-                                        <div className="rounded-lg border bg-background p-2 shadow-sm">
-                                            <p className="font-bold">{label}</p>
-                                            <p className="text-sm" style={{ color: '#64B5F6' }}>{`Variant A: ${payload[0].value}% engagement`}</p>
-                                            <p className="text-sm" style={{ color: '#81C784' }}>{`Variant B: ${payload[1].value}% engagement`}</p>
-                                        </div>
-                                    )
-                                    }
-                                    return null
-                                }}
-                            />
-                            <Legend />
-                            <Bar dataKey="Variant A" fill="#64B5F6" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="Variant B" fill="#81C784" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <BarChartIcon className="h-5 w-5" />
+                            A/B Test Performance
+                        </CardTitle>
+                        <CardDescription>
+                            Comparing user metrics between Variant A and Variant B (mock data).
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={350}>
+                            <BarChart data={abComparisonData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}%`} domain={[0, 100]} />
+                                <Tooltip
+                                    cursor={{ fill: 'hsl(var(--accent))', opacity: 0.2 }}
+                                    content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                        return (
+                                            <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                                <p className="font-bold">{label}</p>
+                                                <p className="text-sm" style={{ color: '#64B5F6' }}>{`A Engagement: ${payload[0].value}%`}</p>
+                                                <p className="text-sm" style={{ color: '#81C784' }}>{`B Engagement: ${payload[1].value}%`}</p>
+                                                 <p className="text-sm" style={{ color: '#fb923c' }}>{`A Efficiency: ${payload[2].value}%`}</p>
+                                                <p className="text-sm" style={{ color: '#f472b6' }}>{`B Efficiency: ${payload[3].value}%`}</p>
+                                            </div>
+                                        )
+                                        }
+                                        return null
+                                    }}
+                                />
+                                <Legend />
+                                <Bar dataKey="Variant A Engagement" fill="#64B5F6" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="Variant B Engagement" fill="#81C784" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="Variant A Efficiency" fill="#fb923c" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="Variant B Efficiency" fill="#f472b6" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Lightbulb className="h-5 w-5 text-yellow-500" />
+                            AI Insights
+                        </CardTitle>
+                        <CardDescription>
+                            An AI-generated analysis of the A/B test performance data.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {isAnalyzing ? (
+                            <div className="flex items-center gap-3 text-muted-foreground">
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                <p>Analyzing performance...</p>
+                            </div>
+                        ) : (
+                            <ul className="space-y-3 text-sm text-muted-foreground">
+                                {analysis.map((item, index) => (
+                                    <li key={index} className="flex items-start gap-3">
+                                        <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                                        <span>{item}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
 
             <Card>
                 <CardHeader>
