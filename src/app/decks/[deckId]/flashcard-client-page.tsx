@@ -86,11 +86,16 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       
       if (savedSession) {
         const { savedCards, savedIndex } = JSON.parse(savedSession);
-        if (Array.isArray(savedCards) && typeof savedIndex === 'number') {
-          setCardsToShow(savedCards);
-          setCurrentIndex(savedIndex);
+        // Validate that the saved cards still exist in the main deck data
+        const validSavedCards = savedCards.filter((sc: FlashcardType) => deck.cards.some(dc => dc.id === sc.id));
+        if (Array.isArray(validSavedCards) && typeof savedIndex === 'number' && validSavedCards.length > 0) {
+          setCardsToShow(validSavedCards);
+          setCurrentIndex(savedIndex < validSavedCards.length ? savedIndex : 0);
         } else {
-          throw new Error("Invalid session data format. Starting a new session.");
+          // If session is invalid or empty, start a new one.
+          const nonMasteredCards = deck.cards.slice(initialProgress);
+          setCardsToShow([...nonMasteredCards].sort(() => Math.random() - 0.5));
+          setCurrentIndex(0);
         }
       } else {
         const nonMasteredCards = deck.cards.slice(initialProgress);
@@ -113,7 +118,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
 
   // Save session to localStorage whenever state changes that defines the session
   useEffect(() => {
-    if (cardsToShow.length > 0) {
+    if (cardsToShow.length > 0 && !isLoading) {
       try {
         const sessionData = JSON.stringify({
           savedCards: cardsToShow,
@@ -124,33 +129,16 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         console.error("Could not save session to localStorage", error);
       }
     }
-  }, [cardsToShow, currentIndex, getStorageKey]);
-
-  // When the underlying deck data changes (e.g., from a CRUD operation), refresh the session
-  useEffect(() => {
-    if (!isLoading) {
-        const deckStats = appData.userStats.find(s => s.topic === deck.title);
-        const currentProgress = deckStats ? deckStats.progress : 0;
-
-        const nonMasteredCards = deck.cards.slice(currentProgress);
-        const shuffled = [...nonMasteredCards].sort(() => Math.random() - 0.5)
-        setCardsToShow(shuffled);
-        
-        if (currentIndex >= shuffled.length && shuffled.length > 0) {
-            setCurrentIndex(0);
-        } else if (shuffled.length === 0) {
-            setCurrentIndex(0);
-        }
-    }
-  }, [deck.cards, deck.title, isLoading, appData.userStats]);
+  }, [cardsToShow, currentIndex, getStorageKey, isLoading]);
   
   // This effect safely syncs the local masteredCount with the global state after render.
   useEffect(() => {
+    if (isLoading) return;
     const deckStats = appData.userStats.find(s => s.topic === deck.title);
     if (deckStats && masteredCount !== deckStats.progress) {
       updateStats(deck.title, masteredCount);
     }
-  }, [masteredCount, deck.title, updateStats, appData.userStats]);
+  }, [masteredCount, deck.title, updateStats, appData.userStats, isLoading]);
 
 
   const handleDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
@@ -218,6 +206,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const handleDeleteConfirm = () => {
     if (!cardToDelete) return;
 
+    // This now comes from the hook, so we don't need to manually update state here
     deleteCard(deck.id, cardToDelete.id);
     
     const newCardsToShow = cardsToShow.filter(c => c.id !== cardToDelete.id);
@@ -225,7 +214,10 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
 
     if (currentIndex >= newCardsToShow.length && newCardsToShow.length > 0) {
       setCurrentIndex(0);
+    } else if (newCardsToShow.length === 0) {
+      setCurrentIndex(0);
     }
+
 
     toast({
       title: 'Card Deleted',
@@ -259,9 +251,10 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     };
 
     if (editingCard) {
+      const updatedCard = { ...editingCard, ...cardData };
       updateCard(deck.id, editingCard.id, cardData);
       
-      const updatedCardsToShow = cardsToShow.map(c => c.id === editingCard.id ? { ...c, ...cardData } : c);
+      const updatedCardsToShow = cardsToShow.map(c => c.id === editingCard.id ? updatedCard : c);
       setCardsToShow(updatedCardsToShow);
 
       toast({
@@ -269,7 +262,11 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         description: 'The flashcard has been successfully updated.',
       });
     } else {
-      addCard(deck.id, cardData);
+      // The addCard hook from useGlobalState will update the main deck.
+      // We also need to add the card to our local session state.
+      const newCard = addCard(deck.id, cardData);
+      setCardsToShow(prev => [...prev, newCard]);
+
       toast({
         title: 'Card Created',
         description: 'A new flashcard has been added to the deck.',
@@ -297,7 +294,9 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         count: data.count,
       });
 
-      addGeneratedCards(deck.id, result.cards);
+      const newCards = addGeneratedCards(deck.id, result.cards);
+      setCardsToShow(prev => [...prev, ...newCards]);
+
 
       generatingToast.update({
         id: generatingToast.id,

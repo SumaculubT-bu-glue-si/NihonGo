@@ -22,10 +22,10 @@ interface GlobalStateContextType {
   updateDeck: (deckId: string, deckData: Partial<Deck>) => void;
   deleteDeck: (deckId: string) => void;
   addGeneratedDeck: (deckData: Omit<Deck, 'id'>) => void;
-  addCard: (deckId: string, cardData: Omit<Flashcard, 'id'>) => void;
+  addCard: (deckId: string, cardData: Omit<Flashcard, 'id'>) => Flashcard;
   updateCard: (deckId: string, cardId: string, cardData: Partial<Flashcard>) => void;
   deleteCard: (deckId: string, cardId: string) => void;
-  addGeneratedCards: (deckId: string, newCards: Omit<Flashcard, 'id'>[]) => void;
+  addGeneratedCards: (deckId: string, newCards: Omit<Flashcard, 'id'>[]) => Flashcard[];
   updateStats: (topic: string, masteredCount: number) => void;
   toggleGrammarLessonRead: (lessonId: string, read: boolean) => void;
   addGrammarLesson: (lessonData: Omit<GrammarLesson, 'id' | 'read'>) => void;
@@ -211,11 +211,11 @@ export const useGlobalStateData = () => {
     }, []);
 
     const addCard = useCallback((deckId: string, cardData: Omit<Flashcard, 'id'>) => {
+        const newCard: Flashcard = {
+            ...cardData,
+            id: `card-${Date.now()}`
+        };
         setAppData(prevData => {
-            const newCard: Flashcard = {
-                ...cardData,
-                id: `card-${Date.now()}`
-            };
             const updatedDecks = prevData.decks.map(deck => {
                 if (deck.id === deckId) {
                     return { ...deck, cards: [...deck.cards, newCard] };
@@ -231,6 +231,7 @@ export const useGlobalStateData = () => {
             })
             return { ...prevData, decks: updatedDecks, userStats: updatedStats };
         });
+        return newCard;
     }, []);
 
     const updateCard = useCallback((deckId: string, cardId: string, cardData: Partial<Flashcard>) => {
@@ -273,12 +274,12 @@ export const useGlobalStateData = () => {
     }, []);
 
     const addGeneratedCards = useCallback((deckId: string, newCards: Omit<Flashcard, 'id'>[]) => {
+        const cardsWithIds: Flashcard[] = newCards.map(card => ({
+            ...card,
+            id: `card-${Date.now()}-${Math.random()}`
+        }));
+        
         setAppData(prevData => {
-            const cardsWithIds: Flashcard[] = newCards.map(card => ({
-                ...card,
-                id: `card-${Date.now()}-${Math.random()}`
-            }));
-
             const updatedDecks = prevData.decks.map(deck => {
                 if (deck.id === deckId) {
                     return { ...deck, cards: [...deck.cards, ...cardsWithIds] };
@@ -294,6 +295,7 @@ export const useGlobalStateData = () => {
             })
             return { ...prevData, decks: updatedDecks, userStats: updatedStats };
         });
+        return cardsWithIds;
     }, []);
 
     const toggleGrammarLessonRead = useCallback((lessonId: string, read: boolean) => {
