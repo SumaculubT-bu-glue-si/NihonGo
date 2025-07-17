@@ -4,9 +4,9 @@
 import { useState } from 'react';
 import type { Deck, StatsData } from '@/lib/data';
 import Link from 'next/link';
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Star, CheckCircle, MoreVertical, PlusCircle, Edit, Trash2, Settings, Wand2 } from 'lucide-react';
+import { Star, CheckCircle, MoreVertical, PlusCircle, Edit, Trash2, Settings, Wand2, List } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -31,6 +31,7 @@ import { DeckForm } from './deck-form';
 import { Progress } from '@/components/ui/progress';
 import { GenerateDeckForm, type GenerateDeckData } from './generate-deck-form';
 import { useToast } from '@/hooks/use-toast';
+import { useGlobalState } from '@/hooks/use-global-state';
 
 function DeckCard({
   deck,
@@ -152,6 +153,101 @@ function DeckCard({
   );
 }
 
+function DeckListItem({
+  deck,
+  isFavorite,
+  onToggleFavorite,
+  onEdit,
+  onDelete,
+  progress,
+}: {
+  deck: Deck;
+  isFavorite: boolean;
+  onToggleFavorite: (id: string) => void;
+  onEdit: (deck: Deck) => void;
+  onDelete: (id: string) => void;
+  progress: number;
+}) {
+  return (
+     <Card className="hover:bg-muted/50 transition-colors">
+        <CardContent className="p-4 flex items-center gap-4">
+             <div className="flex-grow">
+                <div className="flex items-center gap-4 mb-2">
+                    <Link href={`/decks/${deck.id}`} passHref>
+                        <h3 className="font-semibold text-lg hover:underline">{deck.title}</h3>
+                    </Link>
+                    <Badge variant="outline">{deck.level}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">{deck.description}</p>
+                 <div className="flex items-center gap-2">
+                    <Progress value={progress} className="h-2 w-32" />
+                    <span className="text-xs text-muted-foreground">{Math.round(progress)}%</span>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-1">
+                 <Link href={`/decks/${deck.id}`} passHref>
+                    <Button>
+                        Learn
+                    </Button>
+                </Link>
+                 <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onToggleFavorite(deck.id)}
+                    aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    >
+                    <Star
+                        className={`h-5 w-5 transition-colors ${
+                        isFavorite ? 'fill-yellow-400 text-yellow-500' : 'text-muted-foreground'
+                        }`}
+                    />
+                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEdit(deck)}>
+                            <Edit className="mr-2 h-4 w-4" /> Edit
+                        </DropdownMenuItem>
+                        <Link href={`/decks/${deck.id}/manage`} passHref>
+                            <DropdownMenuItem>
+                                <Settings className="mr-2 h-4 w-4" /> Manage Cards
+                            </DropdownMenuItem>
+                        </Link>
+                        <DropdownMenuSeparator />
+                        <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will permanently delete the deck "{deck.title}".
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => onDelete(deck.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                        </AlertDialog>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </CardContent>
+     </Card>
+  )
+}
+
 interface DeckBrowserProps {
   decks: Deck[];
   userStats: StatsData[];
@@ -162,6 +258,7 @@ interface DeckBrowserProps {
 
 
 export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: DeckBrowserProps) {
+  const { appData } = useGlobalState();
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('favorite-decks');
@@ -174,6 +271,8 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: 
   const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false);
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
   const { toast } = useToast();
+  
+  const activeVariant = appData.activeVariants.home;
 
   const toggleFavorite = (id: string) => {
     setFavorites((prev) => {
@@ -252,23 +351,45 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: 
         </TabsList>
       </Tabs>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredDecks.map((deck) => {
-          const stat = userStats.find(s => s.topic === deck.title);
-          const progress = stat && stat.total > 0 ? (stat.progress / stat.total) * 100 : 0;
-          return (
-            <DeckCard
-              key={deck.id}
-              deck={deck}
-              isFavorite={favorites.has(deck.id)}
-              onToggleFavorite={toggleFavorite}
-              onEdit={handleEdit}
-              onDelete={onDelete}
-              progress={progress}
-            />
-          )
-        })}
-      </div>
+      {activeVariant === 'A' ? (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredDecks.map((deck) => {
+            const stat = userStats.find(s => s.topic === deck.title);
+            const progress = stat && stat.total > 0 ? (stat.progress / stat.total) * 100 : 0;
+            return (
+                <DeckCard
+                key={deck.id}
+                deck={deck}
+                isFavorite={favorites.has(deck.id)}
+                onToggleFavorite={toggleFavorite}
+                onEdit={handleEdit}
+                onDelete={onDelete}
+                progress={progress}
+                />
+            )
+            })}
+        </div>
+      ) : (
+         <div className="space-y-4">
+            {filteredDecks.map((deck) => {
+            const stat = userStats.find(s => s.topic === deck.title);
+            const progress = stat && stat.total > 0 ? (stat.progress / stat.total) * 100 : 0;
+            return (
+                <DeckListItem
+                key={deck.id}
+                deck={deck}
+                isFavorite={favorites.has(deck.id)}
+                onToggleFavorite={toggleFavorite}
+                onEdit={handleEdit}
+                onDelete={onDelete}
+                progress={progress}
+                />
+            )
+            })}
+        </div>
+      )}
+
+
       {filteredDecks.length === 0 && (
         <div className="col-span-full mt-10 flex flex-col items-center justify-center text-center">
           <CheckCircle className="mb-4 h-16 w-16 text-muted-foreground/50" />

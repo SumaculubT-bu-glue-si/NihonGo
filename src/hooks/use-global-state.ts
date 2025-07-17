@@ -14,6 +14,13 @@ export interface AppData {
   grammarLessons: GrammarLesson[];
   quizzes: Quiz[];
   quizScores: QuizScore[];
+  activeVariants: {
+    home: 'A' | 'B';
+    grammar: 'A' | 'B';
+    dictionary: 'A' | 'B';
+    quizzes: 'A' | 'B';
+    dashboard: 'A' | 'B';
+  };
 }
 
 export interface FullAppData {
@@ -45,6 +52,7 @@ interface GlobalStateContextType {
   updateQuestionInQuiz: (quizId: string, questionId: string, questionData: Partial<QuizQuestion>) => void;
   deleteQuestionFromQuiz: (quizId: string, questionId: string) => void;
   addGeneratedQuiz: (quizData: Omit<Quiz, 'id'>) => void;
+  setActiveVariants: (variants: AppData['activeVariants']) => void;
 }
 
 export const GlobalStateContext = createContext<GlobalStateContextType | undefined>(undefined);
@@ -63,6 +71,13 @@ const getInitialData = (): AppData => ({
     grammarLessons: initialGrammarLessons,
     quizzes: initialQuizzes,
     quizScores: [],
+    activeVariants: {
+      home: 'A',
+      grammar: 'A',
+      dictionary: 'A',
+      quizzes: 'A',
+      dashboard: 'A',
+    },
 });
 
 
@@ -78,7 +93,14 @@ export const useGlobalStateData = () => {
         try {
             const serializedState = localStorage.getItem(STORAGE_KEY_PREFIX);
             if (serializedState) {
-                setFullAppData(JSON.parse(serializedState));
+                const loadedData = JSON.parse(serializedState);
+                //Ensure all users have activeVariants initialized
+                 for (const userId in loadedData) {
+                    if (!loadedData[userId].activeVariants) {
+                        loadedData[userId].activeVariants = getInitialData().activeVariants;
+                    }
+                }
+                setFullAppData(loadedData);
             }
         } catch (error) {
             console.error("Error loading all user data from localStorage", error);
@@ -105,6 +127,25 @@ export const useGlobalStateData = () => {
             ...prevFullData,
             [user.uid]: updater(prevFullData[user.uid] || getInitialData()),
         }));
+    }, [user]);
+
+     const setActiveVariants = useCallback((variants: AppData['activeVariants']) => {
+        // A/B test settings are global, so update them for all users.
+        setFullAppData(prevFullData => {
+            const newFullData = { ...prevFullData };
+            for (const userId in newFullData) {
+                newFullData[userId] = {
+                    ...newFullData[userId],
+                    activeVariants: variants,
+                };
+            }
+            // Also update for the current user if they're not in the list yet
+            if (user && !newFullData[user.uid]) {
+                 const initialData = getInitialData();
+                 newFullData[user.uid] = { ...initialData, activeVariants: variants };
+            }
+            return newFullData;
+        });
     }, [user]);
 
     const addDeck = useCallback((deckData: Omit<Deck, 'id' | 'cards'>) => {
@@ -457,5 +498,6 @@ export const useGlobalStateData = () => {
         updateQuestionInQuiz,
         deleteQuestionFromQuiz,
         addGeneratedQuiz,
+        setActiveVariants,
     };
 };
