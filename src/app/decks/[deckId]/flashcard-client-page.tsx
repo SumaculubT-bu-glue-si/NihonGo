@@ -74,7 +74,7 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
 
   const getStorageKey = useCallback(() => `flashcard-session-${deck.id}`, [deck.id]);
 
-  // Effect to initialize or load a session
+  // Effect to initialize or load a session. Runs only once on mount or when deckId changes.
   useEffect(() => {
     if (isLoading) return;
 
@@ -84,24 +84,29 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       const initialProgress = deckStats ? deckStats.progress : 0;
       setMasteredCount(initialProgress);
       
+      let sessionCards: FlashcardType[] = [];
+      let sessionIndex = 0;
+
       if (savedSession) {
         const { savedCards, savedIndex } = JSON.parse(savedSession);
         // Validate that the saved cards still exist in the main deck data
         const validSavedCards = savedCards.filter((sc: FlashcardType) => deck.cards.some(dc => dc.id === sc.id));
         if (Array.isArray(validSavedCards) && typeof savedIndex === 'number' && validSavedCards.length > 0) {
-          setCardsToShow(validSavedCards);
-          setCurrentIndex(savedIndex < validSavedCards.length ? savedIndex : 0);
-        } else {
-          // If session is invalid or empty, start a new one.
-          const nonMasteredCards = deck.cards.slice(initialProgress);
-          setCardsToShow([...nonMasteredCards].sort(() => Math.random() - 0.5));
-          setCurrentIndex(0);
+          sessionCards = validSavedCards;
+          sessionIndex = savedIndex < validSavedCards.length ? savedIndex : 0;
         }
-      } else {
+      } 
+      
+      if (sessionCards.length === 0) {
+        // If no valid session, start a new one with non-mastered cards
         const nonMasteredCards = deck.cards.slice(initialProgress);
-        setCardsToShow([...nonMasteredCards].sort(() => Math.random() - 0.5));
-        setCurrentIndex(0);
+        sessionCards = [...nonMasteredCards].sort(() => Math.random() - 0.5);
+        sessionIndex = 0;
       }
+
+      setCardsToShow(sessionCards);
+      setCurrentIndex(sessionIndex);
+
     } catch (error) {
       console.error("Could not load session from localStorage, starting fresh.", error);
       const deckStats = appData.userStats.find(s => s.topic === deck.title);
@@ -113,7 +118,8 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       setCurrentIndex(0);
     }
     setIsFlipped(false);
-  }, [deck.id, deck.title, deck.cards, getStorageKey, appData.userStats, isLoading]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deck.id, deck.title, isLoading, getStorageKey]);
 
 
   // Save session to localStorage whenever state changes that defines the session
@@ -206,7 +212,6 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
   const handleDeleteConfirm = () => {
     if (!cardToDelete) return;
 
-    // This now comes from the hook, so we don't need to manually update state here
     deleteCard(deck.id, cardToDelete.id);
     
     const newCardsToShow = cardsToShow.filter(c => c.id !== cardToDelete.id);
@@ -217,7 +222,6 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     } else if (newCardsToShow.length === 0) {
       setCurrentIndex(0);
     }
-
 
     toast({
       title: 'Card Deleted',
@@ -262,9 +266,8 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
         description: 'The flashcard has been successfully updated.',
       });
     } else {
-      // The addCard hook from useGlobalState will update the main deck.
-      // We also need to add the card to our local session state.
       const newCard = addCard(deck.id, cardData);
+      // Add the new card to the current study session
       setCardsToShow(prev => [...prev, newCard]);
 
       toast({
@@ -295,8 +298,8 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
       });
 
       const newCards = addGeneratedCards(deck.id, result.cards);
+      // Add the newly generated cards to the current session
       setCardsToShow(prev => [...prev, ...newCards]);
-
 
       generatingToast.update({
         id: generatingToast.id,
