@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Clock, Target, BarChart as BarChartIcon, Download, FileText, FileSpreadsheet, Loader2, Wand2, Lightbulb } from 'lucide-react';
+import { Users, Clock, Target, BarChart as BarChartIcon, Download, FileText, FileSpreadsheet, Loader2, Wand2, Lightbulb, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { utils, writeFile } from 'xlsx';
@@ -46,11 +46,14 @@ interface UserProgressChartData {
     quizzes: number;
 }
 
+const ITEMS_PER_PAGE = 5;
+
 export function AdminView({ allUsersData, allUsers }: { allUsersData: FullAppData, allUsers: User[] }) {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [topicAnalysis, setTopicAnalysis] = useState<string[]>([]);
   const [isAnalyzingTopics, setIsAnalyzingTopics] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   
   const { learnerStats, aggregateStats, userProgressChartData } = useMemo(() => {
     const learners = allUsers.filter(user => user.role === 'learner');
@@ -173,6 +176,12 @@ export function AdminView({ allUsersData, allUsers }: { allUsersData: FullAppDat
 
   }, [allUsersData, allUsers]);
 
+  const totalPages = Math.ceil(learnerStats.length / ITEMS_PER_PAGE);
+  const paginatedLearnerStats = learnerStats.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
    useEffect(() => {
     const handleAnalyzeTopics = async () => {
       if (!userProgressChartData || userProgressChartData.length === 0) {
@@ -260,6 +269,14 @@ export function AdminView({ allUsersData, allUsers }: { allUsersData: FullAppDat
         setIsDownloadingPdf(false);
     }
   };
+  
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   return (
     <div className="space-y-6">
@@ -344,7 +361,7 @@ export function AdminView({ allUsersData, allUsers }: { allUsersData: FullAppDat
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {learnerStats.map(stats => (
+                {paginatedLearnerStats.map(stats => (
                     <TableRow key={stats.uid}>
                     <TableCell>
                         <div className="flex items-center gap-3">
@@ -390,6 +407,29 @@ export function AdminView({ allUsersData, allUsers }: { allUsersData: FullAppDat
                 ))}
                 </TableBody>
             </Table>
+             <div className="flex items-center justify-end space-x-2 py-4">
+                <span className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+                </Button>
+                <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                >
+                Next
+                <ChevronRight className="h-4 w-4" />
+                </Button>
+            </div>
             </CardContent>
         </Card>
         
