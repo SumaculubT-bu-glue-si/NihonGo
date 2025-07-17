@@ -21,7 +21,10 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
     return () => {
         if (typeof window !== 'undefined' && window.speechSynthesis) {
             speechSynthesis.onvoiceschanged = null;
-            speechSynthesis.cancel();
+            // Cancel any speech if the component unmounts while speaking
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
         }
     };
   }, []);
@@ -38,13 +41,14 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
         return;
     }
 
-    // Always cancel any ongoing speech before starting a new one.
-    window.speechSynthesis.cancel();
-
     if (isSpeaking) {
+        window.speechSynthesis.cancel();
         setIsSpeaking(false);
         return;
     }
+
+    // Cancel any previous speech before starting a new one.
+    window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'ja-JP';
@@ -58,6 +62,7 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = (event) => {
+        // Check if the error is a cancellation, which is not a true error.
         if (event.error !== 'cancelled') {
             console.error('Speech synthesis error', event);
             toast({
@@ -73,15 +78,6 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
     window.speechSynthesis.speak(utterance);
   };
   
-  // Cancel speech if component unmounts
-  useEffect(() => {
-    return () => {
-        if (isSpeaking) {
-            window.speechSynthesis.cancel();
-        }
-    }
-  }, [isSpeaking]);
-
   let Icon = isSpeaking ? Square : Volume2;
 
   return (
@@ -89,7 +85,7 @@ export function PronunciationButton({ text, size = "default" }: { text: string; 
       variant="ghost"
       size={size === "sm" ? "sm" : "icon"}
       onClick={handleSpeak}
-      aria-label="Listen to pronunciation"
+      aria-label={isSpeaking ? "Stop pronunciation" : "Listen to pronunciation"}
     >
       <Icon />
     </Button>
