@@ -215,9 +215,6 @@ export function QuizzesView() {
                                         {quizzesForLevel.length > 0 ? (
                                             quizzesForLevel.map((quiz) => {
                                                 const highestScore = getHighestScore(quiz.id);
-                                                const percentage = highestScore !== null && quiz.questions.length > 0
-                                                    ? Math.round((highestScore / quiz.questions.length) * 100)
-                                                    : null;
 
                                                 return (
                                                     <div key={quiz.id} className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50">
@@ -229,7 +226,7 @@ export function QuizzesView() {
                                                                 {quiz.title}
                                                             </Link>
                                                             <p className="text-xs text-muted-foreground">
-                                                                {percentage !== null ? `Highest Grade: ${percentage}%` : 'Not taken yet'}
+                                                                {highestScore !== null ? `Highest Grade: ${highestScore}%` : 'Not taken yet'}
                                                                 <span className="mx-2">•</span>
                                                                 {quiz.questions.length} questions
                                                             </p>
