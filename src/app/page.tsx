@@ -59,7 +59,7 @@ function LoginForm({ role, onSignIn }: { role: 'admin' | 'learner', onSignIn: (e
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Signing In...' : 'Sign In'}
+        {isLoading ? 'Logging In...' : 'Log in'}
       </Button>
     </form>
   );
