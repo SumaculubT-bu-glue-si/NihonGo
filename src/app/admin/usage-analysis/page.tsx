@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { AppData } from '@/hooks/use-global-state';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 type NavItemId = keyof AppData['activeVariants'];
 
