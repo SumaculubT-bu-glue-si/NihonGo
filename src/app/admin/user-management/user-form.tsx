@@ -131,7 +131,7 @@ export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) 
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
               >
-                Change Photo
+                Upload Photo
               </Button>
               <Input
                 type="file"
