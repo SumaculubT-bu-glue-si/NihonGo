@@ -46,11 +46,117 @@ import {
 import { LessonForm, type LessonFormData } from './lesson-form';
 import { GenerateLessonForm } from './generate-lesson-form';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 
 type LevelFilter = 'All' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 type StatusFilter = 'all' | 'read' | 'unread';
 
+const LessonItem = ({ lesson, onSelect, onEdit, onDelete }: {
+  lesson: GrammarLesson;
+  onSelect: (lesson: GrammarLesson) => void;
+  onEdit: (lesson: GrammarLesson) => void;
+  onDelete: (lesson: GrammarLesson) => void;
+}) => (
+  <div className="flex items-center justify-between p-3 border-b last:border-b-0">
+      <div className="flex items-center gap-4">
+        {lesson.read ? (
+            <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+        ) : (
+            <BookOpenCheck className="h-5 w-5 text-muted-foreground shrink-0" />
+        )}
+        <div className="flex-grow">
+          <p className="font-semibold">{lesson.title}</p>
+          <p className="text-xs text-muted-foreground">{lesson.level}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-1">
+        <Button size="sm" variant="ghost" onClick={() => onSelect(lesson)}>
+          <Eye className="mr-2 h-4 w-4" /> View
+        </Button>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onEdit(lesson)}>
+                    <Edit className="mr-2 h-4 w-4" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                 <DropdownMenuItem
+                    onClick={() => onDelete(lesson)}
+                    className="text-destructive focus:text-destructive"
+                >
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+  </div>
+);
+
+const LessonCard = ({ lesson, onSelect, onEdit, onDelete }: {
+  lesson: GrammarLesson;
+  onSelect: (lesson: GrammarLesson) => void;
+  onEdit: (lesson: GrammarLesson) => void;
+  onDelete: (lesson: GrammarLesson) => void;
+}) => (
+    <Card className="flex flex-col">
+        <CardHeader>
+            <div className="flex justify-between items-start">
+                <Badge variant="outline">{lesson.level}</Badge>
+                <div className="flex items-center">
+                  {lesson.read ? (
+                      <div className="flex items-center gap-1 text-xs text-green-600">
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span>Read</span>
+                      </div>
+                   ) : (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <BookOpenCheck className="h-4 w-4" />
+                          <span>Unread</span>
+                      </div>
+                   )}
+                   <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2">
+                              <MoreVertical className="h-4 w-4" />
+                          </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEdit(lesson)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Lesson
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                           <DropdownMenuItem
+                              onClick={() => onDelete(lesson)}
+                              className="text-destructive focus:text-destructive"
+                          >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Lesson
+                          </DropdownMenuItem>
+                      </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+            </div>
+            <CardTitle className="pt-2">{lesson.title}</CardTitle>
+        </CardHeader>
+         <CardContent className="flex-grow">
+          <p className="text-sm text-muted-foreground line-clamp-3">
+            {lesson.explanation}
+          </p>
+        </CardContent>
+        <CardFooter>
+            <Button className="w-full" variant="outline" onClick={() => onSelect(lesson)}>
+                <Eye className="mr-2 h-4 w-4" />
+                View Lesson
+            </Button>
+        </CardFooter>
+    </Card>
+);
 
 export function GrammarLessonsView() {
   const { appData, isLoading, toggleGrammarLessonRead, addGrammarLesson, updateGrammarLesson, deleteGrammarLesson } = useGlobalState();
@@ -63,6 +169,7 @@ export function GrammarLessonsView() {
   const [lessonToDelete, setLessonToDelete] = useState<GrammarLesson | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false);
+  const activeVariant = appData.activeVariants.grammar;
 
 
   const filteredLessons = useMemo(() => {
@@ -208,63 +315,34 @@ export function GrammarLessonsView() {
               </RadioGroup>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+            <div className={cn(
+              "pt-4",
+              activeVariant === 'A' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-0"
+            )}>
                {filteredLessons.length > 0 ? (
-                  filteredLessons.map(lesson => (
-                      <Card key={lesson.id} className="flex flex-col">
-                          <CardHeader>
-                              <div className="flex justify-between items-start">
-                                  <Badge variant="outline">{lesson.level}</Badge>
-                                  <div className="flex items-center">
-                                    {lesson.read ? (
-                                        <div className="flex items-center gap-1 text-xs text-green-600">
-                                            <CheckCircle2 className="h-4 w-4" />
-                                            <span>Read</span>
-                                        </div>
-                                     ) : (
-                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                            <BookOpenCheck className="h-4 w-4" />
-                                            <span>Unread</span>
-                                        </div>
-                                     )}
-                                     <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2">
-                                                <MoreVertical className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={() => handleEdit(lesson)}>
-                                                <Edit className="mr-2 h-4 w-4" />
-                                                Edit Lesson
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                             <DropdownMenuItem
-                                                onClick={() => handleDeleteInitiate(lesson)}
-                                                className="text-destructive focus:text-destructive"
-                                            >
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                Delete Lesson
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                  </div>
-                              </div>
-                              <CardTitle className="pt-2">{lesson.title}</CardTitle>
-                          </CardHeader>
-                           <CardContent className="flex-grow">
-                            <p className="text-sm text-muted-foreground line-clamp-3">
-                              {lesson.explanation}
-                            </p>
-                          </CardContent>
-                          <CardFooter>
-                              <Button className="w-full" variant="outline" onClick={() => setSelectedLesson(lesson)}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Lesson
-                              </Button>
-                          </CardFooter>
-                      </Card>
-                  ))
+                  activeVariant === 'A' ? (
+                      filteredLessons.map(lesson => (
+                          <LessonCard 
+                              key={lesson.id} 
+                              lesson={lesson} 
+                              onSelect={setSelectedLesson} 
+                              onEdit={handleEdit} 
+                              onDelete={handleDeleteInitiate} 
+                          />
+                      ))
+                  ) : (
+                      <Card><CardContent className="p-0">
+                          {filteredLessons.map(lesson => (
+                              <LessonItem 
+                                  key={lesson.id} 
+                                  lesson={lesson} 
+                                  onSelect={setSelectedLesson} 
+                                  onEdit={handleEdit} 
+                                  onDelete={handleDeleteInitiate} 
+                              />
+                          ))}
+                      </CardContent></Card>
+                  )
                ) : (
                   <div className="col-span-full text-center text-muted-foreground py-10">
                       <p>No lessons match the current filters.</p>
@@ -359,7 +437,7 @@ export function GrammarLessonsView() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the lesson "{lessonToDelete?.title}".
+                        This will permanently delete the lesson "{lessonToDelete?.title}".
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

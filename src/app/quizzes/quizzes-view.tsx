@@ -7,9 +7,7 @@ import { BookText, SpellCheck, CheckCircle2, MoreVertical, Settings, Trash2, Wan
 import Link from 'next/link';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useGlobalState } from '@/hooks/use-global-state';
-import { Progress } from '@/components/ui/progress';
 import { useMemo, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +29,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import type { Quiz } from '@/lib/data';
 import { generateQuiz } from '@/ai/flows/generate-quiz-flow';
-import { GenerateQuizForm, type GenerateQuizData } from './generate-quiz-form';
+import { GenerateQuizForm } from './generate-quiz-form';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const quizCategories = [
@@ -58,6 +57,7 @@ export function QuizzesView() {
   const [quizToDelete, setQuizToDelete] = useState<Quiz | null>(null);
   const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false);
   const [generationContext, setGenerationContext] = useState<{category: 'vocabulary' | 'grammar', level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1'} | null>(null);
+  const activeVariant = appData.activeVariants.quizzes;
 
 
   const getHighestScore = (quizId: string) => {
@@ -121,23 +121,6 @@ export function QuizzesView() {
   };
 
 
-  const { totalQuizzes, completedQuizzes, overallProgress } = useMemo(() => {
-    const total = appData.quizzes.length;
-    let completed = 0;
-    appData.quizzes.forEach(quiz => {
-        if(appData.quizScores.find(score => score.quizId === quiz.id)) {
-            completed++;
-        }
-    });
-
-    const progress = total > 0 ? (completed / total) * 100 : 0;
-    return {
-      totalQuizzes: total,
-      completedQuizzes: completed,
-      overallProgress: progress,
-    };
-  }, [appData.quizzes, appData.quizScores]);
-  
   const groupedQuizzes = useMemo(() => {
     const groups: Record<string, Record<string, Quiz[]>> = {
       vocabulary: {},
@@ -165,6 +148,69 @@ export function QuizzesView() {
     setQuizToDelete(null);
   };
 
+  const QuizList = ({ quizzes, level, category }: { quizzes: Quiz[], level: string, category: 'vocabulary' | 'grammar' }) => (
+     <div className="space-y-2 pt-2">
+       <div className="flex items-center gap-2 mb-4">
+            <Button size="sm" onClick={() => handleAddNew(category, level as 'N5')}>
+                <PlusCircle className="mr-2 h-4 w-4"/> Add New Quiz
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleGenerateNew(category, level as 'N5')}>
+                <Wand2 className="mr-2 h-4 w-4"/> Generate with AI
+            </Button>
+        </div>
+        {quizzes.length > 0 ? (
+            quizzes.map((quiz) => {
+                const highestScore = getHighestScore(quiz.id);
+
+                return (
+                    <div key={quiz.id} className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50">
+                        <div>
+                            <Link 
+                                href={`/quizzes/${quiz.id}`}
+                                className="font-medium hover:underline"
+                            >
+                                {quiz.title}
+                            </Link>
+                            <p className="text-xs text-muted-foreground">
+                                {highestScore !== null ? `Highest Grade: ${highestScore}%` : 'Not taken yet'}
+                                <span className="mx-2">•</span>
+                                {quiz.questions.length} questions
+                            </p>
+                        </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <Link href={`/quizzes/${quiz.id}/manage`}>
+                                    <DropdownMenuItem>
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        Manage
+                                    </DropdownMenuItem>
+                                </Link>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive"
+                                    onSelect={() => setQuizToDelete(quiz)}
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                )
+            })
+        ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+                No quizzes for this level yet. Add one to get started!
+            </p>
+        )}
+    </div>
+  );
+
   return (
     <div className="space-y-8">
       {quizCategories.map((category) => (
@@ -179,6 +225,7 @@ export function QuizzesView() {
                 </div>
             </CardHeader>
             <CardContent>
+              {activeVariant === 'A' ? (
                 <Accordion 
                     type="single" 
                     collapsible 
@@ -203,71 +250,29 @@ export function QuizzesView() {
                                     </span>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <div className="space-y-2 pt-2">
-                                       <div className="flex items-center gap-2 mb-4">
-                                            <Button size="sm" onClick={() => handleAddNew(category.type, level)}>
-                                                <PlusCircle className="mr-2 h-4 w-4"/> Add New Quiz
-                                            </Button>
-                                            <Button size="sm" variant="outline" onClick={() => handleGenerateNew(category.type, level)}>
-                                                <Wand2 className="mr-2 h-4 w-4"/> Generate with AI
-                                            </Button>
-                                        </div>
-                                        {quizzesForLevel.length > 0 ? (
-                                            quizzesForLevel.map((quiz) => {
-                                                const highestScore = getHighestScore(quiz.id);
-
-                                                return (
-                                                    <div key={quiz.id} className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50">
-                                                        <div>
-                                                            <Link 
-                                                                href={`/quizzes/${quiz.id}`}
-                                                                className="font-medium hover:underline"
-                                                            >
-                                                                {quiz.title}
-                                                            </Link>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {highestScore !== null ? `Highest Grade: ${highestScore}%` : 'Not taken yet'}
-                                                                <span className="mx-2">•</span>
-                                                                {quiz.questions.length} questions
-                                                            </p>
-                                                        </div>
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                                    <MoreVertical className="h-4 w-4" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end">
-                                                                <Link href={`/quizzes/${quiz.id}/manage`}>
-                                                                    <DropdownMenuItem>
-                                                                        <Settings className="mr-2 h-4 w-4" />
-                                                                        Manage
-                                                                    </DropdownMenuItem>
-                                                                </Link>
-                                                                <DropdownMenuSeparator />
-                                                                <DropdownMenuItem
-                                                                    className="text-destructive focus:text-destructive"
-                                                                    onSelect={() => setQuizToDelete(quiz)}
-                                                                >
-                                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                                    Delete
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                    </div>
-                                                )
-                                            })
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground text-center py-4">
-                                                No quizzes for this level yet. Add one to get started!
-                                            </p>
-                                        )}
-                                    </div>
+                                    <QuizList quizzes={quizzesForLevel} level={level} category={category.type} />
                                 </AccordionContent>
                             </AccordionItem>
                         )
                     })}
                 </Accordion>
+              ) : (
+                <Tabs defaultValue="N5" className="w-full">
+                    <TabsList className="grid w-full grid-cols-5">
+                      {levels.map(level => (
+                        <TabsTrigger value={level} key={level}>{level}</TabsTrigger>
+                      ))}
+                    </TabsList>
+                    {levels.map(level => {
+                        const quizzesForLevel = groupedQuizzes[category.type]?.[level] ?? [];
+                        return (
+                            <TabsContent value={level} key={level}>
+                                <QuizList quizzes={quizzesForLevel} level={level} category={category.type} />
+                            </TabsContent>
+                        )
+                    })}
+                </Tabs>
+              )}
             </CardContent>
         </Card>
       ))}

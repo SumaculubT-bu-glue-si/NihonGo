@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { searchJisho, type JishoSearchOutput } from '@/ai/flows/jisho-dictionary-flow';
 import { Badge } from '@/components/ui/badge';
 import { PronunciationButton } from '@/components/pronunciation-button';
+import { useGlobalState } from '@/hooks/use-global-state';
+import { cn } from '@/lib/utils';
 
 function SearchResultCard({ result }: { result: JishoSearchOutput['results'][0] }) {
     const mainReading = result.japanese[0];
@@ -61,6 +63,8 @@ export function DictionaryView() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [hasSearched, setHasSearched] = useState(false);
+  const { appData } = useGlobalState();
+  const activeVariant = appData.activeVariants.dictionary;
 
   const performSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
@@ -118,7 +122,7 @@ export function DictionaryView() {
       </div>
 
 
-      <div className="space-y-4">
+      <div className={cn("space-y-4", activeVariant === 'B' && "rounded-lg border bg-card p-4")}>
         {isLoading && (
             <div className="flex flex-col items-center justify-center rounded-lg border bg-card p-12 text-center text-muted-foreground">
                 <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />

@@ -50,8 +50,7 @@ export default function UsageAnalysisPage() {
         { id: 'dashboard', name: 'Dashboard (Stats)' },
     ];
     
-    // For now, only the 'home' section has a Variant B.
-    const implementedVariants: NavItemId[] = ['home'];
+    const implementedVariants: NavItemId[] = ['home', 'grammar', 'dictionary', 'quizzes', 'dashboard'];
 
   return (
     <AdminGuard>
