@@ -11,11 +11,10 @@ import { Separator } from '@/components/ui/separator';
 import { useGlobalState } from '@/hooks/use-global-state';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import type { AppData } from '@/hooks/use-global-state';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 
-type NavItemId = keyof AppData['activeVariants'];
+type NavItemId = 'home' | 'grammar' | 'dictionary' | 'quizzes' | 'dashboard';
 
 export default function UsageAnalysisPage() {
     const { appData, setActiveVariants } = useGlobalState();
@@ -38,7 +37,7 @@ export default function UsageAnalysisPage() {
         setIsDirty(false);
         toast({
             title: "Settings Saved",
-            description: "A/B test variants have been updated.",
+            description: "A/B test variants have been updated globally.",
         });
     };
 
@@ -67,7 +66,7 @@ export default function UsageAnalysisPage() {
                 <CardHeader>
                     <CardTitle>A/B Testing Management</CardTitle>
                     <CardDescription>
-                        Control which UI variant is active for each section of the app.
+                        Control which UI variant is active for each section of the app. Changes are saved globally for all users.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -85,13 +84,6 @@ export default function UsageAnalysisPage() {
                             <div key={item.id} className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 p-4 border rounded-lg">
                                 <div>
                                     <Label className="font-semibold">{item.name}</Label>
-                                    {!hasVariantB && (
-                                         <Alert variant="default" className="mt-2 text-xs p-2">
-                                            <AlertDescription>
-                                                Variant B for this section is not yet implemented.
-                                            </AlertDescription>
-                                        </Alert>
-                                    )}
                                 </div>
                                 <RadioGroup 
                                     value={currentVariants[navId]} 

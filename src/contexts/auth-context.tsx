@@ -62,8 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await new Promise((resolve) => setTimeout(resolve, 500));
     setUser(null);
     localStorage.removeItem('loggedInUserId');
-    // We also clear the app data when signing out to simulate a fresh start for the next user.
-    localStorage.removeItem('nihongo-app-data');
+    // We do NOT clear app data on sign out, so A/B settings persist
+    // localStorage.removeItem('nihongo-app-data');
     setLoading(false);
     router.push('/');
   };
