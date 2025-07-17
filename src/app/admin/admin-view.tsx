@@ -37,6 +37,7 @@ interface UserProgressChartData {
     name: string;
     vocabulary: number;
     grammar: number;
+    quizzes: number;
 }
 
 export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
@@ -75,7 +76,6 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
       const totalScore = data.quizScores.reduce((acc, score) => acc + score.highestScore, 0);
       const avgQuizScore = quizzesTaken > 0 ? Math.round(totalScore / quizzesTaken) : 0;
       
-      // Mock study time data
       const mockTimes = ['1h 15m', '45m', '2h 5m', '1h 30m', '55m'];
 
       return {
@@ -130,21 +130,31 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
                 name: user.displayName?.split(' ')[0] || 'Unknown',
                 vocabulary: 0,
                 grammar: 0,
+                quizzes: 0,
             };
         }
 
         const vocabDecks = data.decks.filter(d => d.category === 'Vocabulary' || d.category === 'Kanji' || d.category === 'Phrases');
-        const vocabProgress = vocabDecks.reduce((acc, deck) => {
+        const totalVocabCards = vocabDecks.reduce((acc, deck) => acc + deck.cards.length, 0);
+        const completedVocabCards = vocabDecks.reduce((acc, deck) => {
             const stat = data.userStats.find(s => s.topic === deck.title);
             return acc + (stat ? stat.progress : 0);
         }, 0);
+        const vocabPercent = totalVocabCards > 0 ? Math.round((completedVocabCards / totalVocabCards) * 100) : 0;
 
-        const grammarProgress = data.grammarLessons.filter(l => l.read).length;
+        const totalGrammar = data.grammarLessons.length;
+        const grammarRead = data.grammarLessons.filter(l => l.read).length;
+        const grammarPercent = totalGrammar > 0 ? Math.round((grammarRead / totalGrammar) * 100) : 0;
 
+        const quizzesTaken = data.quizScores.length;
+        const totalQuizScore = data.quizScores.reduce((acc, score) => acc + score.highestScore, 0);
+        const avgQuizScore = quizzesTaken > 0 ? Math.round(totalQuizScore / quizzesTaken) : 0;
+        
         return {
             name: user.displayName?.split(' ')[0] || 'Unknown',
-            vocabulary: vocabProgress,
-            grammar: grammarProgress,
+            vocabulary: vocabPercent,
+            grammar: grammarPercent,
+            quizzes: avgQuizScore,
         };
     });
     
@@ -279,7 +289,7 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
             Topic Engagement
           </CardTitle>
           <CardDescription>
-            Comparison of completed vocabulary/kanji cards vs. completed grammar lessons per user.
+            Comparison of topic completion percentage per user.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -297,7 +307,8 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `${value}`}
+                tickFormatter={(value) => `${value}%`}
+                domain={[0, 100]}
               />
               <Tooltip
                 cursor={{ fill: 'hsl(var(--accent))', opacity: 0.2 }}
@@ -307,8 +318,9 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
                     return (
                         <div className="rounded-lg border bg-background p-2 shadow-sm text-center">
                             <span className="text-sm font-bold text-foreground">{data.name}</span>
-                            <p className="text-xs text-pink-500">{`Vocabulary: ${payload[0].value} items`}</p>
-                            <p className="text-xs text-blue-400">{`Grammar: ${payload[1].value} lessons`}</p>
+                            <p className="text-xs" style={{ color: '#ec4899' }}>{`Vocabulary: ${payload[0].value}%`}</p>
+                            <p className="text-xs" style={{ color: '#60a5fa' }}>{`Grammar: ${payload[1].value}%`}</p>
+                            <p className="text-xs" style={{ color: '#81C784' }}>{`Quizzes: ${payload[2].value}%`}</p>
                         </div>
                     )
                     }
@@ -318,6 +330,7 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
               <Legend />
               <Bar dataKey="vocabulary" fill="#ec4899" radius={[4, 4, 0, 0]} />
               <Bar dataKey="grammar" fill="#60a5fa" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="quizzes" fill="#81C784" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
