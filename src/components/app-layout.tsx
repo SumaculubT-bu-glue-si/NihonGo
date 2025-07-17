@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { NihonGoLogo } from './icons';
-import { Home, BookMarked, BookOpen, ClipboardList, BarChart3, Settings, LogOut, ShieldCheck } from 'lucide-react';
+import { Home, BookMarked, BookOpen, ClipboardList, BarChart3, Settings, LogOut, ShieldCheck, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -31,10 +31,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/dictionary', label: 'Dictionary', icon: BookOpen, admin: false },
     { href: '/quizzes', label: 'Quizzes', icon: ClipboardList, admin: false },
     { href: '/stats', label: 'Dashboard', icon: BarChart3, admin: false },
-    { href: '/admin', label: 'Admin', icon: ShieldCheck, admin: true },
   ];
   
-  const visibleMenuItems = menuItems.filter(item => !item.admin || (item.admin && user?.role === 'admin'));
+  const visibleMenuItems = menuItems.filter(item => !item.admin);
 
   return (
     <>
@@ -59,6 +58,28 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                       {item.label}
                     </Link>
                   ))}
+                   {user?.role === 'admin' && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                             <button className={cn(
+                                "transition-colors hover:text-primary-foreground/80 flex items-center gap-1",
+                                pathname.startsWith('/admin') ? "text-primary-foreground font-semibold" : "text-primary-foreground/70"
+                              )}>
+                                <ShieldCheck className="h-4 w-4" />
+                                Admin
+                                <ChevronDown className="h-4 w-4"/>
+                             </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                            <DropdownMenuItem asChild>
+                                <Link href="/admin">Learning Status Management</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href="/admin/usage-analysis">Usage Analysis</Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
               </nav>
               <div className="flex flex-1 items-center justify-end gap-4">
                 <DropdownMenu>
