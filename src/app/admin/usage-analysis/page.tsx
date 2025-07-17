@@ -221,7 +221,7 @@ export default function UsageAnalysisPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Lightbulb className="h-5 w-5 text-yellow-500" />
-                            AI Insights
+                            A/B Performance Insights
                         </CardTitle>
                         <CardDescription>
                             An AI-generated analysis of the A/B test performance data.
