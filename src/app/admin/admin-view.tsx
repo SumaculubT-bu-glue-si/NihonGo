@@ -1,15 +1,20 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { FullAppData } from '@/hooks/use-global-state';
 import { allUsers } from '@/lib/user-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Clock, Target, BarChart as BarChartIcon } from 'lucide-react';
+import { Users, Clock, Target, BarChart as BarChartIcon, Download, FileText, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { Button } from '@/components/ui/button';
+import { utils, writeFile } from 'xlsx';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
 
 interface LearnerStats {
   uid: string;
@@ -41,6 +46,9 @@ interface UserProgressChartData {
 }
 
 export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  
   const { learnerStats, aggregateStats, userProgressChartData } = useMemo(() => {
     const learners = allUsers.filter(user => user.role === 'learner');
 
@@ -162,179 +170,243 @@ export function AdminView({ allUsersData }: { allUsersData: FullAppData }) {
 
   }, [allUsersData]);
 
+  const handleDownloadExcel = () => {
+    const dataToExport = learnerStats.map(stat => ({
+        'Learner Name': stat.name,
+        'Email': stat.email,
+        'Study Time (Mock)': stat.studyTime,
+        'Decks Completed (%)': stat.deckCompletionPercent,
+        'Grammar Read (%)': stat.grammarCompletionPercent,
+        'Avg Quiz Score (%)': stat.avgQuizScore,
+        'Quizzes Taken': stat.quizzesTaken
+    }));
+
+    const worksheet = utils.json_to_sheet(dataToExport);
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'Learner Progress');
+
+    writeFile(workbook, 'LearnerProgress.xlsx');
+  };
+
+  const handleDownloadPdf = async () => {
+    const dashboardElement = dashboardRef.current;
+    if (!dashboardElement) return;
+    
+    setIsDownloadingPdf(true);
+
+    // Give a moment for any final renders
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    try {
+      const canvas = await html2canvas(dashboardElement, {
+        scale: 2, // Higher scale for better quality
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save('AdminDashboard.pdf');
+
+    } catch(e) {
+        console.error("Error generating PDF", e);
+    } finally {
+        setIsDownloadingPdf(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="mb-2 text-3xl font-bold font-headline">Admin Dashboard</h1>
-        <p className="text-muted-foreground">
-          An overview of all learner progress in the system.
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold font-headline">Admin Dashboard</h1>
+          <p className="text-muted-foreground">
+            An overview of all learner progress in the system.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 mt-4 sm:mt-0">
+            <Button variant="outline" onClick={handleDownloadExcel}>
+                <FileSpreadsheet className="mr-2" />
+                Download Excel
+            </Button>
+            <Button variant="outline" onClick={handleDownloadPdf} disabled={isDownloadingPdf}>
+                {isDownloadingPdf ? <Loader2 className="mr-2 animate-spin" /> : <FileText className="mr-2" />}
+                Download PDF
+            </Button>
+        </div>
       </div>
+      <div ref={dashboardRef} className="space-y-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{aggregateStats.totalLearners}</div>
+                <p className="text-xs text-muted-foreground">all active learners</p>
+            </CardContent>
+            </Card>
+            <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Avg. Study Time (N5)</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">1h 6m</div>
+                <p className="text-xs text-muted-foreground">per user (mock data)</p>
+            </CardContent>
+            </Card>
+            <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Avg. Vocab Accuracy</CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{aggregateStats.avgVocabAccuracy}%</div>
+                <p className="text-xs text-muted-foreground">for N5 level</p>
+            </CardContent>
+            </Card>
+            <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Avg. Grammar Accuracy</CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{aggregateStats.avgGrammarAccuracy}%</div>
+                <p className="text-xs text-muted-foreground">for N5 level</p>
+            </CardContent>
+            </Card>
+        </div>
 
-       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{aggregateStats.totalLearners}</div>
-            <p className="text-xs text-muted-foreground">all active learners</p>
-          </CardContent>
-        </Card>
-         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Study Time (N5)</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1h 6m</div>
-            <p className="text-xs text-muted-foreground">per user (mock data)</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Vocab Accuracy</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{aggregateStats.avgVocabAccuracy}%</div>
-            <p className="text-xs text-muted-foreground">for N5 level</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Grammar Accuracy</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{aggregateStats.avgGrammarAccuracy}%</div>
-            <p className="text-xs text-muted-foreground">for N5 level</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Learner Progress</CardTitle>
-          <CardDescription>
-            A summary of progress for all {learnerStats.length} learners.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[250px]">Learner</TableHead>
-                <TableHead>Study Time</TableHead>
-                <TableHead>Deck Completion</TableHead>
-                <TableHead>Grammar Progress</TableHead>
-                <TableHead>Average Quiz Score</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {learnerStats.map(stats => (
-                <TableRow key={stats.uid}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={stats.photoURL} alt={stats.name} />
-                        <AvatarFallback>{stats.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{stats.name}</p>
-                        <p className="text-xs text-muted-foreground">{stats.email}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{stats.studyTime}</div>
-                    <div className="text-xs text-muted-foreground">(mock data)</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                        <Progress value={stats.deckCompletionPercent} className="h-2" />
-                        <span className="text-xs text-muted-foreground">
-                            {stats.decksCompleted} of {stats.totalDecks} decks completed ({stats.deckCompletionPercent}%)
-                        </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                        <Progress value={stats.grammarCompletionPercent} className="h-2" />
-                        <span className="text-xs text-muted-foreground">
-                            {stats.grammarRead} of {stats.totalGrammar} lessons read ({stats.grammarCompletionPercent}%)
-                        </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                        <span className="font-semibold">{stats.avgQuizScore}%</span>
-                        <span className="text-xs text-muted-foreground">
-                            Based on {stats.quizzesTaken} quiz(zes) taken
-                        </span>
-                    </div>
-                  </TableCell>
+            <CardHeader>
+            <CardTitle>Learner Progress</CardTitle>
+            <CardDescription>
+                A summary of progress for all {learnerStats.length} learners.
+            </CardDescription>
+            </CardHeader>
+            <CardContent>
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead className="w-[250px]">Learner</TableHead>
+                    <TableHead>Study Time</TableHead>
+                    <TableHead>Deck Completion</TableHead>
+                    <TableHead>Grammar Progress</TableHead>
+                    <TableHead>Average Quiz Score</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-      
-       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChartIcon className="h-5 w-5" />
-            Topic Engagement
-          </CardTitle>
-          <CardDescription>
-            Comparison of topic completion percentage per user.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={userProgressChartData}>
-              <XAxis
-                dataKey="name"
-                stroke="#888888"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                stroke="#888888"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => `${value}%`}
-                domain={[0, 100]}
-              />
-              <Tooltip
-                cursor={{ fill: 'hsl(var(--accent))', opacity: 0.2 }}
-                content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                    const data = payload[0].payload;
-                    return (
-                        <div className="rounded-lg border bg-background p-2 shadow-sm text-center">
-                            <span className="text-sm font-bold text-foreground">{data.name}</span>
-                            <p className="text-xs" style={{ color: '#ec4899' }}>{`Vocabulary: ${payload[0].value}%`}</p>
-                            <p className="text-xs" style={{ color: '#60a5fa' }}>{`Grammar: ${payload[1].value}%`}</p>
-                            <p className="text-xs" style={{ color: '#81C784' }}>{`Quizzes: ${payload[2].value}%`}</p>
+                </TableHeader>
+                <TableBody>
+                {learnerStats.map(stats => (
+                    <TableRow key={stats.uid}>
+                    <TableCell>
+                        <div className="flex items-center gap-3">
+                        <Avatar>
+                            <AvatarImage src={stats.photoURL} alt={stats.name} />
+                            <AvatarFallback>{stats.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="font-medium">{stats.name}</p>
+                            <p className="text-xs text-muted-foreground">{stats.email}</p>
                         </div>
-                    )
-                    }
-                    return null
-                }}
-              />
-              <Legend />
-              <Bar dataKey="vocabulary" fill="#ec4899" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="grammar" fill="#60a5fa" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="quizzes" fill="#81C784" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+                        </div>
+                    </TableCell>
+                    <TableCell>
+                        <div className="font-medium">{stats.studyTime}</div>
+                        <div className="text-xs text-muted-foreground">(mock data)</div>
+                    </TableCell>
+                    <TableCell>
+                        <div className="flex flex-col gap-1">
+                            <Progress value={stats.deckCompletionPercent} className="h-2" />
+                            <span className="text-xs text-muted-foreground">
+                                {stats.decksCompleted} of {stats.totalDecks} decks completed ({stats.deckCompletionPercent}%)
+                            </span>
+                        </div>
+                    </TableCell>
+                    <TableCell>
+                        <div className="flex flex-col gap-1">
+                            <Progress value={stats.grammarCompletionPercent} className="h-2" />
+                            <span className="text-xs text-muted-foreground">
+                                {stats.grammarRead} of {stats.totalGrammar} lessons read ({stats.grammarCompletionPercent}%)
+                            </span>
+                        </div>
+                    </TableCell>
+                    <TableCell>
+                        <div className="flex flex-col gap-1">
+                            <span className="font-semibold">{stats.avgQuizScore}%</span>
+                            <span className="text-xs text-muted-foreground">
+                                Based on {stats.quizzesTaken} quiz(zes) taken
+                            </span>
+                        </div>
+                    </TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
+            </CardContent>
+        </Card>
+        
+        <Card>
+            <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+                <BarChartIcon className="h-5 w-5" />
+                Topic Engagement
+            </CardTitle>
+            <CardDescription>
+                Comparison of topic completion percentage per user.
+            </CardDescription>
+            </CardHeader>
+            <CardContent>
+            <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={userProgressChartData}>
+                <XAxis
+                    dataKey="name"
+                    stroke="#888888"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                />
+                <YAxis
+                    stroke="#888888"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `${value}%`}
+                    domain={[0, 100]}
+                />
+                <Tooltip
+                    cursor={{ fill: 'hsl(var(--accent))', opacity: 0.2 }}
+                    content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                            <div className="rounded-lg border bg-background p-2 shadow-sm text-center">
+                                <span className="text-sm font-bold text-foreground">{data.name}</span>
+                                <p className="text-xs" style={{ color: '#ec4899' }}>{`Vocabulary: ${payload[0].value}%`}</p>
+                                <p className="text-xs" style={{ color: '#60a5fa' }}>{`Grammar: ${payload[1].value}%`}</p>
+                                <p className="text-xs" style={{ color: '#81C784' }}>{`Quizzes: ${payload[2].value}%`}</p>
+                            </div>
+                        )
+                        }
+                        return null
+                    }}
+                />
+                <Legend />
+                <Bar dataKey="vocabulary" fill="#ec4899" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="grammar" fill="#60a5fa" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="quizzes" fill="#81C784" radius={[4, 4, 0, 0]} />
+                </BarChart>
+            </ResponsiveContainer>
+            </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
