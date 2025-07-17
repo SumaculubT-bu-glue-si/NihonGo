@@ -24,6 +24,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
 
   const menuItems = [
     { href: '/decks', label: 'Home', icon: Home, admin: false },
@@ -59,25 +60,27 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </Link>
                   ))}
                    {user?.role === 'admin' && (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                             <button className={cn(
-                                "transition-colors hover:text-primary-foreground/80 flex items-center gap-1",
-                                pathname.startsWith('/admin') ? "text-primary-foreground font-semibold" : "text-primary-foreground/70"
-                              )}>
-                                <ShieldCheck className="h-4 w-4" />
-                                Admin
-                                <ChevronDown className="h-4 w-4"/>
-                             </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                            <DropdownMenuItem asChild>
-                                <Link href="/admin">Learning Status Management</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                                <Link href="/admin/usage-analysis">Usage Analysis</Link>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
+                    <DropdownMenu open={isAdminMenuOpen} onOpenChange={setIsAdminMenuOpen}>
+                        <div onMouseEnter={() => setIsAdminMenuOpen(true)} onMouseLeave={() => setIsAdminMenuOpen(false)}>
+                            <DropdownMenuTrigger asChild>
+                                 <Link href="/admin" className={cn(
+                                    "transition-colors hover:text-primary-foreground/80 flex items-center gap-1",
+                                    pathname.startsWith('/admin') ? "text-primary-foreground font-semibold" : "text-primary-foreground/70"
+                                  )}>
+                                    <ShieldCheck className="h-4 w-4" />
+                                    Admin
+                                    <ChevronDown className="h-4 w-4"/>
+                                 </Link>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                                <DropdownMenuItem asChild>
+                                    <Link href="/admin">Learning Status Management</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/admin/usage-analysis">Usage Analysis</Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </div>
                     </DropdownMenu>
                   )}
               </nav>
