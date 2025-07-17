@@ -18,9 +18,10 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
+  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Trash2 } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +40,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { UserForm, type UserFormData } from './user-form';
+
+const ITEMS_PER_PAGE = 10;
 
 const mockLoginHistory = [
   { type: 'Login', timestamp: '2024-07-28 09:15:23' },
@@ -69,6 +72,22 @@ export function UserManagementView({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
+  const paginatedUsers = users.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
 
   const handleAddNew = () => {
     setEditingUser(null);
@@ -163,7 +182,7 @@ export function UserManagementView({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {paginatedUsers.map((user) => (
                 <TableRow key={user.uid}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -233,6 +252,29 @@ export function UserManagementView({
             </TableBody>
           </Table>
         </CardContent>
+        <CardFooter className="flex items-center justify-end space-x-2 py-4 border-t">
+            <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+            </span>
+            <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+            >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+            </Button>
+            <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            >
+            Next
+            <ChevronRight className="h-4 w-4" />
+            </Button>
+        </CardFooter>
       </Card>
       <UserForm
         isOpen={isFormOpen}
