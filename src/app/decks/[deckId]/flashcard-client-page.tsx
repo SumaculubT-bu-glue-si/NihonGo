@@ -481,5 +481,3 @@ export function FlashcardClientPage({ deck }: { deck: Deck }) {
     </div>
   );
 }
-
-    
