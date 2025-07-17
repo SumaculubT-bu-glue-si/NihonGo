@@ -75,7 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Persist all user data to localStorage whenever it changes
   useEffect(() => {
     if (!loading) {
-      localStorage.setItem(USER_DATA_STORAGE_KEY, JSON.stringify(allUsers));
+      try {
+        localStorage.setItem(USER_DATA_STORAGE_KEY, JSON.stringify(allUsers));
+      } catch (error) {
+        console.error("Failed to save user data to localStorage. Quota may be exceeded.", error);
+      }
     }
   }, [allUsers, loading]);
 
