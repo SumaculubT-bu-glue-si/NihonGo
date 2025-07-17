@@ -8,8 +8,8 @@ import { useGlobalState } from '@/hooks/use-global-state';
 import { ManageQuizClientPage } from './manage-quiz-client-page';
 
 export default function ManageQuizPage() {
-  const params = useParams();
-  const quizId = params.quizId as string;
+  const params = useParams<{ quizId: string }>();
+  const quizId = params.quizId;
   const { appData, isLoading } = useGlobalState();
 
   if (isLoading) {
