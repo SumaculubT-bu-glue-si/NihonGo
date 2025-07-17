@@ -11,3 +11,4 @@ import '@/ai/flows/jisho-dictionary-flow.ts';
 import '@/ai/flows/analyze-progress-flow.ts';
 import '@/ai/flows/analyze-topic-engagement-flow.ts';
 import '@/ai/flows/analyze-ab-test-flow.ts';
+import '@/ai/flows/analyze-heatmap-data.ts';
