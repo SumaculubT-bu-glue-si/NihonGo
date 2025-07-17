@@ -56,61 +56,39 @@ export function StatsView({ appData }: StatsViewProps) {
     ];
 
     // Quiz Stats
-    const scoresByLevel: Record<string, { totalScore: number; count: number; average: number }> = {};
-    let totalScoreSum = 0;
+    const scoresByLevel: Record<string, { totalCorrect: number; totalQuestions: number; count: number; average: number }> = {};
+    let overallTotalCorrect = 0;
+    let overallTotalQuestions = 0;
 
     appData.quizScores.forEach(score => {
         const quiz = appData.quizzes.find(q => q.id === score.quizId);
         if (quiz) {
             if (!scoresByLevel[quiz.level]) {
-                scoresByLevel[quiz.level] = { totalScore: 0, count: 0, average: 0 };
+                scoresByLevel[quiz.level] = { totalCorrect: 0, totalQuestions: 0, count: 0, average: 0 };
             }
-            const scoreValue = score.highestScore; // This is the raw score now
-            scoresByLevel[quiz.level].totalScore += scoreValue;
+            const numQuestions = quiz.questions.length;
+            const numCorrect = Math.round((score.highestScore / 100) * numQuestions);
+            
+            scoresByLevel[quiz.level].totalCorrect += numCorrect;
+            scoresByLevel[quiz.level].totalQuestions += numQuestions;
             scoresByLevel[quiz.level].count++;
-            totalScoreSum += scoreValue;
+
+            overallTotalCorrect += numCorrect;
+            overallTotalQuestions += numQuestions;
         }
     });
     
     Object.keys(scoresByLevel).forEach(level => {
-        const quizzesForLevel = appData.quizzes.filter(q => q.level === level);
-        const totalPossibleScoreForLevel = quizzesForLevel.reduce((acc, q) => acc + q.questions.length, 0);
-
-        if (scoresByLevel[level].count > 0 && totalPossibleScoreForLevel > 0) {
-            // Calculate total score for all attempts on quizzes of this level
-            const totalScoreForAttempts = appData.quizScores
-                .filter(score => {
-                    const quiz = appData.quizzes.find(q => q.id === score.quizId);
-                    return quiz && quiz.level === level;
-                })
-                .reduce((acc, score) => acc + score.highestScore, 0);
-
-            // Calculate total possible score for all quizzes attempted at this level
-            const totalPossibleScoreForAttempts = appData.quizScores
-                .filter(score => {
-                    const quiz = appData.quizzes.find(q => q.id === score.quizId);
-                    return quiz && quiz.level === level;
-                })
-                .reduce((acc, score) => {
-                    const quiz = appData.quizzes.find(q => q.id === score.quizId);
-                    return acc + (quiz?.questions.length || 0);
-                }, 0);
-            
-            if (totalPossibleScoreForAttempts > 0) {
-                 scoresByLevel[level].average = Math.round((totalScoreForAttempts / totalPossibleScoreForAttempts) * 100);
-            } else {
-                 scoresByLevel[level].average = 0;
-            }
+        const levelData = scoresByLevel[level];
+        if (levelData.totalQuestions > 0) {
+            levelData.average = Math.round((levelData.totalCorrect / levelData.totalQuestions) * 100);
+        } else {
+            levelData.average = 0;
         }
     });
     
     const quizzesTakenCount = appData.quizScores.length;
-    const totalQuestionsInTakenQuizzes = appData.quizScores.reduce((acc, score) => {
-        const quiz = appData.quizzes.find(q => q.id === score.quizId);
-        return acc + (quiz?.questions.length ?? 0);
-    }, 0);
-
-    const averageScore = totalQuestionsInTakenQuizzes > 0 ? Math.round((totalScoreSum / totalQuestionsInTakenQuizzes) * 100) : 0;
+    const averageScore = overallTotalQuestions > 0 ? Math.round((overallTotalCorrect / overallTotalQuestions) * 100) : 0;
     
     const quizStatsForAI = {
       quizzesTaken: quizzesTakenCount,
