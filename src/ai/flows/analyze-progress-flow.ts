@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -81,6 +82,9 @@ const analyzeProgressFlow = ai.defineFlow(
     name: 'analyzeProgressFlow',
     inputSchema: AnalyzeProgressInputSchema,
     outputSchema: AnalyzeProgressOutputSchema,
+    flow: {
+      retries: 3,
+    },
   },
   async (input) => {
     const { output } = await prompt(input);
