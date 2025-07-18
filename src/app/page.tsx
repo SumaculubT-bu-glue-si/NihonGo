@@ -58,7 +58,7 @@ function AuthForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       {mode === 'signup' && (
         <div className="space-y-2">
-            <Label htmlFor={`${role}-displayName`}>Display Name</Label>
+            <Label htmlFor={`${role}-displayName`}>Name</Label>
             <Input
             id={`${role}-displayName`}
             type="text"
