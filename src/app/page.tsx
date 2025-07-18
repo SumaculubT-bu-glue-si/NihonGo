@@ -85,7 +85,7 @@ export default function LoginPage() {
     if (foundUser) {
       await signInAs(foundUser.uid);
     } else {
-      throw new Error('Invalid email for the selected role.');
+      throw new Error('Incorrect email or password');
     }
   };
 
