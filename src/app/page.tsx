@@ -11,8 +11,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-function LoginForm({ role, onSignIn }: { role: 'admin' | 'learner', onSignIn: (email: string, role: 'admin' | 'learner') => Promise<void> }) {
+function AuthForm({
+  mode,
+  role,
+  onSignIn,
+  onSignUp
+}: {
+  mode: 'login' | 'signup';
+  role: 'admin' | 'learner';
+  onSignIn?: (email: string, role: 'admin' | 'learner') => Promise<void>;
+  onSignUp?: (displayName: string, email: string) => Promise<void>;
+}) {
   const { allUsers } = useAuth();
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -26,22 +37,42 @@ function LoginForm({ role, onSignIn }: { role: 'admin' | 'learner', onSignIn: (e
     setIsLoading(true);
     setError(null);
     try {
-      await onSignIn(email, role);
+      if (mode === 'login' && onSignIn) {
+        await onSignIn(email, role);
+      } else if (mode === 'signup' && onSignUp) {
+        await onSignUp(displayName, email);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
+  
+  const buttonText = mode === 'login' ? 'Log in' : 'Sign Up';
+  const loadingText = mode === 'login' ? 'Logging In...' : 'Signing Up...';
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {mode === 'signup' && (
+        <div className="space-y-2">
+            <Label htmlFor={`${role}-displayName`}>Display Name</Label>
+            <Input
+            id={`${role}-displayName`}
+            type="text"
+            placeholder="e.g. Yuki Sato"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            required
+            />
+        </div>
+      )}
       <div className="space-y-2">
         <Label htmlFor={`${role}-email`}>Email</Label>
         <Input
           id={`${role}-email`}
           type="email"
-          placeholder={role === 'admin' ? adminUser?.email ?? '' : learnerUsers[0]?.email ?? ''}
+          placeholder={mode === 'login' && role === 'admin' ? (adminUser?.email ?? '') : (mode === 'login' ? (learnerUsers[0]?.email ?? '') : 'your@email.com')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -59,14 +90,14 @@ function LoginForm({ role, onSignIn }: { role: 'admin' | 'learner', onSignIn: (e
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Logging In...' : 'Log in'}
+        {isLoading ? loadingText : buttonText}
       </Button>
     </form>
   );
 }
 
 export default function LoginPage() {
-  const { user, allUsers, loading, signInAs } = useAuth();
+  const { user, allUsers, loading, signInAs, addUser } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -88,6 +119,15 @@ export default function LoginPage() {
       throw new Error('Incorrect email or password');
     }
   };
+
+  const handleSignUp = async (displayName: string, email: string) => {
+    const existingUser = allUsers.find(u => u.email === email);
+    if (existingUser) {
+        throw new Error('An account with this email already exists.');
+    }
+    const newUser = await addUser({ displayName, email, photoURL: '' });
+    await signInAs(newUser.uid);
+  }
 
   if (loading || user) {
     return (
@@ -117,27 +157,46 @@ export default function LoginPage() {
                 <TabsTrigger value="admin">Admin</TabsTrigger>
             </TabsList>
             <TabsContent value="learner">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Login as Learner</CardTitle>
-                        <CardDescription>Enter a learner's email to continue.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <LoginForm role="learner" onSignIn={handleSignIn} />
-                    </CardContent>
-                     <CardFooter>
-                        <div className="text-xs text-muted-foreground">
-                            <p className="mb-1">Use one of these emails:</p>
-                            <ul className="space-y-1">
-                                {learnerUsers.map(learner => (
-                                    <li key={learner.uid}>
-                                        <code className="bg-muted p-1 rounded">{learner.email}</code>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </CardFooter>
-                </Card>
+                 <Tabs defaultValue="login" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="login">Log In</TabsTrigger>
+                        <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="login">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Login as Learner</CardTitle>
+                                <CardDescription>Enter a learner's email to continue.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <AuthForm mode="login" role="learner" onSignIn={handleSignIn} />
+                            </CardContent>
+                            <CardFooter>
+                                <div className="text-xs text-muted-foreground">
+                                    <p className="mb-1">Use one of these emails:</p>
+                                    <ul className="space-y-1">
+                                        {learnerUsers.slice(0, 3).map(learner => (
+                                            <li key={learner.uid}>
+                                                <code className="bg-muted p-1 rounded">{learner.email}</code>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="signup">
+                       <Card>
+                            <CardHeader>
+                                <CardTitle>Create an Account</CardTitle>
+                                <CardDescription>Sign up to start your learning journey.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <AuthForm mode="signup" role="learner" onSignUp={handleSignUp} />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
             </TabsContent>
             <TabsContent value="admin">
                  <Card>
@@ -146,7 +205,7 @@ export default function LoginPage() {
                         <CardDescription>Enter the admin's email to continue.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <LoginForm role="admin" onSignIn={handleSignIn} />
+                        <AuthForm mode="login" role="admin" onSignIn={handleSignIn} />
                     </CardContent>
                     <CardFooter>
                         <p className="text-xs text-muted-foreground">
