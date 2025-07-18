@@ -61,8 +61,8 @@ export const SentenceGenerator = memo(function SentenceGenerator({ card }: { car
   };
 
   return (
-    <div className="w-full max-w-md text-left">
-      <div className="flex flex-col sm:flex-row items-center gap-2">
+    <div className="w-full max-w-md text-center">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
         <Select
           value={level}
           onValueChange={(value: ProficiencyLevel) => setLevel(value)}
@@ -87,8 +87,8 @@ export const SentenceGenerator = memo(function SentenceGenerator({ card }: { car
       </div>
 
       {sentences.length > 0 && (
-        <div className="mt-4 space-y-3 rounded-md border bg-secondary/30 p-4">
-          <h4 className="font-semibold">Example Sentences:</h4>
+        <div className="mt-4 space-y-3 rounded-md border bg-secondary/30 p-4 text-left">
+          <h4 className="font-semibold text-center">Example Sentences:</h4>
           <ul className="space-y-2">
             {sentences.map((sentence, index) => (
               <li key={index} className="flex items-center justify-between gap-2 text-sm">
