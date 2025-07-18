@@ -10,17 +10,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 function AuthForm({
   mode,
   role,
   onSignIn,
-  onSignUp
+  onSignUp,
+  onSwitchMode,
 }: {
   mode: 'login' | 'signup';
   role: 'admin' | 'learner';
-  onSignIn?: (email: string, role: 'admin' | 'learner') => Promise<void>;
-  onSignUp?: (displayName: string, email: string) => Promise<void>;
+  onSignIn: (email: string, role: 'admin' | 'learner') => Promise<void>;
+  onSignUp: (displayName: string, email: string) => Promise<void>;
+  onSwitchMode?: () => void;
 }) {
   const { allUsers } = useAuth();
   const [displayName, setDisplayName] = useState('');
@@ -30,16 +33,15 @@ function AuthForm({
   const [isLoading, setIsLoading] = useState(false);
 
   const adminUser = allUsers.find(u => u.role === 'admin');
-  const learnerUsers = allUsers.filter(u => u.role === 'learner');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
-      if (mode === 'login' && onSignIn) {
+      if (mode === 'login') {
         await onSignIn(email, role);
-      } else if (mode === 'signup' && onSignUp) {
+      } else {
         await onSignUp(displayName, email);
       }
     } catch (err: any) {
@@ -72,7 +74,7 @@ function AuthForm({
         <Input
           id={`${role}-email`}
           type="email"
-          placeholder={mode === 'login' && role === 'admin' ? (adminUser?.email ?? '') : (mode === 'login' ? (learnerUsers[0]?.email ?? '') : 'your@email.com')}
+          placeholder={mode === 'login' && role === 'admin' ? (adminUser?.email ?? '') : (mode === 'login' ? 'learner@example.com' : 'your@email.com')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -89,16 +91,34 @@ function AuthForm({
         />
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? loadingText : buttonText}
-      </Button>
+       <div className="pt-2">
+         <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? loadingText : buttonText}
+          </Button>
+       </div>
+       {onSwitchMode && (
+          <p className="text-center text-sm text-muted-foreground">
+            {mode === 'login'
+              ? "Don't have an account? "
+              : 'Already have an account? '}
+            <button
+              type="button"
+              onClick={onSwitchMode}
+              className="font-semibold text-primary hover:underline"
+            >
+              {mode === 'login' ? 'Sign up' : 'Log in'}
+            </button>
+          </p>
+        )}
     </form>
   );
 }
 
+
 export default function LoginPage() {
   const { user, allUsers, loading, signInAs, addUser } = useAuth();
   const router = useRouter();
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
   useEffect(() => {
     if (user) {
@@ -128,6 +148,10 @@ export default function LoginPage() {
     const newUser = await addUser({ displayName, email, photoURL: '' });
     await signInAs(newUser.uid);
   }
+  
+  const switchAuthMode = () => {
+    setAuthMode(prev => (prev === 'login' ? 'signup' : 'login'));
+  };
 
   if (loading || user) {
     return (
@@ -157,46 +181,52 @@ export default function LoginPage() {
                 <TabsTrigger value="admin">Admin</TabsTrigger>
             </TabsList>
             <TabsContent value="learner">
-                 <Tabs defaultValue="login" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="login">Log In</TabsTrigger>
-                        <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="login">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Login as Learner</CardTitle>
-                                <CardDescription>Enter a learner's email to continue.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <AuthForm mode="login" role="learner" onSignIn={handleSignIn} />
-                            </CardContent>
-                            <CardFooter>
-                                <div className="text-xs text-muted-foreground">
-                                    <p className="mb-1">Use one of these emails:</p>
-                                    <ul className="space-y-1">
-                                        {learnerUsers.slice(0, 3).map(learner => (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>{authMode === 'login' ? 'Login as Learner' : 'Create an Account'}</CardTitle>
+                        <CardDescription>
+                            {authMode === 'login' ? "Enter a learner's email to continue." : 'Sign up to start your learning journey.'}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       <AuthForm
+                          mode={authMode}
+                          role="learner"
+                          onSignIn={handleSignIn}
+                          onSignUp={handleSignUp}
+                          onSwitchMode={switchAuthMode}
+                        />
+                    </CardContent>
+                    {authMode === 'login' && (
+                        <CardFooter>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="link" className="text-xs p-0 h-auto text-muted-foreground">
+                                        Use a sample email
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>Sample Learner Accounts</DialogTitle>
+                                    </DialogHeader>
+                                    <p className="text-sm text-muted-foreground">Click any email to copy it.</p>
+                                    <ul className="space-y-1 rounded-md border p-2 text-sm">
+                                        {learnerUsers.map(learner => (
                                             <li key={learner.uid}>
-                                                <code className="bg-muted p-1 rounded">{learner.email}</code>
+                                                <button 
+                                                    onClick={() => navigator.clipboard.writeText(learner.email ?? '')}
+                                                    className="w-full text-left p-1 rounded hover:bg-muted"
+                                                >
+                                                    {learner.email}
+                                                </button>
                                             </li>
                                         ))}
                                     </ul>
-                                </div>
-                            </CardFooter>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="signup">
-                       <Card>
-                            <CardHeader>
-                                <CardTitle>Create an Account</CardTitle>
-                                <CardDescription>Sign up to start your learning journey.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <AuthForm mode="signup" role="learner" onSignUp={handleSignUp} />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
+                                </DialogContent>
+                            </Dialog>
+                        </CardFooter>
+                    )}
+                </Card>
             </TabsContent>
             <TabsContent value="admin">
                  <Card>
@@ -205,7 +235,7 @@ export default function LoginPage() {
                         <CardDescription>Enter the admin's email to continue.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <AuthForm mode="login" role="admin" onSignIn={handleSignIn} />
+                        <AuthForm mode="login" role="admin" onSignIn={handleSignIn} onSignUp={handleSignUp} />
                     </CardContent>
                     <CardFooter>
                         <p className="text-xs text-muted-foreground">
