@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 function AuthForm({
   mode,
@@ -119,6 +120,7 @@ export default function LoginPage() {
   const { user, allUsers, loading, signInAs, addUser } = useAuth();
   const router = useRouter();
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -145,8 +147,12 @@ export default function LoginPage() {
     if (existingUser) {
         throw new Error('An account with this email already exists.');
     }
-    const newUser = await addUser({ displayName, email, photoURL: '' });
-    await signInAs(newUser.uid);
+    await addUser({ displayName, email, photoURL: '' });
+    toast({
+        title: "Account Created",
+        description: "You can now log in with your new credentials.",
+    });
+    setAuthMode('login');
   }
   
   const switchAuthMode = () => {
