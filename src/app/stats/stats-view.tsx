@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Pie, PieChart, Cell, Legend, RadialBarChart, RadialBar, PolarAngleAxis } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Pie, PieChart, Cell, Legend, RadialBarChart, RadialBar, PolarAngleAxis, Text } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { type AppData } from '@/lib/data';
 import { analyzeProgress } from '@/ai/flows/analyze-progress-flow';
@@ -24,6 +24,26 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
     <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
       {`${(percent * 100).toFixed(0)}%`}
     </text>
+  );
+};
+
+// Custom tick component for wrapping long labels
+const CustomizedAxisTick = ({ x, y, payload }: any) => {
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <Text
+        x={0}
+        y={0}
+        dy={16}
+        textAnchor="end"
+        fill="hsl(var(--muted-foreground))"
+        angle={-35}
+        width={90}
+        style={{ fontSize: 12 }}
+      >
+        {payload.value}
+      </Text>
+    </g>
   );
 };
 
@@ -181,16 +201,15 @@ export function StatsView({ appData }: StatsViewProps) {
             <CardTitle>Deck Completion</CardTitle>
             <CardDescription>Percentage of cards completed in each deck.</CardDescription>
         </CardHeader>
-        <CardContent className="h-64">
+        <CardContent className="h-96">
             <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={deckChartStats} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+            <BarChart data={deckChartStats} margin={{ top: 5, right: 20, left: -10, bottom: 60 }}>
                 <XAxis 
-                dataKey="topic" 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                interval={0}
+                    dataKey="topic" 
+                    tickLine={false}
+                    axisLine={false}
+                    interval={0}
+                    tick={<CustomizedAxisTick />}
                 />
                 <YAxis 
                 stroke="hsl(var(--muted-foreground))"
