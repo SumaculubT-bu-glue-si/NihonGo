@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { QuizClientPage } from '@/app/quizzes/[quizId]/quiz-client-page';
 import { useSearchParams } from 'next/navigation';
 import { PronunciationButton } from '@/components/pronunciation-button';
+import { shuffle } from '@/lib/utils';
 
 function LessonContent({ lesson }: { lesson: GrammarLesson }) {
   const parseExample = (example: string) => {
@@ -86,14 +87,21 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
         title: `Mini-Quiz: ${lesson.title}`,
         questionCount: 3,
       });
+      
+      // Shuffle the options for each question
+      const shuffledQuestions = result.questions.map(q => ({
+        ...q,
+        options: shuffle([...q.options]),
+        id: `temp-q-${Math.random()}`
+      }));
 
-      const quizWithIds = {
+      const quizWithIdsAndShuffledOptions = {
         ...result,
         id: `temp-quiz-${lesson.id}`,
-        questions: result.questions.map(q => ({...q, id: `temp-q-${Math.random()}`}))
+        questions: shuffledQuestions,
       }
       
-      setMiniQuiz(quizWithIds);
+      setMiniQuiz(quizWithIdsAndShuffledOptions);
       toggleGrammarLessonRead(lesson.id, true);
       setView('quiz'); // Switch view to the quiz
 
