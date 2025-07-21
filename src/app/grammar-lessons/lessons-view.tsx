@@ -161,18 +161,7 @@ export function GrammarLessonsView() {
   const categories: CategoryFilter[] = ['All', 'N5', 'N4', 'N3', 'N2', 'N1', 'Favorites'];
 
   return (
-    <div className="container mx-auto space-y-8">
-      <div>
-        <div className="mb-6">
-            <div>
-                <h1 className="text-3xl font-bold font-headline">Grammar</h1>
-                <p className="text-muted-foreground">
-                Explore grammar points, check your sentences, and build your own library.
-                </p>
-            </div>
-        </div>
-      </div>
-
+    <div className="space-y-8">
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="item-1">
           <AccordionTrigger className="text-2xl font-bold font-headline">
