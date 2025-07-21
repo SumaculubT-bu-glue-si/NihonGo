@@ -13,7 +13,6 @@ import {
   BookOpen,
   ChevronLeft,
   CircleCheck,
-  CircleDollarSign,
   Lock,
   Trophy,
   Swords,
@@ -62,7 +61,7 @@ const NodeIcon = ({
     return <CircleCheck {...iconProps} className="text-green-500" />;
   }
   if (status === 'active') {
-    return <BookOpen {...iconProps} className="text-yellow-500" />;
+    return <BookOpen {...iconProps} className="text-primary" />;
   }
   return <Lock {...iconProps} className="text-muted-foreground/50" />;
 };
@@ -79,6 +78,17 @@ export function ChallengesView({
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [currentUnitIndex, setCurrentUnitIndex] = useState(0);
 
+  // Guard against empty or undefined levels array
+  if (!levels || levels.length === 0) {
+    return (
+        <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
+            <Trophy className="h-16 w-16 mb-4" />
+            <h3 className="text-xl font-semibold">No Challenges Available</h3>
+            <p>Check back later for new content!</p>
+        </div>
+    );
+  }
+
   // For now, let's just display the first level and unit
   const currentLevel = levels[currentLevelIndex];
   const currentUnit = currentLevel.units[currentUnitIndex];
@@ -87,16 +97,16 @@ export function ChallengesView({
     if (status === 'locked') return;
 
     let url = '';
+    const queryParams = `?challengeNodeId=${node.id}`;
+    
     if (node.type === 'lesson' && node.lessonId) {
-        url = `/grammar-lessons/${node.lessonId}?challengeNodeId=${node.id}`;
+        url = `/grammar-lessons/${node.lessonId}${queryParams}`;
     } else if (node.quizId) {
-        url = `/quizzes/${node.quizId}?challengeNodeId=${node.id}`;
+        url = `/quizzes/${node.quizId}${queryParams}`;
     }
 
     if(url) {
         router.push(url);
-    } else {
-        alert(`Content for "${node.title}" is not available yet.`);
     }
   };
 
