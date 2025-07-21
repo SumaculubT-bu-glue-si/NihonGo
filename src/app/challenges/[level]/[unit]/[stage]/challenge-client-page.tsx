@@ -64,11 +64,10 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   
   const checkAnswer = () => {
     if (isAnswered) return;
-    const userAnswer = selectedWords.join(' ');
-    // Simple comparison, could be improved for punctuation etc.
-    const correctAnswer = currentItem.english_sentence.replace(/[.,]/g, '');
+    const userAnswer = selectedWords.join('');
+    const correctAnswer = currentItem.correct_japanese;
 
-    const correct = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
+    const correct = userAnswer === correctAnswer;
     setIsCorrect(correct);
     setIsAnswered(true);
 
@@ -105,16 +104,15 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
       </header>
 
       <main className="flex-grow flex flex-col justify-center items-center p-4 sm:p-6 space-y-8">
-        <h1 className="text-2xl sm:text-3xl font-bold">Write this in English</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Write this in Japanese</h1>
         
         <div className="flex items-center gap-4">
            {/* Placeholder for character image */}
            <div className="w-24 h-24 sm:w-32 sm:h-32 bg-contain bg-no-repeat bg-center" style={{ backgroundImage: 'url(https://placehold.co/128x128/7e57c2/FFFFFF?text=GO)' }} data-ai-hint="friendly mascot"></div>
            <div className="flex items-center gap-2">
-            <PronunciationButton text={currentItem.correct_japanese} />
              <div className="text-2xl sm:text-4xl font-bold tracking-wider">
                <p className="text-xs text-gray-300">{currentItem.hint}</p>
-               {currentItem.correct_japanese}
+               {currentItem.english_sentence}
             </div>
            </div>
         </div>
@@ -172,8 +170,9 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
              </>
           ) : (
             <>
-                <div className="text-lg font-bold">
-                    {isCorrect ? "Correct!" : "Incorrect"}
+                <div className="flex flex-col">
+                    <span className="text-lg font-bold">{isCorrect ? "Correct!" : "Incorrect"}</span>
+                    {!isCorrect && <PronunciationButton text={currentItem.correct_japanese} />}
                 </div>
                  <Button 
                     size="lg" 
