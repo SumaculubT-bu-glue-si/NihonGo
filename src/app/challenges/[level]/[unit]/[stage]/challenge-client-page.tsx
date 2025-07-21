@@ -64,8 +64,9 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   
   const checkAnswer = () => {
     if (isAnswered) return;
-    const userAnswer = selectedWords.join('');
-    const correctAnswer = currentItem.correct_japanese;
+    // Join with no space for comparison. Japanese sentences often don't have spaces.
+    const userAnswer = selectedWords.join(''); 
+    const correctAnswer = currentItem.correct_japanese.replace(/ /g, ''); // Remove spaces from correct answer for comparison
 
     const correct = userAnswer === correctAnswer;
     setIsCorrect(correct);
@@ -111,7 +112,6 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
            <div className="w-24 h-24 sm:w-32 sm:h-32 bg-contain bg-no-repeat bg-center" style={{ backgroundImage: 'url(https://placehold.co/128x128/7e57c2/FFFFFF?text=GO)' }} data-ai-hint="friendly mascot"></div>
            <div className="flex items-center gap-2">
              <div className="text-2xl sm:text-4xl font-bold tracking-wider">
-               <p className="text-xs text-gray-300">{currentItem.hint}</p>
                {currentItem.english_sentence}
             </div>
            </div>
@@ -172,7 +172,12 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
             <>
                 <div className="flex flex-col">
                     <span className="text-lg font-bold">{isCorrect ? "Correct!" : "Incorrect"}</span>
-                    {!isCorrect && <PronunciationButton text={currentItem.correct_japanese} />}
+                    {!isCorrect && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm">{currentItem.hint}</span>
+                            <PronunciationButton text={currentItem.correct_japanese} />
+                        </div>
+                    )}
                 </div>
                  <Button 
                     size="lg" 
