@@ -161,7 +161,7 @@ export function ChallengesView({
       </div>
       
        {/* Footer / Next Unit */}
-       <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background/90 backdrop-blur-sm">
+       <div className=" bottom-0 left-0 right-0 p-4 border-t bg-background/90 backdrop-blur-sm">
            <div className="container mx-auto flex items-center justify-center">
              <Button variant="ghost" className="w-full h-12 text-lg">
                 Next up: {currentLevel.units[currentUnitIndex + 1]?.title ?? 'Next Level'}

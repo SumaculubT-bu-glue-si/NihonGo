@@ -14,8 +14,17 @@ import { Lightbulb, CheckCircle2, BookOpen, Loader2, Wand2, Repeat, ChevronLeft 
 import { Separator } from '@/components/ui/separator';
 import { QuizClientPage } from '@/app/quizzes/[quizId]/quiz-client-page';
 import { useSearchParams } from 'next/navigation';
+import { PronunciationButton } from '@/components/pronunciation-button';
 
 function LessonContent({ lesson }: { lesson: GrammarLesson }) {
+  const parseExample = (example: string) => {
+    const japanese = example.split('(')[0].trim();
+    return {
+      full: example,
+      japanese,
+    };
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -35,9 +44,15 @@ function LessonContent({ lesson }: { lesson: GrammarLesson }) {
         </h3>
         <div className="prose prose-sm max-w-none text-card-foreground leading-relaxed">
           <ul className="space-y-2 rounded-md border p-4">
-            {lesson.examples.map((ex, i) => (
-              <li key={i}>{ex}</li>
-            ))}
+            {lesson.examples.map((ex, i) => {
+              const { full, japanese } = parseExample(ex);
+              return (
+                <li key={i} className="flex items-center justify-between gap-2">
+                    <span className="flex-1">{full}</span>
+                    <PronunciationButton text={japanese} size="sm" />
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
