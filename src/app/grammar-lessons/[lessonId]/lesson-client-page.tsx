@@ -130,8 +130,8 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
           <CardTitle>Check Your Understanding</CardTitle>
           <CardDescription>
             {lesson.read
-              ? "You've completed this lesson's quiz. You can review the lesson content above or retake the quiz."
-              : "Ready to test your knowledge? Take a short 3-question quiz to mark this lesson as complete."}
+              ? "You've already completed this lesson's test. You can take it again to practice."
+              : "Complete this lesson by taking a short test!"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -139,9 +139,9 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
             {isGenerating ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              lesson.read ? <Repeat className="mr-2 h-4 w-4" /> : <Wand2 className="mr-2 h-4 w-4" />
+               <Wand2 className="mr-2 h-4 w-4" />
             )}
-            {isGenerating ? 'Generating Quiz...' : lesson.read ? 'Retake Quiz' : 'Start Quiz'}
+            {isGenerating ? 'Generating Test...' : 'Take Short Test'}
           </Button>
         </CardContent>
       </Card>
