@@ -10,6 +10,7 @@ import { Heart, X as CloseIcon } from 'lucide-react';
 import { PronunciationButton } from '@/components/pronunciation-button';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { Howl } from 'howler';
 
 function WordButton({
   word,
@@ -26,7 +27,7 @@ function WordButton({
       size="lg"
       onClick={onClick}
       disabled={isDisabled}
-      className="h-14 text-lg bg-secondary hover:bg-secondary/80"
+      className="h-14 text-lg bg-secondary text-gray-900 hover:bg-secondary/80"
     >
       {word}
     </Button>
@@ -42,14 +43,9 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const correctAudioRef = useRef<HTMLAudioElement | null>(null);
-  const incorrectAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    correctAudioRef.current = new Audio('/correct-sound.mp3');
-    incorrectAudioRef.current = new Audio('/incorrect-sound.mp3');
-  }, []);
-
+  const correctSound = new Howl({ src: ['/correct-sound.mp3'] });
+  const incorrectSound = new Howl({ src: ['/incorrect-sound.mp3'] });
+  
   const currentItem = items[currentIndex];
 
   useEffect(() => {
@@ -73,7 +69,6 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   
   const checkAnswer = () => {
     if (isAnswered) return;
-    // Join with no space for comparison. Japanese sentences often don't have spaces.
     const userAnswer = selectedWords.join('').replace(/ /g, '');
     const correctAnswer = currentItem.correct_japanese.replace(/ /g, '');
 
@@ -82,9 +77,9 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
     setIsAnswered(true);
 
     if (correct) {
-      correctAudioRef.current?.play();
+      correctSound.play();
     } else {
-      incorrectAudioRef.current?.play();
+      incorrectSound.play();
       setLives(prev => prev > 0 ? prev - 1 : 0);
     }
   };
