@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 
 
-export function QuizClientPage({ quiz, onComplete }: { quiz: Quiz, onComplete?: () => void }) {
+export function QuizClientPage({ quiz, onComplete, backLink }: { quiz: Quiz, onComplete?: () => void, backLink?: { href: string; label: string; } }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -132,10 +132,10 @@ export function QuizClientPage({ quiz, onComplete }: { quiz: Quiz, onComplete?: 
                         <Repeat className="mr-2 h-4 w-4" />
                         Take This Quiz Again
                     </Button>
-                    <Link href={`/quizzes`} passHref>
+                    <Link href={backLink?.href ?? '/quizzes'} passHref>
                         <Button variant="outline">
                             <ChevronLeft className="mr-2 h-4 w-4" />
-                            Back to Quiz List
+                            {backLink?.label ?? 'Back to Quiz List'}
                         </Button>
                     </Link>
                 </div>
@@ -151,8 +151,8 @@ export function QuizClientPage({ quiz, onComplete }: { quiz: Quiz, onComplete?: 
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4">
-        <Link href={`/quizzes`} className="text-sm text-primary hover:underline">
-          &larr; Back to Quiz List
+        <Link href={backLink?.href ?? '/quizzes'} className="text-sm text-primary hover:underline">
+          &larr; {backLink?.label ?? 'Back to Quiz List'}
         </Link>
         <Progress value={progress} className="mt-2 h-2" />
         <p className="mt-1 text-right text-sm text-muted-foreground">

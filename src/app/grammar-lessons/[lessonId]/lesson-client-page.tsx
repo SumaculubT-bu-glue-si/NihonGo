@@ -86,11 +86,13 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
     return (
         <div className="container mx-auto">
             <h1 className="text-2xl font-bold mb-4">{`Mini-Quiz: ${lesson.title}`}</h1>
-            <QuizClientPage quiz={miniQuiz} onComplete={() => {
-                toast({ title: "Lesson Completed!", description: "Great job on the quiz."});
-                // After finishing the quiz, we could offer to go back or reset
-                // For now, it will just show results. A "Back to Lesson" button could be added in QuizClientPage
-            }} />
+            <QuizClientPage 
+                quiz={miniQuiz} 
+                onComplete={() => {
+                    toast({ title: "Lesson Completed!", description: "Great job on the quiz."});
+                }} 
+                backLink={{ href: `/grammar-lessons/${lesson.id}`, label: 'Back to Lesson' }}
+            />
         </div>
     )
   }
