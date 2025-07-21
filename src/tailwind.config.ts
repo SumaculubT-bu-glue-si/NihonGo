@@ -17,9 +17,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['"Poppins"', 'sans-serif'],
-        headline: ['"Poppins"', 'sans-serif'],
-        sans: ['"Poppins"', 'sans-serif'],
+        body: ['"Raleway"', 'sans-serif'],
+        headline: ['"Raleway"', 'sans-serif'],
+        sans: ['"Raleway"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
