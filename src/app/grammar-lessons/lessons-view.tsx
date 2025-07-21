@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import type { GrammarLesson } from '@/lib/data';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
-import { GrammarCheckerTool } from './checker-view';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,12 +12,6 @@ import { CheckCircle2, BookOpen, ArrowRight, Star } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
 
 
@@ -162,21 +155,7 @@ export function GrammarLessonsView() {
 
   return (
     <div className="space-y-8">
-      <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="item-1">
-          <AccordionTrigger className="text-2xl font-bold font-headline">
-            Grammar Checker Tool
-          </AccordionTrigger>
-          <AccordionContent>
-            <GrammarCheckerTool />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-
       <div>
-         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-            <h2 className="text-2xl font-bold font-headline">Lessons Library</h2>
-        </div>
         <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-between">
               <Tabs value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as CategoryFilter)}>
