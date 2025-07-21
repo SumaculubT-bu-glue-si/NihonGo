@@ -109,7 +109,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
         
         <div className="flex items-center gap-4">
            {/* Placeholder for character image */}
-           <div className="w-24 h-24 sm:w-32 sm:h-32 bg-contain bg-no-repeat bg-center" style={{ backgroundImage: 'url(https://placehold.co/128x128/7e57c2/FFFFFF?text=GO)' }} data-ai-hint="friendly mascot"></div>
+           <div className="w-24 h-24 sm:w-32 sm:h-32 bg-contain bg-no-repeat bg-center animate-gentle-bounce" style={{ backgroundImage: 'url(https://placehold.co/128x128/7e57c2/FFFFFF?text=GO)' }} data-ai-hint="friendly mascot"></div>
            <div className="flex items-center gap-2">
              <div className="text-2xl sm:text-4xl font-bold tracking-wider">
                {currentItem.english_sentence}
