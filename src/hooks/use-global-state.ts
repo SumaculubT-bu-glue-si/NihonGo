@@ -2,13 +2,26 @@
 'use client';
 
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import type { Deck, StatsData, Flashcard, GrammarLesson, Quiz, QuizScore, QuizQuestion, ChallengeData, ChallengeProgress } from '@/lib/data';
+import type { Deck, StatsData, Flashcard, GrammarLesson, Quiz, QuizScore, QuizQuestion, ChallengeProgress } from '@/lib/data';
 import { decks as initialDecks, userStats as initialUserStats, grammarLessons as initialGrammarLessons, initialQuizzes } from '@/lib/initial-data';
-import { challengeData as initialChallengeData } from '@/lib/challenge-data';
 import { useAuth } from '@/contexts/auth-context';
 
 const USER_DATA_STORAGE_KEY_PREFIX = 'nihongo-app-data';
 const AB_TEST_STORAGE_KEY = 'nihongo-ab-variants';
+
+export const challengeData = {
+  "N5": {
+    "Unit 1: Basic Sentences & Endings": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 2: Verb Forms and Conjugation": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 3: Particles": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 4: Common Sentence Patterns": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 5: Existence & Possession": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 6: Adjective Usage": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 7: Ability, Permission, Prohibition": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] }
+  }
+};
+export type ChallengeData = typeof challengeData;
+
 
 export interface AppData {
   decks: Deck[];
@@ -77,7 +90,7 @@ const getInitialUserData = (): AppData => ({
     quizzes: initialQuizzes,
     quizScores: [],
     favoriteGrammarLessons: [],
-    challengeData: initialChallengeData,
+    challengeData: challengeData,
     challengeProgress: {},
 });
 
