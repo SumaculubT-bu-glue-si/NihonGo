@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ChallengeItem } from '@/lib/data';
 import { cn, shuffle } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,14 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
+  const correctAudioRef = useRef<HTMLAudioElement | null>(null);
+  const incorrectAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    correctAudioRef.current = new Audio('/correct-sound.mp3');
+    incorrectAudioRef.current = new Audio('/incorrect-sound.mp3');
+  }, []);
+
   const currentItem = items[currentIndex];
 
   useEffect(() => {
@@ -65,15 +74,18 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const checkAnswer = () => {
     if (isAnswered) return;
     // Join with no space for comparison. Japanese sentences often don't have spaces.
-    const userAnswer = selectedWords.join(''); 
-    const correctAnswer = currentItem.correct_japanese.replace(/ /g, ''); // Remove spaces from correct answer for comparison
+    const userAnswer = selectedWords.join('').replace(/ /g, '');
+    const correctAnswer = currentItem.correct_japanese.replace(/ /g, '');
 
     const correct = userAnswer === correctAnswer;
     setIsCorrect(correct);
     setIsAnswered(true);
 
-    if (!correct) {
-        setLives(prev => prev > 0 ? prev - 1 : 0);
+    if (correct) {
+      correctAudioRef.current?.play();
+    } else {
+      incorrectAudioRef.current?.play();
+      setLives(prev => prev > 0 ? prev - 1 : 0);
     }
   };
 

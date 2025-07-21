@@ -17,7 +17,7 @@ const ChallengeItemSchema = z.object({
   grammar_point: z.string().describe('The specific grammar point being tested.'),
   english_sentence: z.string().describe('The English sentence prompt for the user to translate.'),
   correct_japanese: z.string().describe('The correct Japanese translation of the English sentence.'),
-  word_bank: z.array(z.string()).describe('An array of Japanese words/particles that make up the correct answer.'),
+  word_bank: z.array(z.string()).describe('An array of Japanese words/particles that make up the correct answer. The final punctuation (like 。) should be attached to the last word.'),
   hint: z.string().describe('A short, helpful hint about the grammar point.'),
   distractors: z.array(z.string()).length(2).describe('An array of exactly 2 incorrect words to distract the user.'),
 });
@@ -63,7 +63,7 @@ For each item, you must provide:
 2.  'grammar_point': The specific N5 grammar point being tested (e.g., "です", "じゃないです", "でした").
 3.  'english_sentence': A simple English sentence for the user to translate.
 4.  'correct_japanese': The correct and natural Japanese translation.
-5.  'word_bank': An array of the exact words/particles that form the correct Japanese sentence, in order.
+5.  'word_bank': An array of the exact words/particles that form the correct Japanese sentence, in order. The final punctuation mark (like '。') MUST be attached to the last word and not be a separate element.
 6.  'hint': A brief, one-sentence hint about the grammar rule.
 7.  'distractors': An array of exactly 2 Japanese words that are incorrect but plausible distractors. The distractors should not be part of the correct answer.
 `,
