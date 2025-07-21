@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import type { GrammarLesson } from '@/lib/data';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
@@ -9,7 +9,7 @@ import { GrammarCheckerTool } from './checker-view';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, BookOpen, PlusCircle, MoreVertical, Edit, Trash2, Wand2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, BookOpen, ArrowRight } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -19,37 +19,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { LessonForm, type LessonFormData } from './lesson-form';
-import { GenerateLessonForm } from './generate-lesson-form';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 
 type LevelFilter = 'All' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 type StatusFilter = 'all' | 'completed' | 'incomplete';
 
-const LessonItem = ({ lesson, onEdit, onDelete }: {
-  lesson: GrammarLesson;
-  onEdit: (lesson: GrammarLesson) => void;
-  onDelete: (lesson: GrammarLesson) => void;
-}) => (
+const LessonItem = ({ lesson }: { lesson: GrammarLesson }) => (
   <div className="flex items-center justify-between p-3 border-b last:border-b-0">
       <div className="flex items-center gap-4">
         {lesson.read ? (
@@ -68,34 +44,11 @@ const LessonItem = ({ lesson, onEdit, onDelete }: {
             Study <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </Link>
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEdit(lesson)}>
-                    <Edit className="mr-2 h-4 w-4" /> Edit
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                 <DropdownMenuItem
-                    onClick={() => onDelete(lesson)}
-                    className="text-destructive focus:text-destructive"
-                >
-                    <Trash2 className="mr-2 h-4 w-4" /> Delete
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
       </div>
   </div>
 );
 
-const LessonCard = ({ lesson, onEdit, onDelete }: {
-  lesson: GrammarLesson;
-  onEdit: (lesson: GrammarLesson) => void;
-  onDelete: (lesson: GrammarLesson) => void;
-}) => (
+const LessonCard = ({ lesson }: { lesson: GrammarLesson }) => (
     <Card className="flex flex-col">
         <CardHeader>
             <div className="flex justify-between items-start">
@@ -112,27 +65,6 @@ const LessonCard = ({ lesson, onEdit, onDelete }: {
                           <span>Not Completed</span>
                       </div>
                    )}
-                   <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2">
-                              <MoreVertical className="h-4 w-4" />
-                          </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onEdit(lesson)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit Lesson
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                           <DropdownMenuItem
-                              onClick={() => onDelete(lesson)}
-                              className="text-destructive focus:text-destructive"
-                          >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete Lesson
-                          </DropdownMenuItem>
-                      </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
             </div>
             <CardTitle className="pt-2">{lesson.title}</CardTitle>
@@ -153,15 +85,10 @@ const LessonCard = ({ lesson, onEdit, onDelete }: {
 );
 
 export function GrammarLessonsView() {
-  const { appData, isLoading, addGrammarLesson, updateGrammarLesson, deleteGrammarLesson } = useGlobalState();
-  const { toast } = useToast();
+  const { appData, isLoading } = useGlobalState();
 
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('All');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [lessonToEdit, setLessonToEdit] = useState<GrammarLesson | null>(null);
-  const [lessonToDelete, setLessonToDelete] = useState<GrammarLesson | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false);
   
   if (isLoading || !appData) {
     return (
@@ -181,62 +108,6 @@ export function GrammarLessonsView() {
       if (statusFilter === 'incomplete') return !lesson.read;
       return true;
     });
-
-  const handleAddNew = () => {
-    setLessonToEdit(null);
-    setIsFormOpen(true);
-  };
-
-  const handleGenerateNew = () => {
-    setIsGenerateFormOpen(true);
-  };
-
-  const handleEdit = (lesson: GrammarLesson) => {
-    setLessonToEdit(lesson);
-    setIsFormOpen(true);
-  };
-
-  const handleDeleteInitiate = (lesson: GrammarLesson) => {
-    setLessonToDelete(lesson);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (!lessonToDelete) return;
-    deleteGrammarLesson(lessonToDelete.id);
-    toast({
-        title: "Lesson Deleted",
-        description: "The grammar lesson has been deleted.",
-        variant: "destructive",
-    });
-    setLessonToDelete(null);
-  }
-
-  const handleSaveLesson = (data: LessonFormData) => {
-    const lessonData = {
-        ...data,
-        examples: data.examples.split('\n').filter(line => line.trim() !== ''),
-    }
-
-    if (lessonToEdit) {
-      updateGrammarLesson(lessonToEdit.id, lessonData);
-      toast({
-        title: 'Lesson Updated',
-        description: 'The grammar lesson has been successfully updated.',
-      });
-    } else {
-      addGrammarLesson(lessonData);
-       toast({
-        title: 'Lesson Created',
-        description: 'A new grammar lesson has been added.',
-      });
-    }
-    setIsFormOpen(false);
-    setLessonToEdit(null);
-  };
-
-  const handleLessonGenerated = (lessonData: Omit<GrammarLesson, 'id' | 'read'>) => {
-    addGrammarLesson(lessonData);
-  }
 
   return (
     <div className="container mx-auto space-y-8">
@@ -265,16 +136,6 @@ export function GrammarLessonsView() {
       <div>
          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
             <h2 className="text-2xl font-bold font-headline">Lessons Library</h2>
-            <div className="flex items-center gap-2 mt-4 sm:mt-0">
-                <Button onClick={handleGenerateNew} variant="outline">
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    Generate with AI
-                </Button>
-                <Button onClick={handleAddNew}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add New Lesson
-                </Button>
-            </div>
         </div>
         <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -311,8 +172,6 @@ export function GrammarLessonsView() {
                           <LessonCard 
                               key={lesson.id} 
                               lesson={lesson} 
-                              onEdit={handleEdit} 
-                              onDelete={handleDeleteInitiate} 
                           />
                       ))
                   ) : (
@@ -321,8 +180,6 @@ export function GrammarLessonsView() {
                               <LessonItem 
                                   key={lesson.id} 
                                   lesson={lesson} 
-                                  onEdit={handleEdit} 
-                                  onDelete={handleDeleteInitiate} 
                               />
                           ))}
                       </CardContent></Card>
@@ -335,36 +192,6 @@ export function GrammarLessonsView() {
             </div>
         </div>
       </div>
-      
-      <LessonForm
-        isOpen={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        onSave={handleSaveLesson}
-        lesson={lessonToEdit}
-       />
-       
-       <GenerateLessonForm
-        isOpen={isGenerateFormOpen}
-        onOpenChange={setIsGenerateFormOpen}
-        onLessonGenerated={handleLessonGenerated}
-       />
-
-       <AlertDialog open={!!lessonToDelete} onOpenChange={() => setLessonToDelete(null)}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This will permanently delete the lesson "{lessonToDelete?.title}".
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setLessonToDelete(null)}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Delete
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </div>
   );
 }

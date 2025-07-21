@@ -43,9 +43,6 @@ interface GlobalStateContextType {
   addGeneratedCards: (deckId: string, newCards: Omit<Flashcard, 'id'>[]) => Flashcard[];
   updateStats: (topic: string, masteredCount: number) => void;
   toggleGrammarLessonRead: (lessonId: string, read: boolean) => void;
-  addGrammarLesson: (lessonData: Omit<GrammarLesson, 'id' | 'read'>) => void;
-  updateGrammarLesson: (lessonId: string, lessonData: Partial<Omit<GrammarLesson, 'id' | 'read'>>) => void;
-  deleteGrammarLesson: (lessonId: string) => void;
   updateQuizScore: (quizId: string, score: number) => void;
   addQuiz: (quizData: Omit<Quiz, 'id' | 'questions'>) => Quiz;
   updateQuiz: (quizId: string, quizData: Partial<Quiz>) => void;
@@ -342,36 +339,6 @@ export const useGlobalStateData = () => {
         }));
     }, [setCurrentUserData]);
 
-    const addGrammarLesson = useCallback((lessonData: Omit<GrammarLesson, 'id' | 'read'>) => {
-        setCurrentUserData(prevData => {
-            const newLesson: GrammarLesson = {
-                ...lessonData,
-                id: `gl-${Date.now()}`,
-                read: false,
-            };
-            return {
-                ...prevData,
-                grammarLessons: [newLesson, ...prevData.grammarLessons],
-            };
-        });
-    }, [setCurrentUserData]);
-
-    const updateGrammarLesson = useCallback((lessonId: string, lessonData: Partial<Omit<GrammarLesson, 'id' | 'read'>>) => {
-        setCurrentUserData(prevData => ({
-            ...prevData,
-            grammarLessons: prevData.grammarLessons.map(lesson =>
-                lesson.id === lessonId ? { ...lesson, ...lessonData } : lesson
-            ),
-        }));
-    }, [setCurrentUserData]);
-
-    const deleteGrammarLesson = useCallback((lessonId: string) => {
-        setCurrentUserData(prevData => ({
-            ...prevData,
-            grammarLessons: prevData.grammarLessons.filter(lesson => lesson.id !== lessonId),
-        }));
-    }, [setCurrentUserData]);
-
     const updateQuizScore = useCallback((quizId: string, newScore: number) => {
         setCurrentUserData(prevData => {
             const existingScore = prevData.quizScores.find(s => s.quizId === quizId);
@@ -485,9 +452,6 @@ export const useGlobalStateData = () => {
         addGeneratedCards,
         updateStats,
         toggleGrammarLessonRead,
-        addGrammarLesson,
-        updateGrammarLesson,
-        deleteGrammarLesson,
         updateQuizScore,
         addQuiz,
         updateQuiz,
