@@ -25,34 +25,46 @@ import { cn } from '@/lib/utils';
 type LevelFilter = 'All' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 type StatusFilter = 'all' | 'completed' | 'incomplete';
 
+const levelColors: { [key in LevelFilter]?: string } = {
+  N5: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
+  N4: 'bg-green-100 text-green-800 hover:bg-green-200',
+  N3: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
+  N2: 'bg-orange-100 text-orange-800 hover:bg-orange-200',
+  N1: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
+};
+
 const LessonItem = ({ lesson }: { lesson: GrammarLesson }) => (
-  <div className="flex items-center justify-between p-3 border-b last:border-b-0">
-      <div className="flex items-center gap-4">
-        {lesson.read ? (
-            <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-        ) : (
-            <BookOpen className="h-5 w-5 text-muted-foreground shrink-0" />
-        )}
-        <div className="flex-grow">
-          <p className="font-semibold">{lesson.title}</p>
-          <p className="text-xs text-muted-foreground">{lesson.level}</p>
+  <Link href={`/grammar-lessons/${lesson.id}`} passHref>
+    <div className="flex items-center justify-between p-3 border-b last:border-b-0 hover:bg-muted/50 cursor-pointer">
+        <div className="flex items-center gap-4">
+          {lesson.read ? (
+              <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+          ) : (
+              <BookOpen className="h-5 w-5 text-muted-foreground shrink-0" />
+          )}
+          <div className="flex-grow">
+            <p className="font-semibold">{lesson.title}</p>
+          </div>
         </div>
-      </div>
-      <div className="flex items-center gap-1">
-        <Link href={`/grammar-lessons/${lesson.id}`} passHref>
-          <Button size="sm" variant="outline">
-            Study <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
-      </div>
-  </div>
+        <div className="flex items-center gap-2">
+           <Badge className={cn(levelColors[lesson.level as LevelFilter] ?? 'bg-gray-100 text-gray-800', 'border-transparent')}>
+              {lesson.level}
+            </Badge>
+            <Button size="sm" variant="ghost">
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+        </div>
+    </div>
+  </Link>
 );
 
 const LessonCard = ({ lesson }: { lesson: GrammarLesson }) => (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col hover:shadow-lg transition-shadow">
         <CardHeader>
             <div className="flex justify-between items-start">
-                <Badge variant="outline">{lesson.level}</Badge>
+                <Badge className={cn(levelColors[lesson.level as LevelFilter] ?? 'bg-gray-100 text-gray-800', 'border-transparent')}>
+                    {lesson.level}
+                </Badge>
                 <div className="flex items-center">
                   {lesson.read ? (
                       <div className="flex items-center gap-1 text-xs text-green-600">
