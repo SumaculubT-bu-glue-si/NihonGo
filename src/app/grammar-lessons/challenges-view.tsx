@@ -71,7 +71,7 @@ export function ChallengesView() {
   const router = useRouter();
   const { appData } = useGlobalState();
   const { challengeData, challengeProgress } = appData;
-  const [currentUnitId, setCurrentUnitId] = useState('Unit 1');
+  const [currentUnitId, setCurrentUnitId] = useState('Unit 1: Basic Sentences & Endings');
   
   const units = challengeData.N5;
 
@@ -97,6 +97,15 @@ export function ChallengesView() {
     console.log(`Navigating to: /challenges/N5/${currentUnitId}/${stageId}`);
   };
 
+  if (!currentUnit) {
+    return (
+        <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
+            <Trophy className="h-16 w-16 mb-4" />
+            <h3 className="text-xl font-semibold">Error Loading Unit</h3>
+            <p>Could not find data for {currentUnitId}.</p>
+        </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex h-full w-full max-w-2xl flex-col font-sans">
@@ -105,10 +114,10 @@ export function ChallengesView() {
         <div className="container mx-auto flex items-center justify-between">
           <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
             <ChevronLeft className="mr-2" />
-            SECTION 1, {currentUnitId.toUpperCase()}
+            SECTION 1, {currentUnitId.split(':')[0].toUpperCase()}
           </Button>
           <div className="text-center text-xl font-bold text-primary-foreground">
-            {currentUnitId}
+            {currentUnitId.split(':')[0]}
           </div>
           <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10">
             <BookOpen className="mr-2" />
@@ -147,7 +156,7 @@ export function ChallengesView() {
         })}
          <div className="relative flex flex-col items-center pt-8">
            <Trophy className="h-20 w-20 text-yellow-400" />
-           <p className="mt-2 font-bold">{currentUnitId} Complete</p>
+           <p className="mt-2 font-bold">{currentUnitId.split(':')[0]} Complete</p>
          </div>
       </div>
       
@@ -160,7 +169,7 @@ export function ChallengesView() {
                 className="w-full h-12 text-lg" 
                 onClick={() => setCurrentUnitId(nextUnitId)}
              >
-                Next up: {nextUnitId}
+                Next up: {nextUnitId.split(':')[0]}
              </Button>
            </div>
        </div>
