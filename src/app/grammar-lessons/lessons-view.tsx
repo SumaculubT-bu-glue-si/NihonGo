@@ -4,28 +4,21 @@
 import { useState, useMemo } from 'react';
 import type { GrammarLesson } from '@/lib/data';
 import { useGlobalState } from '@/hooks/use-global-state';
+import Link from 'next/link';
+import { GrammarCheckerTool } from './checker-view';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { CheckCircle2, BookOpen, PlusCircle, MoreVertical, Edit, Trash2, Wand2, ArrowRight } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { GrammarCheckerTool } from './checker-view';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, BookOpenCheck, Eye, Lightbulb, PlusCircle, MoreVertical, Edit, Trash2, Wand2 } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,11 +43,10 @@ import { cn } from '@/lib/utils';
 
 
 type LevelFilter = 'All' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
-type StatusFilter = 'all' | 'read' | 'unread';
+type StatusFilter = 'all' | 'completed' | 'incomplete';
 
-const LessonItem = ({ lesson, onSelect, onEdit, onDelete }: {
+const LessonItem = ({ lesson, onEdit, onDelete }: {
   lesson: GrammarLesson;
-  onSelect: (lesson: GrammarLesson) => void;
   onEdit: (lesson: GrammarLesson) => void;
   onDelete: (lesson: GrammarLesson) => void;
 }) => (
@@ -63,7 +55,7 @@ const LessonItem = ({ lesson, onSelect, onEdit, onDelete }: {
         {lesson.read ? (
             <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
         ) : (
-            <BookOpenCheck className="h-5 w-5 text-muted-foreground shrink-0" />
+            <BookOpen className="h-5 w-5 text-muted-foreground shrink-0" />
         )}
         <div className="flex-grow">
           <p className="font-semibold">{lesson.title}</p>
@@ -71,9 +63,11 @@ const LessonItem = ({ lesson, onSelect, onEdit, onDelete }: {
         </div>
       </div>
       <div className="flex items-center gap-1">
-        <Button size="sm" variant="ghost" onClick={() => onSelect(lesson)}>
-          <Eye className="mr-2 h-4 w-4" /> View
-        </Button>
+        <Link href={`/grammar-lessons/${lesson.id}`} passHref>
+          <Button size="sm" variant="outline">
+            Study <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </Link>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -97,9 +91,8 @@ const LessonItem = ({ lesson, onSelect, onEdit, onDelete }: {
   </div>
 );
 
-const LessonCard = ({ lesson, onSelect, onEdit, onDelete }: {
+const LessonCard = ({ lesson, onEdit, onDelete }: {
   lesson: GrammarLesson;
-  onSelect: (lesson: GrammarLesson) => void;
   onEdit: (lesson: GrammarLesson) => void;
   onDelete: (lesson: GrammarLesson) => void;
 }) => (
@@ -111,12 +104,12 @@ const LessonCard = ({ lesson, onSelect, onEdit, onDelete }: {
                   {lesson.read ? (
                       <div className="flex items-center gap-1 text-xs text-green-600">
                           <CheckCircle2 className="h-4 w-4" />
-                          <span>Read</span>
+                          <span>Completed</span>
                       </div>
                    ) : (
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <BookOpenCheck className="h-4 w-4" />
-                          <span>Unread</span>
+                          <BookOpen className="h-4 w-4" />
+                          <span>Not Completed</span>
                       </div>
                    )}
                    <DropdownMenu>
@@ -150,44 +143,45 @@ const LessonCard = ({ lesson, onSelect, onEdit, onDelete }: {
           </p>
         </CardContent>
         <CardFooter>
-            <Button className="w-full" variant="outline" onClick={() => onSelect(lesson)}>
-                <Eye className="mr-2 h-4 w-4" />
-                View Lesson
-            </Button>
+            <Link href={`/grammar-lessons/${lesson.id}`} passHref className="w-full">
+                <Button className="w-full">
+                    Study Lesson
+                </Button>
+            </Link>
         </CardFooter>
     </Card>
 );
 
 export function GrammarLessonsView() {
-  const { appData, isLoading, toggleGrammarLessonRead, addGrammarLesson, updateGrammarLesson, deleteGrammarLesson } = useGlobalState();
+  const { appData, isLoading, addGrammarLesson, updateGrammarLesson, deleteGrammarLesson } = useGlobalState();
   const { toast } = useToast();
 
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('All');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [selectedLesson, setSelectedLesson] = useState<GrammarLesson | null>(null);
   const [lessonToEdit, setLessonToEdit] = useState<GrammarLesson | null>(null);
   const [lessonToDelete, setLessonToDelete] = useState<GrammarLesson | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false);
+  
+  if (isLoading || !appData) {
+    return (
+        <div className="flex h-64 w-full items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+    );
+  }
+  
   const activeVariant = appData.activeVariants.grammar;
 
+  const filteredLessons = appData.grammarLessons
+    .filter(lesson => levelFilter === 'All' || lesson.level === levelFilter)
+    .filter(lesson => {
+      if (statusFilter === 'all') return true;
+      if (statusFilter === 'completed') return lesson.read;
+      if (statusFilter === 'incomplete') return !lesson.read;
+      return true;
+    });
 
-  const filteredLessons = useMemo(() => {
-    return appData.grammarLessons
-      .filter(lesson => levelFilter === 'All' || lesson.level === levelFilter)
-      .filter(lesson => {
-        if (statusFilter === 'all') return true;
-        if (statusFilter === 'read') return lesson.read;
-        if (statusFilter === 'unread') return !lesson.read;
-        return true;
-      });
-  }, [appData.grammarLessons, levelFilter, statusFilter]);
-
-  const handleMarkAsRead = (lessonId: string, isRead: boolean) => {
-    toggleGrammarLessonRead(lessonId, isRead);
-    setSelectedLesson(prev => prev ? { ...prev, read: isRead } : null);
-  };
-  
   const handleAddNew = () => {
     setLessonToEdit(null);
     setIsFormOpen(true);
@@ -244,14 +238,6 @@ export function GrammarLessonsView() {
     addGrammarLesson(lessonData);
   }
 
-  if (isLoading) {
-    return (
-        <div className="flex h-64 w-full items-center justify-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-    );
-  }
-
   return (
     <div className="container mx-auto space-y-8">
       <div>
@@ -305,12 +291,12 @@ export function GrammarLessonsView() {
                       <Label htmlFor="r1">All</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="read" id="r2" />
-                      <Label htmlFor="r2">Read</Label>
+                      <RadioGroupItem value="completed" id="r2" />
+                      <Label htmlFor="r2">Completed</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="unread" id="r3" />
-                      <Label htmlFor="r3">Unread</Label>
+                      <RadioGroupItem value="incomplete" id="r3" />
+                      <Label htmlFor="r3">Incomplete</Label>
                   </div>
               </RadioGroup>
             </div>
@@ -325,7 +311,6 @@ export function GrammarLessonsView() {
                           <LessonCard 
                               key={lesson.id} 
                               lesson={lesson} 
-                              onSelect={setSelectedLesson} 
                               onEdit={handleEdit} 
                               onDelete={handleDeleteInitiate} 
                           />
@@ -336,7 +321,6 @@ export function GrammarLessonsView() {
                               <LessonItem 
                                   key={lesson.id} 
                                   lesson={lesson} 
-                                  onSelect={setSelectedLesson} 
                                   onEdit={handleEdit} 
                                   onDelete={handleDeleteInitiate} 
                               />
@@ -351,74 +335,7 @@ export function GrammarLessonsView() {
             </div>
         </div>
       </div>
-
-       {selectedLesson && (
-        <Dialog open={!!selectedLesson} onOpenChange={() => setSelectedLesson(null)}>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-                <div className="flex items-center justify-between">
-                    <DialogTitle className="text-2xl font-headline">{selectedLesson.title}</DialogTitle>
-                    <Badge variant="secondary">{selectedLesson.level}</Badge>
-                </div>
-            </DialogHeader>
-            <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto pr-6">
-                <div>
-                    <h3 className="flex items-center text-sm font-semibold uppercase text-muted-foreground mb-2">
-                        <Lightbulb className="mr-2 h-4 w-4" />
-                        Explanation
-                    </h3>
-                    <div className="prose prose-sm max-w-none space-y-4 rounded-md border bg-secondary/50 p-4 text-card-foreground leading-relaxed">
-                        {selectedLesson.explanation.split('\n').map((paragraph, index) => (
-                            <p key={index}>{paragraph}</p>
-                        ))}
-                    </div>
-                </div>
-
-                 <div>
-                    <h3 className="flex items-center text-sm font-semibold uppercase text-muted-foreground mb-2">
-                        Examples
-                    </h3>
-                     <div className="prose prose-sm max-w-none text-card-foreground leading-relaxed">
-                        <ul className="space-y-2 rounded-md border p-4">
-                            {selectedLesson.examples.map((ex, i) => (
-                            <li key={i}>{ex}</li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-between sm:items-center border-t pt-4">
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    Status: 
-                     {selectedLesson.read ? (
-                        <span className="flex items-center gap-1 text-green-600 font-medium">
-                            <CheckCircle2 className="h-4 w-4" /> Read
-                        </span>
-                     ) : (
-                        <span className="flex items-center gap-1 font-medium">
-                           <BookOpenCheck className="h-4 w-4" /> Unread
-                        </span>
-                     )}
-                </p>
-                <div className="flex gap-2">
-                     <Button
-                        size="sm"
-                        variant={selectedLesson.read ? 'secondary' : 'default'}
-                        onClick={() => handleMarkAsRead(selectedLesson.id, !selectedLesson.read)}
-                    >
-                        {selectedLesson.read ? 'Mark as Unread' : 'Mark as Read'}
-                    </Button>
-                    <DialogClose asChild>
-                        <Button type="button" variant="outline" size="sm">
-                            Close
-                        </Button>
-                    </DialogClose>
-                </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-
+      
       <LessonForm
         isOpen={isFormOpen}
         onOpenChange={setIsFormOpen}

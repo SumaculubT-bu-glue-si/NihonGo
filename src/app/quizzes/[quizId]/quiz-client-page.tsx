@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import type { Quiz, QuizQuestion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 
 
-export function QuizClientPage({ quiz }: { quiz: Quiz }) {
+export function QuizClientPage({ quiz, onComplete }: { quiz: Quiz, onComplete?: () => void }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -53,6 +53,7 @@ export function QuizClientPage({ quiz }: { quiz: Quiz }) {
       setShowResults(true);
       const finalScore = Math.round((score / quiz.questions.length) * 100);
       updateQuizScore(quiz.id, finalScore);
+      onComplete?.();
     }
   };
 

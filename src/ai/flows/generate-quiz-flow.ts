@@ -19,6 +19,7 @@ const GenerateQuizInputSchema = z.object({
   category: QuizCategorySchema,
   level: QuizLevelSchema,
   title: z.string().describe('The title for the new quiz.'),
+  questionCount: z.number().optional().default(10).describe('The number of questions to generate for the quiz.'),
 });
 export type GenerateQuizInput = z.infer<typeof GenerateQuizInputSchema>;
 
@@ -31,7 +32,7 @@ const QuizQuestionSchema = z.object({
 
 const QuizSchema = z.object({
   title: z.string().describe('A descriptive title for the quiz.'),
-  questions: z.array(QuizQuestionSchema).length(10).describe('An array of exactly 10 quiz questions.'),
+  questions: z.array(QuizQuestionSchema).describe('An array of quiz questions.'),
 });
 export type GenerateQuizOutput = z.infer<typeof QuizSchema>;
 
@@ -42,11 +43,24 @@ export async function generateQuiz(input: GenerateQuizInput): Promise<GenerateQu
 }
 
 
-const prompt = ai.definePrompt({
-    name: 'generateQuizPrompt',
-    input: { schema: GenerateQuizInputSchema },
-    output: { schema: QuizSchema },
-    prompt: `You are an expert Japanese language teacher creating a 10-question multiple-choice quiz for a student.
+const generateQuizFlow = ai.defineFlow(
+  {
+    name: 'generateQuizFlow',
+    inputSchema: GenerateQuizInputSchema,
+    outputSchema: QuizSchema,
+  },
+  async (input) => {
+    // Dynamically set the number of questions in the output schema
+    const customOutputSchema = z.object({
+        title: z.string().describe('A descriptive title for the quiz.'),
+        questions: z.array(QuizQuestionSchema).length(input.questionCount).describe(`An array of exactly ${input.questionCount} quiz questions.`),
+    });
+
+    const prompt = ai.definePrompt({
+        name: 'generateSizedQuizPrompt',
+        input: { schema: GenerateQuizInputSchema },
+        output: { schema: customOutputSchema },
+        prompt: `You are an expert Japanese language teacher creating a multiple-choice quiz for a student.
 
 The quiz title will be: {{{title}}}
 
@@ -54,7 +68,7 @@ Quiz Details:
 - Category: {{{category}}}
 - JLPT Level: {{{level}}}
 
-Your task is to generate a quiz with exactly 10 unique and challenging questions appropriate for the specified category and level. The generated 'title' field must exactly match the provided title.
+Your task is to generate a quiz with exactly {{{questionCount}}} unique and challenging questions appropriate for the specified category and level. The generated 'title' field must exactly match the provided title.
 
 - For 'vocabulary' quizzes, test knowledge of words. The question can be in Japanese or English.
 - For 'grammar' quizzes, test understanding of grammar points. The question should present a sentence with a blank and ask the user to fill it in.
@@ -65,15 +79,8 @@ Rules:
 - Provide a concise 'explanation' for each correct answer.
 - Ensure variety and do not repeat concepts.
 `,
-});
+    });
 
-const generateQuizFlow = ai.defineFlow(
-  {
-    name: 'generateQuizFlow',
-    inputSchema: GenerateQuizInputSchema,
-    outputSchema: QuizSchema,
-  },
-  async (input) => {
     const { output } = await prompt(input);
     return output!;
   }
