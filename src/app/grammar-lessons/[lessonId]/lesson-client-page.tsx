@@ -49,9 +49,11 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
   const { toast } = useToast();
   const [miniQuiz, setMiniQuiz] = useState<QuizType | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [view, setView] = useState<'lesson' | 'quiz'>('lesson');
 
   const handleGenerateQuiz = async () => {
     setIsGenerating(true);
+    setMiniQuiz(null); // Clear previous quiz
     try {
       const result = await generateQuiz({
         category: 'grammar',
@@ -60,7 +62,6 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
         questionCount: 3,
       });
 
-      // We need to add IDs to the questions client-side as the flow doesn't
       const quizWithIds = {
         ...result,
         id: `temp-quiz-${lesson.id}`,
@@ -69,6 +70,7 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
       
       setMiniQuiz(quizWithIds);
       toggleGrammarLessonRead(lesson.id, true);
+      setView('quiz'); // Switch view to the quiz
 
     } catch (error) {
       console.error('Failed to generate mini-quiz:', error);
@@ -81,8 +83,12 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
       setIsGenerating(false);
     }
   };
+  
+  const handleReturnToLesson = () => {
+    setView('lesson');
+  }
 
-  if (miniQuiz) {
+  if (view === 'quiz' && miniQuiz) {
     return (
         <div className="container mx-auto">
             <h1 className="text-2xl font-bold mb-4">{`Mini-Quiz: ${lesson.title}`}</h1>
@@ -92,6 +98,7 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
                     toast({ title: "Lesson Completed!", description: "Great job on the quiz."});
                 }} 
                 backLink={{ href: `/grammar-lessons/${lesson.id}`, label: 'Back to Lesson' }}
+                onBack={handleReturnToLesson}
             />
         </div>
     )
@@ -128,9 +135,9 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
       <Card className="bg-secondary/50">
         <CardHeader>
           <CardTitle>Check Your Understanding</CardTitle>
-          <CardDescription>
+           <CardDescription>
             {lesson.read 
-              ? "You've already completed this lesson, but you can take the test again to sharpen your memory!"
+              ? "You've completed this lesson, but you can take the test again to sharpen your memory!"
               : "Complete this lesson by taking a short test!"
             }
           </CardDescription>

@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 
 
-export function QuizClientPage({ quiz, onComplete, backLink }: { quiz: Quiz, onComplete?: () => void, backLink?: { href: string; label: string; } }) {
+export function QuizClientPage({ quiz, onComplete, backLink, onBack }: { quiz: Quiz, onComplete?: () => void, backLink?: { href: string; label: string; }, onBack?: () => void }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -132,12 +132,19 @@ export function QuizClientPage({ quiz, onComplete, backLink }: { quiz: Quiz, onC
                         <Repeat className="mr-2 h-4 w-4" />
                         Take This Quiz Again
                     </Button>
-                    <Link href={backLink?.href ?? '/quizzes'} passHref>
-                        <Button variant="outline">
+                    {onBack ? (
+                        <Button variant="outline" onClick={onBack}>
                             <ChevronLeft className="mr-2 h-4 w-4" />
-                            {backLink?.label ?? 'Back to Quiz List'}
+                            {backLink?.label ?? 'Back to Lesson'}
                         </Button>
-                    </Link>
+                    ) : (
+                        <Link href={backLink?.href ?? '/quizzes'} passHref>
+                            <Button variant="outline">
+                                <ChevronLeft className="mr-2 h-4 w-4" />
+                                {backLink?.label ?? 'Back to Quiz List'}
+                            </Button>
+                        </Link>
+                    )}
                 </div>
             </CardContent>
         </Card>
@@ -151,9 +158,15 @@ export function QuizClientPage({ quiz, onComplete, backLink }: { quiz: Quiz, onC
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4">
-        <Link href={backLink?.href ?? '/quizzes'} className="text-sm text-primary hover:underline">
-          &larr; {backLink?.label ?? 'Back to Quiz List'}
-        </Link>
+         {onBack ? (
+            <button onClick={onBack} className="text-sm text-primary hover:underline">
+                &larr; {backLink?.label ?? 'Back to Lesson'}
+            </button>
+         ) : (
+            <Link href={backLink?.href ?? '/quizzes'} className="text-sm text-primary hover:underline">
+                &larr; {backLink?.label ?? 'Back to Quiz List'}
+            </Link>
+         )}
         <Progress value={progress} className="mt-2 h-2" />
         <p className="mt-1 text-right text-sm text-muted-foreground">
           Question {currentQuestionIndex + 1} of {quiz.questions.length}
