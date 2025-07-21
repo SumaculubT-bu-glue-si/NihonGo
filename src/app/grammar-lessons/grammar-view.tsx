@@ -25,7 +25,7 @@ export function GrammarView({ appData }: { appData: AppData }) {
         </div>
 
         <Tabs defaultValue="library" className="w-full">
-            <Accordion type="single" collapsible className="w-full">
+            <Accordion type="single" collapsible className="w-full" defaultValue='item-1'>
                 <AccordionItem value="item-1">
                     <AccordionTrigger className="text-2xl font-bold font-headline">
                     Grammar Checker Tool
@@ -36,18 +36,15 @@ export function GrammarView({ appData }: { appData: AppData }) {
                 </AccordionItem>
             </Accordion>
 
-            <TabsList className="grid w-full grid-cols-2 mt-6">
-                <TabsTrigger value="library">Lessons Library</TabsTrigger>
-                <TabsTrigger value="challenges">Challenges</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mt-6 h-12">
+                <TabsTrigger value="library" className="text-lg">Lessons Library</TabsTrigger>
+                <TabsTrigger value="challenges" className="text-lg">Challenges</TabsTrigger>
             </TabsList>
             <TabsContent value="library" className="mt-6">
                 <GrammarLessonsView />
             </TabsContent>
             <TabsContent value="challenges" className="mt-6">
-                 <ChallengesView
-                    levels={appData.challengeLevels}
-                    progress={appData.challengeProgress}
-                />
+                 <ChallengesView />
             </TabsContent>
         </Tabs>
     </div>
