@@ -129,7 +129,10 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
         <CardHeader>
           <CardTitle>Check Your Understanding</CardTitle>
           <CardDescription>
-            Complete this lesson by taking a short test!
+            {lesson.read 
+              ? "You've already completed this lesson, but you can take the test again to sharpen your memory!"
+              : "Complete this lesson by taking a short test!"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
