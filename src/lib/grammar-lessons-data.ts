@@ -13,7 +13,7 @@ export const grammarLessons: GrammarLesson[] = [
       'これは本です。 (Kore wa hon desu.) - This is a book.',
       '明日は晴れです。 (Ashita wa hare desu.) - Tomorrow will be sunny.',
     ],
-    read: true,
+    read: false,
   },
   {
     id: 'gl-n5-2',
@@ -50,7 +50,7 @@ export const grammarLessons: GrammarLesson[] = [
       '彼は漢字を読むことができます。 (Kare wa kanji o yomu koto ga dekimasu.) - He can read Kanji.',
       'ここで写真を撮ることができますか。 (Koko de shashin o toru koto ga dekimasu ka.) - Can I take pictures here?',
     ],
-    read: true,
+    read: false,
   },
   {
     id: 'gl-n4-2',
