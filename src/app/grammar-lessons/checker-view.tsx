@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Loader2, Wand2, CheckCircle, XCircle, Lightbulb } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { checkGrammar, type CheckGrammarOutput } from '@/ai/flows/grammar-checker-flow';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { PronunciationButton } from '@/components/pronunciation-button';
 
 export function GrammarCheckerTool() {
   const [text, setText] = useState('');
@@ -110,6 +110,23 @@ export function GrammarCheckerTool() {
                         ))}
                     </div>
                 </div>
+                {result.examples && result.examples.length > 0 && (
+                  <div>
+                    <h3 className="flex items-center text-sm font-semibold uppercase text-muted-foreground mb-2">
+                        Examples
+                    </h3>
+                    <ul className="prose prose-sm max-w-none space-y-2 rounded-md border p-4">
+                        {result.examples.map((ex, i) => (
+                          <li key={i} className="flex items-center justify-between gap-2">
+                              <span className="flex-1">
+                                {ex.japanese} <span className="text-muted-foreground">({ex.english})</span>
+                              </span>
+                              <PronunciationButton text={ex.japanese} size="sm" />
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
           </CardContent>
         </Card>
       )}
