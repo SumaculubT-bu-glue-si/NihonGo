@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Heart, X as CloseIcon } from 'lucide-react';
 import { PronunciationButton } from '@/components/pronunciation-button';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 function WordButton({
   word,
@@ -108,8 +108,14 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
         <h1 className="text-2xl sm:text-3xl font-bold">Write this in Japanese</h1>
         
         <div className="flex items-center gap-4">
-           {/* Placeholder for character image */}
-           <div className="w-24 h-24 sm:w-32 sm:h-32 bg-contain bg-no-repeat bg-center animate-gentle-bounce" style={{ backgroundImage: 'url(https://placehold.co/128x128/7e57c2/FFFFFF?text=GO)' }} data-ai-hint="friendly mascot"></div>
+           <Image
+              src="/waving_character.gif"
+              alt="Waving Character"
+              width={128}
+              height={128}
+              unoptimized
+              className="w-24 h-24 sm:w-32 sm:h-32"
+            />
            <div className="flex items-center gap-2">
              <div className="text-2xl sm:text-4xl font-bold tracking-wider">
                {currentItem.english_sentence}

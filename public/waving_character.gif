@@ -1,0 +1,210 @@
+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];
+]></content>
+  </change>
+  <change>
+    <file>/src/app/challenges/[level]/[unit]/[stage]/challenge-client-page.tsx</file>
+    <content><![CDATA[
+'use client';
+
+import { useState, useEffect } from 'react';
+import type { ChallengeItem } from '@/lib/data';
+import { cn, shuffle } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Heart, X as CloseIcon } from 'lucide-react';
+import { PronunciationButton } from '@/components/pronunciation-button';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+
+function WordButton({
+  word,
+  onClick,
+  isDisabled,
+}: {
+  word: string;
+  onClick: () => void;
+  isDisabled: boolean;
+}) {
+  return (
+    <Button
+      variant="outline"
+      size="lg"
+      onClick={onClick}
+      disabled={isDisabled}
+      className="h-14 text-lg bg-secondary hover:bg-secondary/80"
+    >
+      {word}
+    </Button>
+  );
+}
+
+export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
+  const router = useRouter();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [lives, setLives] = useState(5);
+  const [selectedWords, setSelectedWords] = useState<string[]>([]);
+  const [wordBank, setWordBank] = useState<string[]>([]);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+
+  const currentItem = items[currentIndex];
+
+  useEffect(() => {
+    const newWordBank = shuffle([...currentItem.word_bank, ...currentItem.distractors]);
+    setWordBank(newWordBank);
+    setSelectedWords([]);
+    setIsAnswered(false);
+  }, [currentIndex, currentItem]);
+
+  const handleSelectWord = (word: string) => {
+    setSelectedWords((prev) => [...prev, word]);
+    setWordBank((prev) => prev.filter((w) => w !== word));
+  };
+
+  const handleDeselectWord = (word: string, index: number) => {
+    const newSelectedWords = [...selectedWords];
+    newSelectedWords.splice(index, 1);
+    setSelectedWords(newSelectedWords);
+    setWordBank((prev) => shuffle([...prev, word]));
+  };
+  
+  const checkAnswer = () => {
+    if (isAnswered) return;
+    // Join with no space for comparison. Japanese sentences often don't have spaces.
+    const userAnswer = selectedWords.join(''); 
+    const correctAnswer = currentItem.correct_japanese.replace(/ /g, ''); // Remove spaces from correct answer for comparison
+
+    const correct = userAnswer === correctAnswer;
+    setIsCorrect(correct);
+    setIsAnswered(true);
+
+    if (!correct) {
+        setLives(prev => prev > 0 ? prev - 1 : 0);
+    }
+  };
+
+  const handleContinue = () => {
+    if (currentIndex < items.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    } else {
+      // TODO: Show results screen
+      router.push('/grammar-lessons');
+    }
+  }
+
+  const progressPercentage = (currentIndex / items.length) * 100;
+
+  return (
+    <div className="flex flex-col h-screen bg-[#2e3856] text-white font-sans">
+      {/* Header */}
+      <header className="p-4">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" className="hover:bg-white/10" onClick={() => router.back()}>
+            <CloseIcon className="h-7 w-7" />
+          </Button>
+          <Progress value={progressPercentage} className="h-4 bg-gray-500 [&>div]:bg-green-400" />
+          <div className="flex items-center gap-2">
+            <Heart className="h-7 w-7 text-red-500 fill-red-500" />
+            <span className="text-xl font-bold">{lives}</span>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-grow flex flex-col justify-center items-center p-4 sm:p-6 space-y-8">
+        <h1 className="text-2xl sm:text-3xl font-bold">Write this in Japanese</h1>
+        
+        <div className="flex items-center gap-4">
+           <Image
+              src="/waving_character.gif"
+              alt="Waving Character"
+              width={128}
+              height={128}
+              unoptimized
+              className="w-24 h-24 sm:w-32 sm:h-32"
+            />
+           <div className="flex items-center gap-2">
+             <div className="text-2xl sm:text-4xl font-bold tracking-wider">
+               {currentItem.english_sentence}
+            </div>
+           </div>
+        </div>
+        
+        {/* Answer Area */}
+        <div className="w-full max-w-2xl">
+            <div className="flex flex-wrap gap-2 p-4 border-b-2 border-dashed border-gray-500 min-h-[6rem]">
+                 {selectedWords.map((word, index) => (
+                    <Button
+                        key={`${word}-${index}`}
+                        variant="outline"
+                        size="lg"
+                        onClick={() => handleDeselectWord(word, index)}
+                        className="h-14 text-lg bg-secondary/80 text-secondary-foreground hover:bg-secondary"
+                    >
+                    {word}
+                    </Button>
+                ))}
+            </div>
+        </div>
+
+
+        {/* Word Bank */}
+        <div className="w-full max-w-2xl flex flex-wrap justify-center gap-2">
+          {wordBank.map((word, index) => (
+            <WordButton
+              key={`${word}-${index}`}
+              word={word}
+              onClick={() => handleSelectWord(word)}
+              isDisabled={isAnswered}
+            />
+          ))}
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className={cn(
+        "w-full p-4 border-t-2 transition-all duration-300",
+        isAnswered && isCorrect && "bg-green-200/20 border-green-500",
+        isAnswered && !isCorrect && "bg-red-200/20 border-red-500",
+        !isAnswered && "border-gray-700"
+      )}>
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          {!isAnswered ? (
+             <>
+                <Button variant="ghost" size="lg" className="hover:bg-white/10 text-lg">SKIP</Button>
+                <Button 
+                    size="lg" 
+                    className="bg-green-500 hover:bg-green-600 text-white text-lg px-12"
+                    onClick={checkAnswer}
+                    disabled={selectedWords.length === 0}
+                >
+                    CHECK
+                </Button>
+             </>
+          ) : (
+            <>
+                <div className="flex flex-col">
+                    <span className="text-lg font-bold">{isCorrect ? "Correct!" : "Incorrect"}</span>
+                    {!isCorrect && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm">{currentItem.hint}</span>
+                            <PronunciationButton text={currentItem.correct_japanese} />
+                        </div>
+                    )}
+                </div>
+                 <Button 
+                    size="lg" 
+                    className={cn(
+                        "text-white text-lg px-12",
+                        isCorrect ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"
+                    )}
+                    onClick={handleContinue}
+                >
+                    CONTINUE
+                </Button>
+            </>
+          )}
+        </div>
+      </footer>
+    </div>
+  );
+}
