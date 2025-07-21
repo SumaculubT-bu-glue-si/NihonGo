@@ -129,9 +129,7 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
         <CardHeader>
           <CardTitle>Check Your Understanding</CardTitle>
           <CardDescription>
-            {lesson.read
-              ? "You've already completed this lesson's test. You can take it again to practice."
-              : "Complete this lesson by taking a short test!"}
+            Complete this lesson by taking a short test!
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -141,7 +139,7 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
             ) : (
                <Wand2 className="mr-2 h-4 w-4" />
             )}
-            {isGenerating ? 'Generating Test...' : 'Take Short Test'}
+            {isGenerating ? 'Generating Test...' : (lesson.read ? 'Retake Test' : 'Take Short Test')}
           </Button>
         </CardContent>
       </Card>
