@@ -15,6 +15,7 @@ export interface AppData {
   grammarLessons: GrammarLesson[];
   quizzes: Quiz[];
   quizScores: QuizScore[];
+  favoriteGrammarLessons: string[];
 }
 
 export interface FullAppData {
@@ -43,6 +44,7 @@ interface GlobalStateContextType {
   addGeneratedCards: (deckId: string, newCards: Omit<Flashcard, 'id'>[]) => Flashcard[];
   updateStats: (topic: string, masteredCount: number) => void;
   toggleGrammarLessonRead: (lessonId: string, read: boolean) => void;
+  toggleGrammarLessonFavorite: (lessonId: string) => void;
   updateQuizScore: (quizId: string, score: number) => void;
   addQuiz: (quizData: Omit<Quiz, 'id' | 'questions'>) => Quiz;
   updateQuiz: (quizId: string, quizData: Partial<Quiz>) => void;
@@ -70,6 +72,7 @@ const getInitialUserData = (): AppData => ({
     grammarLessons: initialGrammarLessons,
     quizzes: initialQuizzes,
     quizScores: [],
+    favoriteGrammarLessons: [],
 });
 
 const getInitialVariants = (): ActiveVariants => ({
@@ -338,6 +341,22 @@ export const useGlobalStateData = () => {
             ),
         }));
     }, [setCurrentUserData]);
+    
+    const toggleGrammarLessonFavorite = useCallback((lessonId: string) => {
+        setCurrentUserData(prevData => {
+            const newFavorites = new Set(prevData.favoriteGrammarLessons);
+            if (newFavorites.has(lessonId)) {
+                newFavorites.delete(lessonId);
+            } else {
+                newFavorites.add(lessonId);
+            }
+            return {
+                ...prevData,
+                favoriteGrammarLessons: Array.from(newFavorites)
+            };
+        });
+    }, [setCurrentUserData]);
+
 
     const updateQuizScore = useCallback((quizId: string, newScore: number) => {
         setCurrentUserData(prevData => {
@@ -452,6 +471,7 @@ export const useGlobalStateData = () => {
         addGeneratedCards,
         updateStats,
         toggleGrammarLessonRead,
+        toggleGrammarLessonFavorite,
         updateQuizScore,
         addQuiz,
         updateQuiz,

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { GrammarLesson } from '@/lib/data';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
@@ -9,7 +9,7 @@ import { GrammarCheckerTool } from './checker-view';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, BookOpen, ArrowRight } from 'lucide-react';
+import { CheckCircle2, BookOpen, ArrowRight, Star } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 
 type LevelFilter = 'All' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 type StatusFilter = 'all' | 'completed' | 'incomplete';
+type CategoryFilter = LevelFilter | 'Favorites';
 
 const levelColors: { [key in LevelFilter]?: string } = {
   N5: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
@@ -33,9 +34,9 @@ const levelColors: { [key in LevelFilter]?: string } = {
   N1: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
 };
 
-const LessonItem = ({ lesson }: { lesson: GrammarLesson }) => (
-  <Link href={`/grammar-lessons/${lesson.id}`} passHref>
-    <div className="flex items-center justify-between p-3 border-b last:border-b-0 hover:bg-muted/50 cursor-pointer">
+const LessonItem = ({ lesson, isFavorite, onToggleFavorite }: { lesson: GrammarLesson, isFavorite: boolean, onToggleFavorite: (id: string) => void }) => (
+  <div className="flex items-center justify-between p-3 border-b last:border-b-0 hover:bg-muted/50 cursor-pointer group">
+      <Link href={`/grammar-lessons/${lesson.id}`} passHref className="flex-grow">
         <div className="flex items-center gap-4">
           {lesson.read ? (
               <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
@@ -46,19 +47,36 @@ const LessonItem = ({ lesson }: { lesson: GrammarLesson }) => (
             <p className="font-semibold">{lesson.title}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-           <Badge className={cn(levelColors[lesson.level as LevelFilter] ?? 'bg-gray-100 text-gray-800', 'border-transparent')}>
-              {lesson.level}
-            </Badge>
+      </Link>
+      <div className="flex items-center gap-2">
+         <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(lesson.id); }}
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+            <Star
+                className={`h-5 w-5 transition-colors ${
+                isFavorite
+                    ? 'fill-yellow-400 text-yellow-500'
+                    : 'text-muted-foreground/50 group-hover:text-muted-foreground'
+                }`}
+            />
+        </Button>
+         <Badge className={cn(levelColors[lesson.level as LevelFilter] ?? 'bg-gray-100 text-gray-800', 'border-transparent')}>
+            {lesson.level}
+          </Badge>
+          <Link href={`/grammar-lessons/${lesson.id}`} passHref>
             <Button size="sm" variant="ghost">
               <ArrowRight className="h-4 w-4" />
             </Button>
-        </div>
-    </div>
-  </Link>
+          </Link>
+      </div>
+  </div>
 );
 
-const LessonCard = ({ lesson }: { lesson: GrammarLesson }) => (
+const LessonCard = ({ lesson, isFavorite, onToggleFavorite }: { lesson: GrammarLesson, isFavorite: boolean, onToggleFavorite: (id: string) => void }) => (
     <Card className="flex flex-col hover:shadow-lg transition-shadow">
         <CardHeader>
             <div className="flex justify-between items-start">
@@ -66,6 +84,21 @@ const LessonCard = ({ lesson }: { lesson: GrammarLesson }) => (
                     {lesson.level}
                 </Badge>
                 <div className="flex items-center">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => onToggleFavorite(lesson.id)}
+                        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    >
+                        <Star
+                            className={`h-5 w-5 transition-colors ${
+                            isFavorite
+                                ? 'fill-yellow-400 text-yellow-500'
+                                : 'text-muted-foreground/50 hover:text-muted-foreground'
+                            }`}
+                        />
+                    </Button>
                   {lesson.read ? (
                       <div className="flex items-center gap-1 text-xs text-green-600">
                           <CheckCircle2 className="h-4 w-4" />
@@ -97,9 +130,9 @@ const LessonCard = ({ lesson }: { lesson: GrammarLesson }) => (
 );
 
 export function GrammarLessonsView() {
-  const { appData, isLoading } = useGlobalState();
+  const { appData, isLoading, toggleGrammarLessonFavorite } = useGlobalState();
 
-  const [levelFilter, setLevelFilter] = useState<LevelFilter>('All');
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   
   if (isLoading || !appData) {
@@ -113,13 +146,19 @@ export function GrammarLessonsView() {
   const activeVariant = appData.activeVariants.grammar;
 
   const filteredLessons = appData.grammarLessons
-    .filter(lesson => levelFilter === 'All' || lesson.level === levelFilter)
+    .filter(lesson => {
+      if (categoryFilter === 'All') return true;
+      if (categoryFilter === 'Favorites') return appData.favoriteGrammarLessons.includes(lesson.id);
+      return lesson.level === categoryFilter;
+    })
     .filter(lesson => {
       if (statusFilter === 'all') return true;
       if (statusFilter === 'completed') return lesson.read;
       if (statusFilter === 'incomplete') return !lesson.read;
       return true;
     });
+
+  const categories: CategoryFilter[] = ['All', 'N5', 'N4', 'N3', 'N2', 'N1', 'Favorites'];
 
   return (
     <div className="container mx-auto space-y-8">
@@ -151,9 +190,9 @@ export function GrammarLessonsView() {
         </div>
         <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-between">
-              <Tabs value={levelFilter} onValueChange={(v) => setLevelFilter(v as LevelFilter)}>
+              <Tabs value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as CategoryFilter)}>
                   <TabsList>
-                      {(['All', 'N5', 'N4', 'N3', 'N2', 'N1'] as LevelFilter[]).map(level => (
+                      {categories.map(level => (
                           <TabsTrigger key={level} value={level}>{level}</TabsTrigger>
                       ))}
                   </TabsList>
@@ -184,6 +223,8 @@ export function GrammarLessonsView() {
                           <LessonCard 
                               key={lesson.id} 
                               lesson={lesson} 
+                              isFavorite={appData.favoriteGrammarLessons.includes(lesson.id)}
+                              onToggleFavorite={toggleGrammarLessonFavorite}
                           />
                       ))
                   ) : (
@@ -192,6 +233,8 @@ export function GrammarLessonsView() {
                               <LessonItem 
                                   key={lesson.id} 
                                   lesson={lesson} 
+                                  isFavorite={appData.favoriteGrammarLessons.includes(lesson.id)}
+                                  onToggleFavorite={toggleGrammarLessonFavorite}
                               />
                           ))}
                       </CardContent></Card>
