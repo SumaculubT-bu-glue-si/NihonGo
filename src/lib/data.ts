@@ -54,29 +54,33 @@ export interface QuizScore {
   highestScore: number; // Stored as a percentage (0-100)
 }
 
-export type ChallengeNodeType = 'lesson' | 'quiz' | 'boss';
-
-export interface ChallengeNode {
-  id: string;
-  type: ChallengeNodeType;
-  title: string;
-  lessonId?: string; // Link to a grammar lesson
-  quizId?: string; // Link to a quiz
+// New Challenge Data Structure
+export interface ChallengeItem {
+  id: number;
+  grammar_point: string;
+  english_sentence: string;
+  correct_japanese: string;
+  word_bank: string[];
+  hint: string;
+  distractors: string[];
 }
 
-export interface ChallengeUnit {
-  unit: number;
-  title: string;
-  nodes: ChallengeNode[];
+export interface Stage {
+  [stageId: string]: ChallengeItem[];
 }
 
-export interface ChallengeLevel {
-  level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
-  section: number;
-  title: string;
-  units: ChallengeUnit[];
+export interface Unit {
+  [unitId: string]: Stage;
+}
+
+export interface ChallengeData {
+  [level: string]: Unit;
 }
 
 export interface ChallengeProgress {
-  [nodeId: string]: boolean; // key is nodeId, value is completion status
+  [level: string]: {
+    [unitId: string]: {
+      [stageId: string]: 'completed' | 'active' | 'locked';
+    }
+  }
 }

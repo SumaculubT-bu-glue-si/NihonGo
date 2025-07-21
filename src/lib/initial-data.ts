@@ -1,5 +1,5 @@
 
-import type { Deck, StatsData, GrammarLesson, Quiz, ChallengeLevel } from './data';
+import type { Deck, StatsData, GrammarLesson, Quiz } from './data';
 import { grammarLessons as initialGrammarLessons } from './grammar-lessons-data';
 import { allQuizzes } from './quiz-data';
 
@@ -251,47 +251,4 @@ export const initialQuizzes: Quiz[] = [
     ...allQuizzes.grammar.N3,
     ...allQuizzes.grammar.N2,
     ...allQuizzes.grammar.N1,
-];
-
-export const challengeLevels: ChallengeLevel[] = [
-  {
-    level: 'N5',
-    section: 1,
-    title: 'Foundations of Japanese',
-    units: [
-      {
-        unit: 1,
-        title: 'Basic Sentences',
-        nodes: [
-          { id: 'n5-c1-1', type: 'lesson', title: 'A is B', lessonId: 'gl-n5-31' },
-          { id: 'n5-c1-2', type: 'quiz', title: 'Test: A is B', quizId: 'quiz-gram-n5-1' },
-          { id: 'n5-c1-3', type: 'lesson', title: 'Particles は & も', lessonId: 'gl-n5-16' },
-          { id: 'n5-c1-4', type: 'quiz', title: 'Test: Particles は & も', quizId: 'quiz-gram-n5-1' },
-          { id: 'n5-c1-5', type: 'boss', title: 'Unit 1 Review', quizId: 'quiz-gram-n5-1' },
-        ],
-      },
-      {
-        unit: 2,
-        title: 'Asking Questions',
-        nodes: [
-          { id: 'n5-c2-1', type: 'lesson', title: 'Question Particle か', lessonId: 'gl-n5-5' },
-          { id: 'n5-c2-2', type: 'quiz', title: 'Test: Particle か', quizId: 'quiz-gram-n5-1' },
-          { id: 'n5-c2-3', type: 'lesson', title: 'Question Words', lessonId: 'gl-n5-68' },
-          { id: 'n5-c2-4', type: 'quiz', title: 'Test: Question Words', quizId: 'quiz-gram-n5-1' },
-          { id: 'n5-c2-5', type: 'boss', title: 'Unit 2 Review', quizId: 'quiz-gram-n5-1' },
-        ],
-      },
-      {
-        unit: 3,
-        title: 'Locations & Objects',
-        nodes: [
-          { id: 'n5-c3-1', type: 'lesson', title: 'Particles に, へ, で', lessonId: 'gl-n5-19' },
-          { id: 'n5-c3-2', type: 'quiz', title: 'Test: Location Particles', quizId: 'quiz-gram-n5-1' },
-          { id: 'n5-c3-3', type: 'lesson', title: 'Particle を', lessonId: 'gl-n5-18' },
-          { id: 'n5-c3-4', type: 'quiz', title: 'Test: Object Particle', quizId: 'quiz-gram-n5-1' },
-          { id: 'n5-c3-5', type: 'boss', title: 'Unit 3 Review', quizId: 'quiz-gram-n5-1' },
-        ]
-      }
-    ],
-  },
 ];
