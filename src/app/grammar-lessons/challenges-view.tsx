@@ -5,10 +5,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Stage, Unit, ChallengeProgress } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { BookOpen, ChevronLeft, CircleCheck, Lock, Trophy, Swords, Castle } from 'lucide-react';
+import { BookOpen, ChevronLeft, CircleCheck, Lock, Trophy, Swords, Castle, Gem, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/card';
 
 const getNodeStatus = (unitId: string, stageId: string, progress: ChallengeProgress) => {
   // This logic will need to be updated based on how progress is tracked.
@@ -86,29 +87,28 @@ export function ChallengesView() {
 
   return (
     <div className="mx-auto flex h-full w-full max-w-2xl flex-col font-sans">
-      {/* Header */}
-      <div className="sticky top-0 z-10 -mx-4 -mt-4 mb-8 bg-primary/90 p-4 backdrop-blur-sm">
-        <div className="container mx-auto flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-primary-foreground hover:bg-primary-foreground/10"
-          >
-            <ChevronLeft className="mr-2" />
-            SECTION 1, {currentUnitId.split(':')[0].toUpperCase()}
-          </Button>
-          <div className="text-center text-xl font-bold text-primary-foreground">
-            {currentUnitId.split(':')[0]}
+      
+       <Card className="mb-8 bg-primary text-primary-foreground">
+        <CardContent className="p-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Level 1</h2>
           </div>
-          <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10">
-            <BookOpen className="mr-2" />
-            GUIDEBOOK
-          </Button>
-        </div>
-      </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Gem className="h-6 w-6" />
+              <span className="text-lg font-bold">100</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Heart className="h-6 w-6" />
+              <span className="text-lg font-bold">5</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
 
       {/* Learning Path */}
-      <div className="flex flex-1 flex-col items-center justify-start space-y-8 overflow-y-auto pt-8 pb-24">
+      <div className="flex flex-1 flex-col items-center justify-start space-y-8 overflow-y-auto pb-24">
         {Object.keys(currentUnit).map((stageId, index) => {
           const status = getNodeStatus(currentUnitId, stageId, challengeProgress);
           const isBoss = index === Object.keys(currentUnit).length - 1;
