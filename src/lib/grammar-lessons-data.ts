@@ -3,7 +3,6 @@ import type { GrammarLesson } from './data';
 
 export const grammarLessons: GrammarLesson[] = [
   // N5 Grammar Lessons
-  // --- Basic Sentence Structure & Copulas ---
   {
     id: 'gl-n5-1',
     title: 'です (desu) – Polite "to be"',
@@ -47,7 +46,6 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
-  // --- Sentence Enders ---
   {
     id: 'gl-n5-5',
     title: '～か (ka) – Question marker',
@@ -89,7 +87,6 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
-  // --- Verb Forms ---
   {
     id: 'gl-n5-9',
     title: '～ます / ～ません – Polite verb forms',
@@ -164,7 +161,6 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
-  // --- Particles ---
   {
     id: 'gl-n5-16',
     title: 'は (wa) – Topic marker',
@@ -319,7 +315,6 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
-  // --- Common Structures ---
   {
     id: 'gl-n5-31',
     title: 'A は B です (A wa B desu)',
@@ -380,7 +375,6 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
-  // --- Existence & Location ---
   {
     id: 'gl-n5-37',
     title: '～がある (ga aru) – There is (inanimate)',
@@ -421,7 +415,6 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
-  // --- Time & Quantity ---
   {
     id: 'gl-n5-41',
     title: '～時 / ～分 – Telling time',
@@ -523,7 +516,6 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
-  // --- Requests, Desires, & Suggestions ---
   {
     id: 'gl-n5-51',
     title: '～てください (te kudasai) – Please do ~',
@@ -594,7 +586,6 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
-  // --- Adjectives ---
   {
     id: 'gl-n5-58',
     title: 'い-adjectives (takai, oishii)',
@@ -636,7 +627,6 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
-  // --- Other useful grammar ---
   {
     id: 'gl-n5-62',
     title: '～てもいいです (te mo ii desu) – It\'s okay to / may',
@@ -677,7 +667,6 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
-  // --- Question Words & Adverbs ---
   {
     id: 'gl-n5-66',
     title: 'どうして / なぜ / なんで (doushite / naze / nande) – Why',
@@ -730,7 +719,6 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
-  // --- More Advanced N5 Structures ---
   {
     id: 'gl-n5-71',
     title: '～そうです (hearsay) (sou desu) – I heard that ~',
@@ -784,7 +772,7 @@ export const grammarLessons: GrammarLesson[] = [
   // N4 Grammar Lessons
   {
     id: 'gl-n4-1',
-    title: '～ている (te iru) – Ongoing action or result',
+    title: '～ている – Ongoing action or result',
     level: 'N4',
     explanation: 'Expresses an ongoing action (is doing), a continuous state (is married), or a state resulting from a past action (the window is open).',
     examples: [
@@ -795,7 +783,7 @@ export const grammarLessons: GrammarLesson[] = [
   },
   {
     id: 'gl-n4-2',
-    title: '～てしまう (te shimau) – Completion or regret',
+    title: '～てしまう – Completion or regret',
     level: 'N4',
     explanation: 'Indicates the completion of an action, often with a sense of it being final, regrettable, or unintentional.',
     examples: [
@@ -806,7 +794,7 @@ export const grammarLessons: GrammarLesson[] = [
   },
   {
     id: 'gl-n4-3',
-    title: '～ておく (te oku) – Do something in advance',
+    title: '～ておく – Do something in advance',
     level: 'N4',
     explanation: 'Indicates an action performed in preparation for something else. Often shortened to ～とく in casual speech.',
     examples: [
@@ -816,7 +804,7 @@ export const grammarLessons: GrammarLesson[] = [
   },
   {
     id: 'gl-n4-4',
-    title: '～てみる (te miru) – Try doing something',
+    title: '～てみる – Try doing something',
     level: 'N4',
     explanation: 'Used to express trying something out to see what it\'s like.',
     examples: [
@@ -1306,6 +1294,672 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
+  // N3 Grammar Lessons
+  {
+    id: 'gl-n3-1',
+    title: '～れる／られる (Passive)',
+    level: 'N3',
+    explanation: 'The passive voice, used when the subject is acted upon. Also used as a form of honorific speech.',
+    examples: [
+      '私は先生に褒められました。(Watashi wa sensei ni homeraremashita) - I was praised by the teacher.',
+      'この本は多くの人に読まれています。(Kono hon wa ooku no hito ni yomarete imasu) - This book is read by many people.'
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-2',
+    title: '～せる／させる (Causative)',
+    level: 'N3',
+    explanation: 'The causative form, used to express making or letting someone do something.',
+    examples: [
+      '母は子供に野菜を食べさせました。(Haha wa kodomo ni yasai o tabesasemashita) - The mother made her child eat vegetables.',
+      '先生は生徒を立たせました。(Sensei wa seito o tatasemashita) - The teacher made the student stand up.'
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-3',
+    title: '～させられる (Causative Passive)',
+    level: 'N3',
+    explanation: 'Combines the causative and passive voices to express being forced to do something against one\'s will.',
+    examples: [
+      '私は母に部屋の掃除をさせられました。(Watashi wa haha ni heya no souji o saseraremashita) - I was forced to clean my room by my mother.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-4',
+    title: '～てある',
+    level: 'N3',
+    explanation: 'Indicates a resultant state from an action done with a purpose. The action was done by someone, and the result remains.',
+    examples: [
+      '窓が開けてあります。(Mado ga akete arimasu) - The window has been opened (and was left that way).',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-5',
+    title: '～ておく',
+    level: 'N3',
+    explanation: 'Indicates doing something in preparation for the future. Can be shortened to ～とく.',
+    examples: [
+      '旅行の前に、切符を買っておきます。(Ryokou no mae ni, kippu o katte okimasu) - I\'ll buy the tickets before the trip.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-6',
+    title: '～ていく / ～てくる',
+    level: 'N3',
+    explanation: 'Shows the direction of a change or action. ～ていく indicates a change starting from now and moving towards the future. ～てくる indicates a change that started in the past and continues to the present.',
+    examples: [
+      'これから寒くなっていきます。(Korekara samuku natte ikimasu) - It will get colder from now on.',
+      '日本語が上手になってきました。(Nihongo ga jouzu ni natte kimashita) - My Japanese has gotten better (up to now).',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-7',
+    title: '～ようにする',
+    level: 'N3',
+    explanation: 'To make an effort to do something, to try to make something a habit.',
+    examples: [
+      '毎日、運動するようにしています。(Mainichi, undou suru you ni shite imasu) - I try to exercise every day.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-8',
+    title: '～ようになる',
+    level: 'N3',
+    explanation: 'Indicates a change in ability or state; to become able to do something.',
+    examples: [
+      'やっと自転車に乗れるようになりました。(Yatto jitensha ni noreru you ni narimashita) - I finally became able to ride a bicycle.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-9',
+    title: '～ように言う',
+    level: 'N3',
+    explanation: 'Used for indirect quotes, reporting a request, command, or advice.',
+    examples: [
+      '医者に、お酒を飲まないように言われました。(Isha ni, osake o nomanai you ni iwaremashita) - I was told by the doctor not to drink alcohol.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-10',
+    title: '～ようとする',
+    level: 'N3',
+    explanation: 'To try to do something, or to be about to do something.',
+    examples: [
+      'ドアを開けようとしたが、開きませんでした。(Doa o akeyou to shita ga, akimasen deshita) - I tried to open the door, but it wouldn\'t open.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-11',
+    title: '～ことにする',
+    level: 'N3',
+    explanation: 'Indicates a decision made by the speaker.',
+    examples: [
+      '来月から、タバコをやめることにしました。(Raigetsu kara, tabako o yameru koto ni shimashita) - I\'ve decided to quit smoking from next month.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-12',
+    title: '～ことになる',
+    level: 'N3',
+    explanation: 'Indicates something has been decided, usually by others or by circumstances.',
+    examples: [
+      '来年、アメリカへ転勤することになりました。(Rainen, amerika e tenkin suru koto ni narimashita) - It has been decided that I will be transferred to America next year.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-13',
+    title: '～ところだ',
+    level: 'N3',
+    explanation: 'Expresses a point in time relative to an action: about to do, in the middle of doing, or just finished doing.',
+    examples: [
+      'ちょうど今から出かけるところです。(Choudo ima kara dekakeru tokoro desu) - I am just about to go out now.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-14',
+    title: '～ばかり',
+    level: 'N3',
+    explanation: 'Can mean "just finished doing" (after た-form) or "only doing" (after て-form).',
+    examples: [
+      'さっき昼ごはんを食べたばかりです。(Sakki hirugohan o tabeta bakari desu) - I just ate lunch a little while ago.',
+      '息子は遊んでばかりいる。(Musuko wa asonde bakari iru) - My son does nothing but play.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-15',
+    title: '～ばかりでなく～も',
+    level: 'N3',
+    explanation: 'Not only X, but also Y.',
+    examples: [
+      '彼女は英語ばかりでなく、フランス語も話せます。(Kanojo wa eigo bakari de naku, furansugo mo hanasemasu) - She can speak not only English but also French.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-16',
+    title: '～そうだ (Hearsay)',
+    level: 'N3',
+    explanation: 'Reports information heard from another source. Used with plain forms.',
+    examples: [
+      '天気予報によると、明日は雨だそうです。(Tenki yohou ni yoru to, ashita wa ame da sou desu) - According to the weather forecast, I heard it will rain tomorrow.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-17',
+    title: '～らしい',
+    level: 'N3',
+    explanation: 'Indicates that the speaker is making a judgment based on what they have heard or seen. Implies some uncertainty.',
+    examples: [
+      '田中さんは会社を辞めるらしいです。(Tanaka-san wa kaisha o yameru rashii desu) - I hear that Tanaka is quitting the company.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-18',
+    title: '～ようだ',
+    level: 'N3',
+    explanation: 'Indicates a judgment based on sensory evidence. "It seems that..." or "It looks like...".',
+    examples: [
+      '彼は風邪をひいたようです。(Kare wa kaze o hiita you desu) - It seems like he has caught a cold.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-19',
+    title: '～みたい',
+    level: 'N3',
+    explanation: 'A more colloquial version of ～ようだ. Can also mean "like" or "similar to".',
+    examples: [
+      '今日は冬みたいに寒いですね。(Kyou wa fuyu mitai ni samui desu ne) - It\'s cold like winter today, isn\'t it?',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-20',
+    title: '～はず',
+    level: 'N3',
+    explanation: 'Expresses a strong conviction that something is true or expected to happen based on evidence.',
+    examples: [
+      '彼は今日来るはずです。(Kare wa kyou kuru hazu desu) - He is supposed to come today.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-21',
+    title: '～かもしれない',
+    level: 'N3',
+    explanation: 'Expresses a possibility ("might", "maybe"). Less certain than ～はず or ～でしょう.',
+    examples: [
+      '明日は雨が降るかもしれません。(Ashita wa ame ga furu kamo shiremasen) - It might rain tomorrow.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-22',
+    title: '～に違いない',
+    level: 'N3',
+    explanation: 'Expresses a strong degree of certainty; "I\'m sure that...", "it must be...".',
+    examples: [
+      'あの人は、犯人に違いない。(Ano hito wa, hannin ni chigainai) - That person must be the culprit.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-23',
+    title: '～と',
+    level: 'N3',
+    explanation: 'Conditional for natural, inevitable results. "If/When A happens, B always happens".',
+    examples: [
+      'このボタンを押すと、ドアが開きます。(Kono botan o osu to, doa ga akimasu) - When you press this button, the door opens.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-24',
+    title: '～ば',
+    level: 'N3',
+    explanation: 'A general conditional form ("if"). Often used for hypothetical situations.',
+    examples: [
+      '時間があれば、行きます。(Jikan ga areba, ikimasu) - If I have time, I\'ll go.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-25',
+    title: '～たら',
+    level: 'N3',
+    explanation: 'A versatile conditional ("if/when") based on the past-tense form. Can be used for a wide range of situations.',
+    examples: [
+      '日本へ行ったら、寿司を食べたいです。(Nihon e ittara, sushi o tabetai desu) - If/when I go to Japan, I want to eat sushi.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-26',
+    title: '～なら',
+    level: 'N3',
+    explanation: 'Conditional used when a topic is introduced by someone else. "If that\'s the case..." or "As for...".',
+    examples: [
+      'A: 東京へ行きたいです。 B: 東京へ行くなら、新幹線が便利ですよ。(Tokyo e iku nara, shinkansen ga benri desu yo) - If you\'re going to Tokyo, the bullet train is convenient.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-27',
+    title: '～のに',
+    level: 'N3',
+    explanation: 'Used to show a result that is contrary to expectations. "Although", "even though". Often implies surprise or frustration.',
+    examples: [
+      '薬を飲んだのに、熱が下がりません。(Kusuri o nonda noni, netsu ga sagarimasen) - Even though I took the medicine, my fever won\'t go down.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-28',
+    title: '～ても',
+    level: 'N3',
+    explanation: 'Even if...; no matter what...',
+    examples: [
+      '雨が降っても、行きます。(Ame ga futte mo, ikimasu) - Even if it rains, I will go.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-29',
+    title: '～たところ',
+    level: 'N3',
+    explanation: 'Indicates what was found or what happened when an action was performed.',
+    examples: [
+      '先生に質問したところ、丁寧に教えてくれました。(Sensei ni shitsumon shita tokoro, teinei ni oshiete kuremashita) - When I asked the teacher a question, he explained it politely.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-30',
+    title: '～うちに',
+    level: 'N3',
+    explanation: 'Indicates that something should be done while a certain state or condition exists, before it changes.',
+    examples: [
+      '日本にいるうちに、富士山に登りたい。(Nihon ni iru uchi ni, Fujisan ni noboritai) - While I am in Japan, I want to climb Mt. Fuji.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-31',
+    title: '～間に / ～間',
+    level: 'N3',
+    explanation: '「間に」indicates something happens at a point during a period.「間」indicates something happens throughout that entire period.',
+    examples: [
+      '留守の間に、どろぼうが入りました。(Rusu no aida ni, dorobou ga hairimashita) - While I was out, a thief entered.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-32',
+    title: '～うえに',
+    level: 'N3',
+    explanation: 'In addition to; on top of that. Used to add another, often related, piece of information.',
+    examples: [
+      'このレストランは美味しい上に、値段も安い。(Kono resutoran wa oishii ue ni, nedan mo yasui) - This restaurant is not only delicious, but its prices are cheap too.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-33',
+    title: '～おかげで / ～せいで',
+    level: 'N3',
+    explanation: 'おかげで: thanks to (positive reason). せいで: because of (negative reason, blame).',
+    examples: [
+      '先生のおかげで、試験に合格しました。(Sensei no okage de, shiken ni goukaku shimashita) - Thanks to my teacher, I passed the exam.',
+      '事故のせいで、電車が遅れました。(Jiko no sei de, densha ga okuremashita) - Because of the accident, the train was late.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-34',
+    title: '～ために',
+    level: 'N3',
+    explanation: 'For the purpose of; because of.',
+    examples: [
+      '家族のために、毎日働いています。(Kazoku no tame ni, mainichi hataraite imasu) - I work every day for my family.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-35',
+    title: '～によって',
+    level: 'N3',
+    explanation: 'By means of; due to; depending on.',
+    examples: [
+      'インターネットによって、世界中の情報を得られる。(Intaanetto ni yotte, sekaijuu no jouhou o erareru) - Through the internet, we can get information from around the world.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n3-36',
+    title: '～にとって',
+    level: 'N3',
+    explanation: 'For; from the perspective of.',
+    examples: [
+      'この問題は私にとって、とても難しいです。(Kono mondai wa watashi ni totte, totemo muzukashii desu) - For me, this problem is very difficult.',
+    ],
+    read: false
+  },
+  // N2 Grammar Lessons
+  {
+    id: 'gl-n2-1',
+    title: '～ことなく',
+    level: 'N2',
+    explanation: 'Without doing something (once). A formal equivalent of ～ないで.',
+    examples: [
+      '彼は休むことなく、一日中働いた。(Kare wa yasumu koto naku, ichinichijuu hataraita) - He worked all day without taking a rest.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-2',
+    title: '～ことだから',
+    level: 'N2',
+    explanation: 'Used when making a judgment based on the listener\'s knowledge of a person\'s typical character or behavior.',
+    examples: [
+      'まじめな田中さんのことだから、きっと時間通りに来るでしょう。(Majime na Tanaka-san no koto da kara, kitto jikan doori ni kuru deshou) - Since it\'s the diligent Tanaka-san we\'re talking about, he\'ll surely come on time.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-3',
+    title: '～ことに',
+    level: 'N2',
+    explanation: 'Emphasizes the speaker\'s feelings about something. "To my (surprise/disappointment/etc.)..."',
+    examples: [
+      '残念なことに、彼は試験に落ちてしまった。(Zannen na koto ni, kare wa shiken ni ochite shimatta) - Unfortunately (to my regret), he failed the exam.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-4',
+    title: '～ことはない',
+    level: 'N2',
+    explanation: 'There is no need to do something.',
+    examples: [
+      '心配することはないよ。大丈夫だから。(Shinpai suru koto wa nai yo. Daijoubu da kara) - There\'s no need to worry. It\'s alright.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-5',
+    title: '～ことは～が',
+    level: 'N2',
+    explanation: 'It\'s true that... but...; used to acknowledge a point before presenting a contrasting one.',
+    examples: [
+      'このギターは、高いことは高いが、とても良い音がする。(Kono gitaa wa, takai koto wa takai ga, totemo yoi oto ga suru) - It\'s true this guitar is expensive, but it has a very good sound.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-6',
+    title: '～ということだ',
+    level: 'N2',
+    explanation: 'I heard that...; it means that... Used for hearsay or to summarize information.',
+    examples: [
+      'ニュースによると、明日は台風が来るということだ。(Nyuusu ni yoru to, ashita wa taifuu ga kuru to iu koto da) - According to the news, a typhoon is coming tomorrow.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-7',
+    title: '～ないことには～ない',
+    level: 'N2',
+    explanation: 'Unless you do X, you can\'t do Y. Expresses a necessary condition.',
+    examples: [
+      '実際に会ってみないことには、どんな人かわからない。(Jissai ni atte minai koto ni wa, donna hito ka wakaranai) - Unless you actually meet them, you won\'t know what kind of person they are.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-8',
+    title: '～わけだ',
+    level: 'N2',
+    explanation: 'No wonder; that\'s why; it makes sense that... Used when a conclusion is reached logically.',
+    examples: [
+      'A: 彼は日本に10年住んでいる。 B: なるほど、日本語が上手なわけだ。(Naruhodo, nihongo ga jouzu na wake da) - I see, no wonder his Japanese is so good.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-9',
+    title: '～わけではない',
+    level: 'N2',
+    explanation: 'It doesn\'t mean that...; it\'s not that... Used for partial negation.',
+    examples: [
+      '日本の料理が全部好きというわけではない。(Nihon no ryouri ga zenbu suki to iu wake de wa nai) - It\'s not that I like all Japanese food.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-10',
+    title: '～わけがない',
+    level: 'N2',
+    explanation: 'There is no way that...; impossible that... Expresses strong denial.',
+    examples: [
+      'あんなに練習したんだから、試合に負けるわけがない。(Anna ni renshuu shita n da kara, shiai ni makeru wake ga nai) - Having practiced so much, there\'s no way I\'ll lose the match.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-11',
+    title: '～わけにはいかない',
+    level: 'N2',
+    explanation: 'Can\'t afford to...; can\'t do something for social or psychological reasons.',
+    examples: [
+      '大事な会議があるので、休むわけにはいかない。(Daiji na kaigi ga aru node, yasumu wake ni wa ikanai) - Since there\'s an important meeting, I can\'t afford to take the day off.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-12',
+    title: '～に違いない (ni chigainai)',
+    level: 'N2',
+    explanation: 'Must be; I\'m certain that... Expresses strong conviction based on evidence.',
+    examples: [
+      '部屋の電気がついているから、彼は家にいるに違いない。(Heya no denki ga tsuite iru kara, kare wa ie ni iru ni chigainai) - The lights are on in his room, so he must be home.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-13',
+    title: '～にすぎない (ni suginai)',
+    level: 'N2',
+    explanation: 'To be nothing more than; just; only. Emphasizes the smallness or insignificance of something.',
+    examples: [
+      'それはただの噂にすぎない。(Sore wa tada no uwasa ni suginai) - That is nothing more than a rumor.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-14',
+    title: '～にほかならない (ni hokanaranai)',
+    level: 'N2',
+    explanation: 'Nothing but; none other than. Used to strongly assert the cause or identity of something.',
+    examples: [
+      'この成功は、皆の努力の結果にほかならない。(Kono seikou wa, minna no doryoku no kekka ni hokanaranai) - This success is nothing other than the result of everyone\'s effort.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n2-15',
+    title: '～にかかわらず (ni kakawarazu)',
+    level: 'N2',
+    explanation: 'Regardless of; whether or not...',
+    examples: [
+      '天候にかかわらず、イベントは開催されます。(Tenkou ni kakawarazu, ibento wa kaisai saremasu) - Regardless of the weather, the event will be held.',
+    ],
+    read: false
+  },
+  // N1 Grammar Lessons
+  {
+    id: 'gl-n1-1',
+    title: '～に至るまで (ni itaru made)',
+    level: 'N1',
+    explanation: 'Indicates the extreme extent of something, meaning "all the way to," "down to," or "even."',
+    examples: [
+      '彼は、洋服から下着に至るまで、全て黒いものだ。(Kare wa, youfuku kara shitagi ni itaru made, subete kuroi mono da) - From his clothes down to his underwear, everything he has is black.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-2',
+    title: '～に至っては (ni itatte wa)',
+    level: 'N1',
+    explanation: 'When it comes to... Used to single out an extreme or remarkable example from a list.',
+    examples: [
+      '他の科目はまあまあだが、数学に至っては、全くできない。(Hoka no kamoku wa maa maa da ga, suugaku ni itatte wa, mattaku dekinai) - His other subjects are so-so, but when it comes to math, he is completely hopeless.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-3',
+    title: '～に至って (ni itatte)',
+    level: 'N1',
+    explanation: 'Only when; only at the point when... Expresses that a realization or action happens very late.',
+    examples: [
+      '死者が出るに至って、国は初めてその危険性を認めた。(Shisha ga deru ni itatte, kuni wa hajimete sono kikensei o mitometa) - Only when deaths occurred did the country finally acknowledge the danger.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-4',
+    title: '～までもない (made mo nai)',
+    level: 'N1',
+    explanation: 'There is no need to...; it\'s not necessary to... Used for things that are obvious.',
+    examples: [
+      'それは言うまでもなく、彼の責任だ。(Sore wa iu made mo naku, kare no sekinin da) - It goes without saying that it is his responsibility.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-5',
+    title: '～にして (ni shite)',
+    level: 'N1',
+    explanation: 'Can mean "only" or "even" when referring to a person or time, highlighting something as exceptional or surprising.',
+    examples: [
+      'この問題を解けたのは、彼にして初めてだった。(Kono mondai o toketa no wa, kare ni shite hajimete datta) - He was the first person to be able to solve this problem.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-6',
+    title: '～かたわら (katawara)',
+    level: 'N1',
+    explanation: 'While doing X (as a main activity), also doing Y. Formal.',
+    examples: [
+      '彼は大学で教えるかたわら、小説を書いている。(Kare wa daigaku de oshieru katawara, shousetsu o kaite iru) - While teaching at the university, he also writes novels.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-7',
+    title: '～とあって',
+    level: 'N1',
+    explanation: 'Due to the special situation that...; because... Used for special, unique circumstances.',
+    examples: [
+      '夏休みとあって、子供たちが大勢公園で遊んでいた。(Natsuyasumi to atte, kodomotachi ga oozei kouen de asonde ita) - Because it was summer vacation, many children were playing in the park.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-8',
+    title: '～にあって (ni atte)',
+    level: 'N1',
+    explanation: 'In the condition/situation of... A formal expression.',
+    examples: [
+      'この困難な状況にあって、彼は冷静だった。(Kono konnan na joukyou ni atte, kare wa reisei datta) - In this difficult situation, he was calm.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-9',
+    title: '～とあれば',
+    level: 'N1',
+    explanation: 'If it\'s for...; if it\'s a special case that... Expresses willingness to do something for a special reason.',
+    examples: [
+      '子供のためとあれば、どんなことでもします。(Kodomo no tame to areba, donna koto de mo shimasu) - If it\'s for my child, I will do anything.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-10',
+    title: '～ようでは',
+    level: 'N1',
+    explanation: 'If such a (bad) situation continues, then... Implies a negative outcome.',
+    examples: [
+      'こんなにミスが多いようでは、安心して仕事を任せられない。(Konna ni misu ga ooi you dewa, anshin shite shigoto o makaserarenai) - If you keep making this many mistakes, I can\'t trust you with the work.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-11',
+    title: '～ずじまい (zu jimai)',
+    level: 'N1',
+    explanation: 'Ended up not doing something (that one intended to). Expresses regret.',
+    examples: [
+      '日本にいる間に、富士山に登れずじまいだった。(Nihon ni iru aida ni, Fujisan ni noborezu jimai datta) - I ended up not being able to climb Mt. Fuji while I was in Japan.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-12',
+    title: '～ではあるまいし',
+    level: 'N1',
+    explanation: 'It\'s not like...; it isn\'t as though... Used to negate an assumption.',
+    examples: [
+      '子供ではあるまいし、そんなことで泣くのはやめなさい。(Kodomo de wa arumai shi, sonna koto de naku no wa yamenasai) - It\'s not like you\'re a child, so stop crying over such things.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-13',
+    title: '～にひきかえ (ni hikikae)',
+    level: 'N1',
+    explanation: 'In sharp contrast to... Used to highlight a strong difference.',
+    examples: [
+      '昨日の大雨にひきかえ、今日は素晴らしい天気だ。(Kinou no ooame ni hikikae, kyou wa subarashii tenki da) - In sharp contrast to yesterday\'s heavy rain, the weather today is wonderful.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-14',
+    title: '～にもまして (ni mo mashite)',
+    level: 'N1',
+    explanation: 'Even more than...; above and beyond... Used for emphasis.',
+    examples: [
+      '去年にもまして、今年は暑い。(Kyonen ni mo mashite, kotoshi wa atsui) - This year is even hotter than last year.',
+    ],
+    read: false
+  },
+  {
+    id: 'gl-n1-15',
+    title: '～べく (beku)',
+    level: 'N1',
+    explanation: 'A formal way of saying "in order to." Links two clauses.',
+    examples: [
+      '彼はサッカー選手になるべく、毎日練習している。(Kare wa sakkaa senshu ni naru beku, mainichi renshuu shite iru) - In order to become a soccer player, he practices every day.',
+    ],
+    read: false
+  },
 ];
-
-  
