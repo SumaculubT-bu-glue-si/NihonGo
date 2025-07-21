@@ -37,14 +37,14 @@ export function GrammarView({ appData }: { appData: AppData }) {
             </Accordion>
 
             <TabsList className="grid w-full grid-cols-2 mt-6 h-12">
-                <TabsTrigger value="library" className="text-lg">Lessons Library</TabsTrigger>
-                <TabsTrigger value="challenges" className="text-lg">Challenges</TabsTrigger>
+                <TabsTrigger value="library" className="text-lg font-bold">Lessons Library</TabsTrigger>
+                <TabsTrigger value="challenges" className="text-lg font-bold">Challenges</TabsTrigger>
             </TabsList>
             <TabsContent value="library" className="mt-6">
                 <GrammarLessonsView />
             </TabsContent>
             <TabsContent value="challenges" className="mt-6">
-                 <ChallengesView />
+                 <ChallengesView appData={appData} />
             </TabsContent>
         </Tabs>
     </div>
