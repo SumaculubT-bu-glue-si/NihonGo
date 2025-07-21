@@ -53,3 +53,29 @@ export interface QuizScore {
   quizId: string;
   highestScore: number; // Stored as a percentage (0-100)
 }
+
+export type ChallengeNodeType = 'lesson' | 'quiz' | 'boss';
+
+export interface ChallengeNode {
+  id: string;
+  type: ChallengeNodeType;
+  title: string;
+  quizId?: string; // Link to a quiz
+}
+
+export interface ChallengeUnit {
+  unit: number;
+  title: string;
+  nodes: ChallengeNode[];
+}
+
+export interface ChallengeLevel {
+  level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+  section: number;
+  title: string;
+  units: ChallengeUnit[];
+}
+
+export interface ChallengeProgress {
+  [nodeId: string]: boolean; // key is nodeId, value is completion status
+}

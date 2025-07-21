@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { NihonGoLogo } from './icons';
-import { Home, BookMarked, BookOpen, ClipboardList, BarChart3, Settings, LogOut, ShieldCheck, ChevronDown, Users } from 'lucide-react';
+import { Home, BookMarked, BookOpen, ClipboardList, BarChart3, Settings, LogOut, ShieldCheck, ChevronDown, Users, Swords } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -29,6 +29,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const menuItems = [
     { href: '/decks', label: 'Home', icon: Home, admin: false },
     { href: '/grammar-lessons', label: 'Grammar', icon: BookMarked, admin: false },
+    { href: '/challenges', label: 'Challenges', icon: Swords, admin: false },
     { href: '/dictionary', label: 'Dictionary', icon: BookOpen, admin: false },
     { href: '/quizzes', label: 'Quizzes', icon: ClipboardList, admin: false },
     { href: '/stats', label: 'Dashboard', icon: BarChart3, admin: false },

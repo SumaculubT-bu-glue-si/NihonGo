@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import type { Deck, StatsData, Flashcard, GrammarLesson, Quiz, QuizScore, QuizQuestion } from '@/lib/data';
-import { decks as initialDecks, userStats as initialUserStats, grammarLessons as initialGrammarLessons, initialQuizzes } from '@/lib/initial-data';
+import type { Deck, StatsData, Flashcard, GrammarLesson, Quiz, QuizScore, QuizQuestion, ChallengeLevel, ChallengeProgress } from '@/lib/data';
+import { decks as initialDecks, userStats as initialUserStats, grammarLessons as initialGrammarLessons, initialQuizzes, challengeLevels as initialChallengeLevels } from '@/lib/initial-data';
 import { useAuth } from '@/contexts/auth-context';
 
 const USER_DATA_STORAGE_KEY_PREFIX = 'nihongo-app-data';
@@ -16,6 +16,8 @@ export interface AppData {
   quizzes: Quiz[];
   quizScores: QuizScore[];
   favoriteGrammarLessons: string[];
+  challengeLevels: ChallengeLevel[];
+  challengeProgress: ChallengeProgress;
 }
 
 export interface FullAppData {
@@ -53,6 +55,7 @@ interface GlobalStateContextType {
   updateQuestionInQuiz: (quizId: string, questionId: string, questionData: Partial<QuizQuestion>) => void;
   deleteQuestionFromQuiz: (quizId: string, questionId: string) => void;
   addGeneratedQuiz: (quizData: Omit<Quiz, 'id'>) => void;
+  completeChallengeNode: (nodeId: string) => void;
   setActiveVariants: (variants: ActiveVariants) => void;
 }
 
@@ -73,6 +76,8 @@ const getInitialUserData = (): AppData => ({
     quizzes: initialQuizzes,
     quizScores: [],
     favoriteGrammarLessons: [],
+    challengeLevels: initialChallengeLevels,
+    challengeProgress: {},
 });
 
 const getInitialVariants = (): ActiveVariants => ({
@@ -455,6 +460,16 @@ export const useGlobalStateData = () => {
             ),
         }));
     }, [setCurrentUserData]);
+    
+    const completeChallengeNode = useCallback((nodeId: string) => {
+        setCurrentUserData(prevData => ({
+            ...prevData,
+            challengeProgress: {
+                ...prevData.challengeProgress,
+                [nodeId]: true,
+            }
+        }));
+    }, [setCurrentUserData]);
 
 
     return {
@@ -480,6 +495,7 @@ export const useGlobalStateData = () => {
         updateQuestionInQuiz,
         deleteQuestionFromQuiz,
         addGeneratedQuiz,
+        completeChallengeNode,
         setActiveVariants,
     };
 };
