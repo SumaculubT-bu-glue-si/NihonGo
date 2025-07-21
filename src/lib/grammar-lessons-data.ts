@@ -781,6 +781,531 @@ export const grammarLessons: GrammarLesson[] = [
     ],
     read: false,
   },
+  // N4 Grammar Lessons
+  {
+    id: 'gl-n4-1',
+    title: '～ている (te iru) – Ongoing action or result',
+    level: 'N4',
+    explanation: 'Expresses an ongoing action (is doing), a continuous state (is married), or a state resulting from a past action (the window is open).',
+    examples: [
+      '今、本を読んでいます。 (Ima, hon o yonde imasu.) - I am reading a book now.',
+      '窓が開いています。 (Mado ga aite imasu.) - The window is open.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-2',
+    title: '～てしまう (te shimau) – Completion or regret',
+    level: 'N4',
+    explanation: 'Indicates the completion of an action, often with a sense of it being final, regrettable, or unintentional.',
+    examples: [
+      '宿題を全部してしまいました。 (Shukudai o zenbu shite shimaimashita.) - I finished all my homework.',
+      '電車の中にかさを忘れてしまいました。 (Densha no naka ni kasa o wasurete shimaimashita.) - I unfortunately left my umbrella on the train.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-3',
+    title: '～ておく (te oku) – Do something in advance',
+    level: 'N4',
+    explanation: 'Indicates an action performed in preparation for something else. Often shortened to ～とく in casual speech.',
+    examples: [
+      '旅行の前に、ホテルを予約しておきます。 (Ryokou no mae ni, hoteru o yoyaku shite okimasu.) - I will book the hotel in advance before the trip.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-4',
+    title: '～てみる (te miru) – Try doing something',
+    level: 'N4',
+    explanation: 'Used to express trying something out to see what it\'s like.',
+    examples: [
+      'この新しいケーキを食べてみたいです。 (Kono atarashii keeki o tabete mitai desu.) - I want to try eating this new cake.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-5',
+    title: '～てあげる / ～てくれる / ～てもらう – Giving and receiving actions',
+    level: 'N4',
+    explanation: 'Verbs for giving and receiving actions. あげる (for others), くれる (to me/my group), もらう (I receive the favor).',
+    examples: [
+      '友達に日本語を教えてあげました。 (Tomodachi ni nihongo o oshiete agemashita.) - I taught my friend Japanese.',
+      '先生が私に本を貸してくれました。 (Sensei ga watashi ni hon o kashite kuremashita.) - The teacher lent me a book.',
+      '私は姉に手伝ってもらいました。 (Watashi wa ane ni tetsudatte moraimashita.) - I had my older sister help me.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-6',
+    title: '～ようと思う (you to omou) – I plan to / I think I will',
+    level: 'N4',
+    explanation: 'Expresses an intention or plan that was just decided. It\'s a softer intention than ～つもりです.',
+    examples: [
+      '週末、映画を見に行こうと思います。 (Shuumatsu, eiga o mi ni ikou to omoimasu.) - I think I\'ll go see a movie this weekend.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-7',
+    title: 'Volitional form (行こう, 食べよう)',
+    level: 'N4',
+    explanation: 'The "let\'s" or "shall we" form of a verb. Used to make suggestions or express one\'s will to do something.',
+    examples: [
+      'さあ、食べよう！ (Saa, tabeyou!) - Okay, let\'s eat!',
+      '一緒に勉強しよう。 (Issho ni benkyou shiyou.) - Let\'s study together.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-8',
+    title: '～ば form – Conditional “if”',
+    level: 'N4',
+    explanation: 'A conditional form. For verbs, change the final "u" to "eba". For i-adjectives, change "i" to "kereba".',
+    examples: [
+      '時間があれば、行きます。 (Jikan ga areba, ikimasu.) - If I have time, I will go.',
+      '安ければ、買います。 (Yasukereba, kaimasu.) - If it\'s cheap, I\'ll buy it.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-9',
+    title: '～たら – “If/when” conditional',
+    level: 'N4',
+    explanation: 'A conditional form based on the past-tense (た-form). It can be used for a wider range of situations than ～ば.',
+    examples: [
+      '日本へ行ったら、京都を訪れたいです。 (Nihon e ittara, Kyouto o otozuretai desu.) - If/When I go to Japan, I want to visit Kyoto.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-10',
+    title: '～ながら (nagara) – While doing',
+    level: 'N4',
+    explanation: 'Attached to the verb stem to show two actions are performed by the same person at the same time. The main action is the second verb.',
+    examples: [
+      '音楽を聞きながら、宿題をします。 (Ongaku o kikinagara, shukudai o shimasu.) - I do my homework while listening to music.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-11',
+    title: '～そうだ (sou da) – Looks like (conjecture)',
+    level: 'N4',
+    explanation: 'Used to express a guess based on what you see or feel. "It looks like..." or "It seems...".',
+    examples: [
+      '雨が降りそうです。 (Ame ga furisou desu.) - It looks like it\'s going to rain.',
+      'この料理は美味しそうです。 (Kono ryouri wa oishisou desu.) - This dish looks delicious.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-12',
+    title: '～ようにする (you ni suru) – Make an effort to',
+    level: 'N4',
+    explanation: 'Indicates making a conscious effort to do something regularly.',
+    examples: [
+      '毎日、野菜を食べるようにしています。 (Mainichi, yasai o taberu you ni shite imasu.) - I make an effort to eat vegetables every day.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-13',
+    title: '～ようになる (you ni naru) – Reach a state where',
+    level: 'N4',
+    explanation: 'Indicates a change over time where one becomes able to do something they previously couldn\'t.',
+    examples: [
+      '日本語が話せるようになりました。 (Nihongo ga hanaseru you ni narimashita.) - I came to be able to speak Japanese.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-14',
+    title: 'Passive form (書かれる、食べられる)',
+    level: 'N4',
+    explanation: 'Used when the subject is receiving an action. The "passive voice".',
+    examples: [
+      '私は先生に褒められました。 (Watashi wa sensei ni homeraremashita.) - I was praised by the teacher.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-15',
+    title: 'Causative form (書かせる、食べさせる)',
+    level: 'N4',
+    explanation: 'Used to express "to make someone do" or "to let someone do" something.',
+    examples: [
+      '母は私に部屋を掃除させました。 (Haha wa watashi ni heya o souji sasemashita.) - My mother made me clean my room.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-16',
+    title: '～すぎる (sugiru) – Too much',
+    level: 'N4',
+    explanation: 'Attached to a verb stem or adjective stem to mean that something is excessive.',
+    examples: [
+      '食べすぎて、お腹が痛いです。 (Tabesugite, onaka ga itai desu.) - I ate too much and my stomach hurts.',
+      'この問題は難しすぎます。 (Kono mondai wa muzukashisugimasu.) - This problem is too difficult.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-17',
+    title: '～やすい / ～にくい (yasui / nikui) – Easy to / hard to',
+    level: 'N4',
+    explanation: 'Attached to a verb stem to express that something is easy or difficult to do.',
+    examples: [
+      'このペンは書きやすいです。 (Kono pen wa kakiyasui desu.) - This pen is easy to write with.',
+      '彼の字は読みにくいです。 (Kare no ji wa yominikui desu.) - His handwriting is hard to read.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-18',
+    title: '～ようだ / ～みたい (you da / mitai) – Seems like / looks like',
+    level: 'N4',
+    explanation: 'Expresses that something seems to be the case based on sensory evidence. みたい is more conversational.',
+    examples: [
+      '彼は風邪をひいたようです。 (Kare wa kaze o hiita you desu.) - It seems he has caught a cold.',
+      'あの人は人形みたいだ。 (Ano hito wa ningyou mitai da.) - That person is like a doll.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-19',
+    title: '～らしい (rashii) – Apparently / it seems that',
+    level: 'N4',
+    explanation: 'Indicates that you are reporting information you have heard, but are not completely certain about.',
+    examples: [
+      '田中さんは、来月結婚するらしいです。 (Tanaka-san wa, raigetsu kekkon suru rashii desu.) - I hear Tanaka-san is getting married next month.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-20',
+    title: '～のに (noni) – Although / even though',
+    level: 'N4',
+    explanation: 'Used to connect two clauses where the second is an unexpected or contrary result of the first. Often implies frustration or surprise.',
+    examples: [
+      '一生懸命勉強したのに、試験に落ちました。 (Isshoukenmei benkyou shita noni, shiken ni ochimashita.) - Even though I studied hard, I failed the exam.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-21',
+    title: '～そうに / ～そうな / ～そうだ – Appears to',
+    level: 'N4',
+    explanation: 'This is the adverbial (～そうに), noun-modifying (～そうな), and sentence-ending (～そうだ) use of the "looks like" grammar point.',
+    examples: [
+      '彼女は楽しそうに話します。 (Kanojo wa tanoshisou ni hanashimasu.) - She speaks cheerfully (in a way that looks fun).',
+      '美味しそうなケーキですね。 (Oishisou na keeki desu ne.) - That looks like a delicious cake, doesn\'t it?',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-22',
+    title: '～ばかり (bakari) – Just did / only',
+    level: 'N4',
+    explanation: 'Can mean "just finished doing" when following a た-form verb, or "only" / "nothing but" when following a noun or て-form verb.',
+    examples: [
+      '今、食べたばかりです。 (Ima, tabeta bakari desu.) - I just ate now.',
+      '彼は遊んでばかりいる。 (Kare wa asonde bakari iru.) - He does nothing but play.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-23',
+    title: '～まま (mama) – As is / without change',
+    level: 'N4',
+    explanation: 'Indicates that a state or condition remains unchanged while another action takes place.',
+    examples: [
+      '窓を開けたまま寝てしまった。 (Mado o aketa mama nete shimatta.) - I fell asleep with the window open.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-24',
+    title: '～たほうがいい (ta hou ga ii) – You’d better',
+    level: 'N4',
+    explanation: 'A way of giving strong advice. Used with the past-tense (た-form) of a verb.',
+    examples: [
+      'もっと野菜を食べたほうがいいですよ。 (Motto yasai o tabeta hou ga ii desu yo.) - You had better eat more vegetables.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-25',
+    title: '～ないほうがいい (nai hou ga ii) – You’d better not',
+    level: 'N4',
+    explanation: 'The negative version of ～たほうがいい, for advising against an action.',
+    examples: [
+      '夜、一人で歩かないほうがいい。 (Yoru, hitori de arukanai hou ga ii.) - You\'d better not walk alone at night.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-26',
+    title: '～てもいい / ～てはいけない – Permission / prohibition',
+    level: 'N4',
+    explanation: 'A review of giving permission ("you may do") and prohibiting an action ("you must not do").',
+    examples: [
+      'ここで写真を撮ってもいいですか。 (Koko de shashin o totte mo ii desu ka?) - Is it okay to take pictures here?',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-27',
+    title: '～なさい (nasai) – Command (soft)',
+    level: 'N4',
+    explanation: 'A command form used by superiors to inferiors (e.g., parent to child). It is attached to the verb stem.',
+    examples: [
+      '早く寝なさい。 (Hayaku nenasai.) - Go to sleep early.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-28',
+    title: '～なければならない (nakereba naranai) – Must',
+    level: 'N4',
+    explanation: 'Expresses obligation or necessity. "Must do..." or "Have to do...".',
+    examples: [
+      '明日、早く起きなければなりません。 (Ashita, hayaku okinakereba narimasen.) - I must wake up early tomorrow.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-29',
+    title: '～なくてもいい (nakutemo ii) – Don’t have to',
+    level: 'N4',
+    explanation: 'Expresses a lack of necessity. "It\'s okay if you don\'t..." or "You don\'t have to...".',
+    examples: [
+      '靴を脱がなくてもいいです。 (Kutsu o nuganakutemo ii desu.) - You don\'t have to take off your shoes.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-30',
+    title: '～ことがある (koto ga aru) – Have done / experience',
+    level: 'N4',
+    explanation: 'Used with the past-tense (た-form) verb to describe past experiences.',
+    examples: [
+      '富士山に登ったことがあります。 (Fujisan ni nobotta koto ga arimasu.) - I have climbed Mt. Fuji before.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-31',
+    title: '～ことにする (koto ni suru) – Decide to',
+    level: 'N4',
+    explanation: 'Indicates a decision made by the speaker.',
+    examples: [
+      '明日からジョギングすることにします。 (Ashita kara jogingu suru koto ni shimasu.) - I\'ve decided to start jogging from tomorrow.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-32',
+    title: '～ことになる (koto ni naru) – It has been decided that',
+    level: 'N4',
+    explanation: 'Indicates a decision that was made by someone else, or a situation that has come about.',
+    examples: [
+      '来月、大阪へ出張することになりました。 (Raigetsu, Oosaka e shucchou suru koto ni narimashita.) - It has been decided that I will go on a business trip to Osaka next month.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-33',
+    title: '～つもり (tsumori) – Intend to',
+    level: 'N4',
+    explanation: 'Expresses a firm intention or plan. Used with the dictionary form.',
+    examples: [
+      '大学を卒業したら、国へ帰るつもりです。 (Daigaku o sotsugyou shitara, kuni e kaeru tsumori desu.) - I intend to return to my country after graduating from university.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-34',
+    title: '～かもしれない (kamoshirenai) – Might / maybe',
+    level: 'N4',
+    explanation: 'Expresses possibility. It is less certain than ～でしょう.',
+    examples: [
+      '彼はもう帰ったかもしれません。 (Kare wa mou kaetta kamoshiremasen.) - He might have already gone home.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-35',
+    title: '～でしょう (deshou) – Probably / I suppose',
+    level: 'N4',
+    explanation: 'Used to express a guess or prediction. The polite form of だろう.',
+    examples: [
+      '明日は晴れるでしょう。 (Ashita wa hareru deshou.) - It will probably be sunny tomorrow.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-36',
+    title: '～中 (chuu) – In the middle of',
+    level: 'N4',
+    explanation: 'A suffix attached to nouns to mean "in the middle of" or "currently".',
+    examples: [
+      'ただ今、会議中です。 (Tadaima, kaigi-chuu desu.) - I am in a meeting right now.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-37',
+    title: '～ところ (tokoro) – About to / in the middle of / just finished',
+    level: 'N4',
+    explanation: 'Used with different verb forms to indicate a point in time relative to an action.',
+    examples: [
+      'これから食べるところです。 (Korekara taberu tokoro desu.) - I am just about to eat.',
+      '今、調べているところです。 (Ima, shirabete iru tokoro desu.) - I am in the middle of looking it up now.',
+      'たった今、着いたところです。 (Tattaima, tsuita tokoro desu.) - I have just arrived.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-38',
+    title: '～ば～ほど (ba~hodo) – The more ~ the more ~',
+    level: 'N4',
+    explanation: 'A structure used to show that as one thing increases, so does another.',
+    examples: [
+      '日本語は、勉強すればするほど面白くなります。 (Nihongo wa, benkyou sureba suru hodo omoshiroku narimasu.) - The more you study Japanese, the more interesting it becomes.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-39',
+    title: '～前に (mae ni) – Before',
+    level: 'N4',
+    explanation: 'Indicates doing something before another action or event.',
+    examples: [
+      '寝る前に、歯を磨きます。 (Neru mae ni, ha o migakimasu.) - I brush my teeth before sleeping.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-40',
+    title: '～後で (ato de) – After',
+    level: 'N4',
+    explanation: 'Indicates doing something after another action or event has finished.',
+    examples: [
+      '仕事が終わった後で、飲みに行きます。 (Shigoto ga owatta ato de, nomi ni ikimasu.) - After work finishes, I will go drinking.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-41',
+    title: '～とき (toki) – When',
+    level: 'N4',
+    explanation: 'Used to indicate the time when something happens.',
+    examples: [
+      '子供の時、よく川で泳ぎました。 (Kodomo no toki, yoku kawa de oyogimashita.) - When I was a child, I often swam in the river.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-42',
+    title: '～たばかり (ta bakari) – Just finished',
+    level: 'N4',
+    explanation: 'Indicates that an action has just recently been completed from the speaker\'s perspective.',
+    examples: [
+      '日本に来たばかりで、まだ何も分かりません。 (Nihon ni kita bakari de, mada nani mo wakarimasen.) - I have just come to Japan, so I don\'t understand anything yet.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-43',
+    title: '～間 / ～間に (aida / aida ni) – While / during',
+    level: 'N4',
+    explanation: 'Aida describes something that occurs throughout a period, while aida ni describes something that happens at one point during that period.',
+    examples: [
+      'お母さんが昼寝をしている間に、子供たちは遊びに行った。 (Okaasan ga hirune o shite iru aida ni, kodomotachi wa asobi ni itta.) - While the mother was napping, the children went out to play.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-44',
+    title: '～ように言う (you ni iu) – Tell (someone) to do',
+    level: 'N4',
+    explanation: 'Used for reporting indirect commands or requests.',
+    examples: [
+      '先生は学生にもっと勉強するように言いました。 (Sensei wa gakusei ni motto benkyou suru you ni iimashita.) - The teacher told the students to study more.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-45',
+    title: '～より～のほうが (yori~no hou ga) – Comparison',
+    level: 'N4',
+    explanation: 'The structure "AよりBのほうが" means "B is more ... than A".',
+    examples: [
+      '車より電車の方が早くて便利です。 (Kuruma yori densha no hou ga hayakute benri desu.) - Trains are faster and more convenient than cars.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-46',
+    title: '～しか～ない (shika~nai) – Nothing but',
+    level: 'N4',
+    explanation: 'Emphasizes that there is only a certain thing and nothing else, always used with a negative verb.',
+    examples: [
+      'この店は野菜しか売っていません。 (Kono mise wa yasai shika utte imasen.) - This shop sells nothing but vegetables.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-47',
+    title: '～だけでなく～も (dake de naku~mo) – Not only ~ but also ~',
+    level: 'N4',
+    explanation: 'A pattern used to present two pieces of related information.',
+    examples: [
+      '彼は英語だけでなく、フランス語も話せます。 (Kare wa eigo dake de naku, furansugo mo hanasemasu.) - He can speak not only English but also French.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-48',
+    title: '～たり～たりする (tari~tari suru) – Do things like ~ and ~',
+    level: 'N4',
+    explanation: 'Lists example activities without suggesting they are the only activities or that they happened in a specific order.',
+    examples: [
+      '週末は、掃除したり、洗濯したりします。 (Shuumatsu wa, souji shitari, sentaku shitari shimasu.) - On weekends I do things like cleaning and laundry.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-49',
+    title: '～にする (ni suru) – Decide on',
+    level: 'N4',
+    explanation: 'Used to state a choice or decision, especially when choosing from a list of options.',
+    examples: [
+      '飲み物は何にしますか。 - コーヒーにします。 (Nomimono wa nani ni shimasu ka. - Koohii ni shimasu.) - What will you have to drink? - I\'ll have coffee.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-50',
+    title: '～について (ni tsuite) – About',
+    level: 'N4',
+    explanation: 'Means "about" or "concerning" a certain topic.',
+    examples: [
+      '日本の文化についてレポートを書きます。 (Nihon no bunka ni tsuite repooto o kakimasu.) - I will write a report about Japanese culture.',
+    ],
+    read: false,
+  },
+  {
+    id: 'gl-n4-51',
+    title: '～によると～そうだ (ni yoru to~sou da) – According to',
+    level: 'N4',
+    explanation: 'Used to report information from a specific source, combined with the "I heard" そうだ grammar.',
+    examples: [
+      '天気予報によると、明日は台風が来るそうです。 (Tenki yohou ni yoru to, ashita wa taifuu ga kuru sou desu.) - According to the weather forecast, I heard a typhoon is coming tomorrow.',
+    ],
+    read: false,
+  },
 ];
 
   
