@@ -2,10 +2,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type {
   ChallengeLevel,
   ChallengeProgress,
-  ChallengeUnit,
   ChallengeNode,
 } from '@/lib/data';
 import { Button } from '@/components/ui/button';
@@ -51,12 +51,18 @@ const NodeIcon = ({
     if (status === 'active') return <Castle {...iconProps} className={cn(iconSize, "text-yellow-500")} />;
     return <Castle {...iconProps} className="text-muted-foreground/50" />;
   }
+  
+  if (type === 'quiz') {
+     if (status === 'completed') return <Trophy {...iconProps} className={cn(iconSize, "text-yellow-400")} />;
+     if (status === 'active') return <Swords {...iconProps} className={cn(iconSize, "text-yellow-500")} />;
+     return <Swords {...iconProps} className="text-muted-foreground/50" />;
+  }
 
   if (status === 'completed') {
     return <CircleCheck {...iconProps} className="text-green-500" />;
   }
   if (status === 'active') {
-    return <CircleDollarSign {...iconProps} className="text-yellow-500" />;
+    return <BookOpen {...iconProps} className="text-yellow-500" />;
   }
   return <Lock {...iconProps} className="text-muted-foreground/50" />;
 };
@@ -64,11 +70,12 @@ const NodeIcon = ({
 
 export function ChallengesView({
   levels,
-  progress,
 }: {
   levels: ChallengeLevel[];
-  progress: ChallengeProgress;
 }) {
+  const router = useRouter();
+  const { appData } = useGlobalState();
+  const { challengeProgress } = appData;
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [currentUnitIndex, setCurrentUnitIndex] = useState(0);
 
@@ -78,8 +85,19 @@ export function ChallengesView({
   
   const handleNodeClick = (node: ChallengeNode, status: 'completed' | 'active' | 'locked') => {
     if (status === 'locked') return;
-    // Here you would navigate to the actual lesson/quiz page
-    alert(`Starting ${node.type}: ${node.title}`);
+
+    let url = '';
+    if (node.type === 'lesson' && node.lessonId) {
+        url = `/grammar-lessons/${node.lessonId}?challengeNodeId=${node.id}`;
+    } else if (node.quizId) {
+        url = `/quizzes/${node.quizId}?challengeNodeId=${node.id}`;
+    }
+
+    if(url) {
+        router.push(url);
+    } else {
+        alert(`Content for "${node.title}" is not available yet.`);
+    }
   };
 
   let previousNodeCompleted = true; // The first node of a unit is always active
@@ -106,15 +124,12 @@ export function ChallengesView({
       {/* Learning Path */}
       <div className="flex flex-1 flex-col items-center justify-start space-y-8 overflow-y-auto pt-8 pb-24">
         {currentUnit.nodes.map((node, index) => {
-          const status = getNodeStatus(node.id, progress, previousNodeCompleted);
-          if (status !== 'locked') {
-            previousNodeCompleted = progress[node.id] ?? false;
-             if (index === 0) previousNodeCompleted = true;
-             else {
-                 const prevNode = currentUnit.nodes[index-1];
-                 previousNodeCompleted = !!progress[prevNode.id];
-             }
+          let isPrevCompleted = true; // First node is always unlocked
+          if (index > 0) {
+              const prevNode = currentUnit.nodes[index-1];
+              isPrevCompleted = !!challengeProgress[prevNode.id];
           }
+          const status = getNodeStatus(node.id, challengeProgress, isPrevCompleted);
           
           const isOffset = index % 2 !== 0;
 

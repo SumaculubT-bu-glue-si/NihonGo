@@ -33,7 +33,7 @@ export interface GrammarLesson {
 }
 
 export interface QuizQuestion {
-  id: string;
+  id:string;
   questionText: string;
   options: string[];
   correctAnswer: string;
@@ -60,6 +60,7 @@ export interface ChallengeNode {
   id: string;
   type: ChallengeNodeType;
   title: string;
+  lessonId?: string; // Link to a grammar lesson
   quizId?: string; // Link to a quiz
 }
 

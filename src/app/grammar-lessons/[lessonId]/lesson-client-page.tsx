@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Lightbulb, CheckCircle2, BookOpen, Loader2, Wand2, Repeat, ChevronLeft } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { QuizClientPage } from '@/app/quizzes/[quizId]/quiz-client-page';
+import { useSearchParams } from 'next/navigation';
 
 function LessonContent({ lesson }: { lesson: GrammarLesson }) {
   return (
@@ -45,11 +46,20 @@ function LessonContent({ lesson }: { lesson: GrammarLesson }) {
 }
 
 export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
-  const { toggleGrammarLessonRead } = useGlobalState();
+  const { toggleGrammarLessonRead, completeChallengeNode } = useGlobalState();
   const { toast } = useToast();
   const [miniQuiz, setMiniQuiz] = useState<QuizType | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [view, setView] = useState<'lesson' | 'quiz'>('lesson');
+  const searchParams = useSearchParams();
+  const challengeNodeId = searchParams.get('challengeNodeId');
+
+  const handleCompleteQuiz = () => {
+    toast({ title: "Lesson Completed!", description: "Great job on the quiz." });
+    if (challengeNodeId) {
+        completeChallengeNode(challengeNodeId);
+    }
+  }
 
   const handleGenerateQuiz = async () => {
     setIsGenerating(true);
@@ -94,9 +104,7 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
             <h1 className="text-2xl font-bold mb-4">{`Mini-Quiz: ${lesson.title}`}</h1>
             <QuizClientPage 
                 quiz={miniQuiz} 
-                onComplete={() => {
-                    toast({ title: "Lesson Completed!", description: "Great job on the quiz."});
-                }} 
+                onComplete={handleCompleteQuiz}
                 backLink={{ href: `/grammar-lessons/${lesson.id}`, label: 'Back to Lesson' }}
                 onBack={handleReturnToLesson}
             />

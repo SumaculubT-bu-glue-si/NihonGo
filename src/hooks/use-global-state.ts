@@ -444,7 +444,7 @@ export const useGlobalStateData = () => {
             ...prev,
             quizzes: prev.quizzes.map(q =>
                 q.id === quizId
-                    ? { ...q, questions: q.questions.map(qu => qu.id === questionId ? { ...qu, ...questionData } : qu) }
+                    ? { ...q, questions: q.questions.map(qu => qu.id === questionId ? { ...qu, ...quData } : qu) }
                     : q
             ),
         }));
