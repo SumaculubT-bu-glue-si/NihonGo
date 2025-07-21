@@ -253,7 +253,7 @@ export function GrammarLessonsView() {
 
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="item-1">
-          <AccordionTrigger className="text-xl font-semibold">
+          <AccordionTrigger className="text-2xl font-bold font-headline">
             Grammar Checker Tool
           </AccordionTrigger>
           <AccordionContent>
