@@ -86,12 +86,13 @@ export function ChallengesView() {
   }
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-2xl flex-col font-sans">
+    <div className="mx-auto flex h-full w-11/12 max-w-2xl flex-col font-sans">
       
        <Card className="mb-8 bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">Level 1</h2>
+            <p className="text-sm font-medium text-primary-foreground/80">{currentUnitId}</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
