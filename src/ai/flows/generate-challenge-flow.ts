@@ -1,4 +1,5 @@
 
+
 'use server';
 
 /**
@@ -24,6 +25,7 @@ const ChallengeItemSchema = z.object({
 
 const GenerateChallengeInputSchema = z.object({
   unit_topic: z.string().describe('The overall topic of the grammar unit, e.g., "Basic Sentences & Endings".'),
+  level: z.enum(['N5', 'N4', 'N3', 'N2', 'N1']).describe('The JLPT level of the challenge.'),
   count: z.number().min(1).max(10).describe('The number of challenge items to generate.'),
 });
 export type GenerateChallengeInput = z.infer<typeof GenerateChallengeInputSchema>;
@@ -52,22 +54,28 @@ const generateChallengeFlow = ai.defineFlow(
       name: 'generateChallengePromptSized',
       input: { schema: GenerateChallengeInputSchema },
       output: { schema: customOutputSchema },
-      prompt: `You are a Japanese language teacher creating a sentence-building challenge for an N5-level student.
+      prompt: `You are a Japanese language teacher creating a sentence-building challenge for a student at the {{{level}}} level.
 
 The topic for this unit is: **{{{unit_topic}}}**
 
-Your task is to generate exactly **{{{count}}}** unique challenge items. Each item's grammar point and sentence MUST be directly related to the unit topic.
+Your task is to generate exactly **{{{count}}}** unique challenge items. Each item's grammar point and sentence MUST be directly related to the unit topic and appropriate for the specified JLPT level.
 
-For each item, you must provide:
-1.  'id': A sequential number for the item.
-2.  'grammar_point': The specific N5 grammar point being tested. This MUST be relevant to the 'unit_topic'. For example, if the topic is "Particles", the grammar point should be a specific particle like "は" or "が".
-3.  'english_sentence': A simple English sentence for the user to translate.
-4.  'correct_japanese': The correct and natural Japanese translation.
-5.  'word_bank': An array of the exact words/particles that form the correct Japanese sentence. The words in the bank should primarily be in hiragana or katakana, avoiding kanji where possible.
-    - **CRITICAL RULE**: The elements of the 'word_bank' array, when joined together in order, MUST perfectly match the 'correct_japanese' string.
-    - The final punctuation mark (like '。') MUST be attached to the last word and not be a separate element.
-6.  'hint': A brief, one-sentence hint about the grammar rule.
-7.  'distractors': An array of exactly 2 Japanese words that are incorrect but plausible distractors. These should also be in kana and relevant to the sentence.
+**CRITICAL Rules for Content Generation:**
+1.  **Level-Appropriate Kanji:**
+    -   **N5:** Use primarily hiragana and katakana. Avoid kanji where possible.
+    -   **N4:** Introduce some common, basic kanji (e.g., 日, 本, 人, 大, 小) but keep many words in kana. Sentences can be slightly longer than N5.
+    -   **N3 and above (N2, N1):** Use standard kanji for all words that are commonly written with kanji. Sentence complexity should increase with the level.
+2.  **Word Bank Accuracy:**
+    -   The elements of the 'word_bank' array, when joined together in order, MUST perfectly match the 'correct_japanese' string.
+    -   The final punctuation mark (like '。') MUST be attached to the last word and not be a separate element.
+3.  **Content Requirements for Each Item:**
+    -   'id': A sequential number for the item.
+    -   'grammar_point': The specific grammar point being tested. This MUST be relevant to both the 'unit_topic' and the 'level'.
+    -   'english_sentence': A simple English sentence for the user to translate.
+    -   'correct_japanese': The correct and natural Japanese translation.
+    -   'word_bank': An array of the exact words/particles that form the correct Japanese sentence.
+    -   'hint': A brief, one-sentence hint about the grammar rule.
+    -   'distractors': An array of exactly 2 Japanese words that are incorrect but plausible distractors. These should also be level-appropriate.
 `,
     });
 

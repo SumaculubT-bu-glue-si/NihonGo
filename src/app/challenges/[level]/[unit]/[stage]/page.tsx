@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { AppLayout } from '@/components/app-layout';
@@ -7,6 +8,8 @@ import { notFound, useParams } from 'next/navigation';
 import { ChallengeClientPage } from './challenge-client-page';
 import { generateChallenge, type GenerateChallengeOutput } from '@/ai/flows/generate-challenge-flow';
 import { useEffect, useState } from 'react';
+
+type Level = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 
 export default function ChallengePage() {
   const params = useParams<{ level: string; unit: string; stage: string }>();
@@ -22,6 +25,7 @@ export default function ChallengePage() {
         try {
             const result = await generateChallenge({
                 unit_topic: decodedUnitId,
+                level: level as Level,
                 count: 5 // Generate 5 challenges per stage for now
             });
             setChallenge(result);
@@ -33,7 +37,7 @@ export default function ChallengePage() {
         }
     };
     fetchChallenge();
-  }, [decodedUnitId]);
+  }, [decodedUnitId, level]);
 
 
   if (isLoading) {

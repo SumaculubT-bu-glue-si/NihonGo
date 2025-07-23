@@ -18,9 +18,30 @@ export const challengeData = {
     "Unit 3: Particles": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
     "Unit 4: Common Sentence Patterns": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
     "Unit 5: Existence & Possession": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 6: Adjective Usage": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 7: Ability, Permission, Prohibition": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] }
-  }
+  },
+  "N4": {
+    "Unit 1: Verb Forms & Conjugations": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 2: Adjectives & Descriptions": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 3: Requests & Advice": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 4: Expressions of Intention / Possibility": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 5: Sequence, Time & Frequency": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+  },
+  "N3": {
+     "Unit 1: Verb Forms & Auxiliary": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+     "Unit 2: Modality & Probability": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+     "Unit 3: Expressions": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+  },
+  "N2": {
+    "Unit 1: Action & State": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 2: Modality": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 3: Time & Condition": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 4: Comparison & Emphasis": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+  },
+  "N1": {
+    "Unit 1: Advanced Modality & Reasoning": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 2: Formal & Written Structures": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 3: Expressions of Judgment": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+  },
 };
 export type ChallengeData = typeof challengeData;
 
@@ -37,6 +58,7 @@ export interface AppData {
   hearts: number;
   diamonds: number;
   lastHeartLossTimestamp: number | null;
+  currentChallengeLevel: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 }
 
 export interface FullAppData {
@@ -80,6 +102,7 @@ interface GlobalStateContextType {
   addDiamonds: (amount: number) => void;
   purchaseHearts: (heartsToBuy: number, cost: number) => boolean;
   setActiveVariants: (variants: ActiveVariants) => void;
+  setCurrentChallengeLevel: (level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1') => void;
 }
 
 export const GlobalStateContext = createContext<GlobalStateContextType | undefined>(undefined);
@@ -104,6 +127,7 @@ const getInitialUserData = (): AppData => ({
     hearts: 5,
     diamonds: 100,
     lastHeartLossTimestamp: null,
+    currentChallengeLevel: 'N5',
 });
 
 const getInitialVariants = (): ActiveVariants => ({
@@ -576,6 +600,13 @@ export const useGlobalStateData = () => {
         });
         return success;
     }, [setCurrentUserData]);
+    
+    const setCurrentChallengeLevel = useCallback((level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1') => {
+        setCurrentUserData(prev => ({
+            ...prev,
+            currentChallengeLevel: level,
+        }));
+    }, [setCurrentUserData]);
 
 
     return {
@@ -607,5 +638,6 @@ export const useGlobalStateData = () => {
         addDiamonds,
         purchaseHearts,
         setActiveVariants,
+        setCurrentChallengeLevel,
     };
 };

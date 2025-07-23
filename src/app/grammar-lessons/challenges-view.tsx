@@ -13,12 +13,15 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShopDialog } from './shop-dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const HEART_REGEN_MINUTES = 30;
 
-const getNodeStatus = (unitId: string, stageId: string, progress: ChallengeProgress) => {
+type Level = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+
+const getNodeStatus = (level: Level, unitId: string, stageId: string, progress: ChallengeProgress) => {
   // Check if the current stage is completed
-  if (progress?.N5?.[unitId]?.[stageId] === 'completed') {
+  if (progress?.[level]?.[unitId]?.[stageId] === 'completed') {
     return 'completed';
   }
   
@@ -31,7 +34,7 @@ const getNodeStatus = (unitId: string, stageId: string, progress: ChallengeProgr
   // Check if the previous stage is complete to unlock the current one
   if (stageNum > 1) {
     const prevStageId = `stage${stageNum - 1}`;
-    if (progress?.N5?.[unitId]?.[prevStageId] === 'completed') {
+    if (progress?.[level]?.[unitId]?.[prevStageId] === 'completed') {
       return 'active';
     }
   }
@@ -101,13 +104,19 @@ const CooldownTimer = () => {
 
 export function ChallengesView() {
   const router = useRouter();
-  const { appData } = useGlobalState();
-  const { challengeData, challengeProgress, hearts, diamonds } = appData;
-  const [currentUnitId, setCurrentUnitId] = useState('Unit 1: Basic Sentences & Endings');
+  const { appData, setCurrentChallengeLevel } = useGlobalState();
+  const { challengeData, challengeProgress, hearts, diamonds, currentChallengeLevel } = appData;
+  
+  const [currentUnitId, setCurrentUnitId] = useState(Object.keys(challengeData[currentChallengeLevel])[0]);
   const [isShopOpen, setIsShopOpen] = useState(false);
 
+  useEffect(() => {
+    // When level changes, reset the selected unit to the first one of that level
+    setCurrentUnitId(Object.keys(challengeData[currentChallengeLevel])[0]);
+  }, [currentChallengeLevel, challengeData]);
 
-  const units = challengeData.N5;
+
+  const units = challengeData[currentChallengeLevel];
 
   if (!units) {
     return (
@@ -126,7 +135,7 @@ export function ChallengesView() {
     const unit = units[unitId];
     if (!unit) return false;
     const allStagesInUnit = Object.keys(unit);
-    return allStagesInUnit.every(stageId => getNodeStatus(unitId, stageId, challengeProgress) === 'completed');
+    return allStagesInUnit.every(stageId => getNodeStatus(currentChallengeLevel, unitId, stageId, challengeProgress) === 'completed');
   };
 
   if (!currentUnit) {
@@ -143,12 +152,21 @@ export function ChallengesView() {
 
   return (
     <>
+    <Tabs value={currentChallengeLevel} onValueChange={(v) => setCurrentChallengeLevel(v as Level)} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="N5">N5</TabsTrigger>
+            <TabsTrigger value="N4">N4</TabsTrigger>
+            <TabsTrigger value="N3">N3</TabsTrigger>
+            <TabsTrigger value="N2">N2</TabsTrigger>
+            <TabsTrigger value="N1">N1</TabsTrigger>
+        </TabsList>
+    </Tabs>
     <div className="mx-auto flex h-full w-3/4 min-w-2xl flex-col font-sans">
     
        <Card className="px-10 mb-24 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex-1">
-            <h2 className="text-lg font-bold">Level 1</h2>
+            <h2 className="text-lg font-bold">Level {currentChallengeLevel}</h2>
              <Select value={currentUnitId} onValueChange={setCurrentUnitId}>
                 <SelectTrigger className="w-full sm:w-[300px] h-9 text-base font-semibold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
                     <SelectValue placeholder="Select a unit" />
@@ -199,14 +217,14 @@ export function ChallengesView() {
         </div>
       )}
         {allStages.map((stageId, index) => {
-          const status = getNodeStatus(currentUnitId, stageId, challengeProgress);
+          const status = getNodeStatus(currentChallengeLevel, currentUnitId, stageId, challengeProgress);
           const isLocked = hearts === 0 && status === 'active';
           const finalStatus = isLocked ? 'locked' : status;
 
           const isBoss = index === Object.keys(currentUnit).length - 1;
           const isOffset = index % 2 !== 0;
           
-          const stageHref = `/challenges/N5/${encodeURIComponent(currentUnitId)}/${stageId}`;
+          const stageHref = `/challenges/${currentChallengeLevel}/${encodeURIComponent(currentUnitId)}/${stageId}`;
 
           return (
             <div
