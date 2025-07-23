@@ -110,9 +110,9 @@ export function ChallengesView() {
   const [isShopOpen, setIsShopOpen] = useState(false);
   
   const units = challengeData?.[currentChallengeLevel];
-
+  
   useEffect(() => {
-    // When level changes, reset the selected unit to the first one of that level
+    // When level changes or data loads, reset the selected unit to the first one of that level
     if (units && Object.keys(units).length > 0) {
       setCurrentUnitId(Object.keys(units)[0]);
     } else {
@@ -164,45 +164,50 @@ export function ChallengesView() {
 
   return (
     <>
-     <Card className="px-10 mb-24 w-full bg-primary text-primary-foreground">
+     <Card className="px-10 mb-20 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
-          <div className="flex-1 space-y-2">
-             <Select value={currentChallengeLevel} onValueChange={(v) => setCurrentChallengeLevel(v as Level)}>
-                <SelectTrigger className="w-full sm:w-[200px] h-9 text-lg font-bold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
-                    <SelectValue placeholder="Select a level" />
-                </SelectTrigger>
-                <SelectContent>
-                    {allLevels.map((level, index) => {
-                       const isFirstLevel = index === 0;
-                       const prevLevel = allLevels[index - 1];
-                       const isPrevLevelComplete = isFirstLevel || isLevelComplete(prevLevel);
+          <div className="flex flex-row ">
+            <div>
+              <Select value={currentChallengeLevel} onValueChange={(v) => setCurrentChallengeLevel(v as Level)}>
+                  <SelectTrigger className="w-full sm:w-[200px] h-9 text-lg font-bold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
+                      <SelectValue placeholder="Select a level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {allLevels.map((level, index) => {
+                        const isFirstLevel = index === 0;
+                        const prevLevel = allLevels[index - 1];
+                        const isPrevLevelComplete = isFirstLevel || isLevelComplete(prevLevel);
 
-                        return (
-                            <SelectItem key={level} value={level} disabled={!isPrevLevelComplete}>
-                                Level {index + 1}: {level} {!isPrevLevelComplete && '(Locked)'}
-                            </SelectItem>
-                        );
-                    })}
-                </SelectContent>
-             </Select>
-             <Select value={currentUnitId} onValueChange={setCurrentUnitId}>
-                <SelectTrigger className="w-full sm:w-[350px] h-9 text-base font-semibold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
-                    <SelectValue placeholder="Select a unit" />
-                </SelectTrigger>
-                <SelectContent>
-                    {unitNames.map((unitName, index) => {
-                        const isFirstUnit = index === 0;
-                        const prevUnitName = unitNames[index - 1];
-                        const isPrevUnitComplete = isFirstUnit || isUnitComplete(currentChallengeLevel, prevUnitName);
-                        
-                        return (
-                            <SelectItem key={unitName} value={unitName} disabled={!isPrevUnitComplete}>
-                                {unitName} {!isPrevUnitComplete && ' (Locked)'}
-                            </SelectItem>
-                        );
-                    })}
-                </SelectContent>
-             </Select>
+                          return (
+                              <SelectItem key={level} value={level} disabled={!isPrevLevelComplete}>
+                                  Level {index + 1}: {level} {!isPrevLevelComplete && '(Locked)'}
+                              </SelectItem>
+                          );
+                      })}
+                  </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Select value={currentUnitId} onValueChange={setCurrentUnitId}>
+                  <SelectTrigger className="w-full sm:w-[350px] h-9 text-base font-semibold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
+                      <SelectValue placeholder="Select a unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {unitNames.map((unitName, index) => {
+                          const isFirstUnit = index === 0;
+                          const prevUnitName = unitNames[index - 1];
+                          const isPrevUnitComplete = isFirstUnit || isUnitComplete(currentChallengeLevel, prevUnitName);
+                          
+                          return (
+                              <SelectItem key={unitName} value={unitName} disabled={!isPrevUnitComplete}>
+                                  {unitName} {!isPrevUnitComplete && ' (Locked)'}
+                              </SelectItem>
+                          );
+                      })}
+                  </SelectContent>
+              </Select>
+            </div>
+             
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">

@@ -254,35 +254,42 @@ export const initialQuizzes: Quiz[] = [
     ...allQuizzes.grammar.N1,
 ];
 
+const fiveStages = { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] };
+
 export const challengeData = {
   "N5": {
-    "Unit 1: Basic Sentences & Endings": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 2: Verb Forms and Conjugation": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 3: Particles": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 4: Common Sentence Patterns": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 5: Existence & Possession": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 1: Basic Sentences & Endings": fiveStages,
+    "Unit 2: Verb Forms and Conjugation": fiveStages,
+    "Unit 3: Particles": fiveStages,
+    "Unit 4: Common Sentence Patterns": fiveStages,
+    "Unit 5: Existence & Possession": fiveStages,
+    "Unit 6: Time & Frequency": fiveStages,
+    "Unit 7: Requests, Commands, and Intentions": fiveStages,
+    "Unit 8: Adjective Usage": fiveStages,
+    "Unit 9: Ability / Permission / Prohibition": fiveStages,
   },
   "N4": {
-    "Unit 1: Verb Forms & Conjugations": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 2: Adjectives & Descriptions": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 3: Requests & Advice": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 4: Expressions of Intention / Possibility": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 5: Sequence, Time & Frequency": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 1: Verb Forms & Conjugations": fiveStages,
+    "Unit 2: Adjectives & Descriptions": fiveStages,
+    "Unit 3: Requests & Advice": fiveStages,
+    "Unit 4: Expressions of Intention / Possibility": fiveStages,
+    "Unit 5: Sequence, Time & Frequency": fiveStages,
+    "Unit 6: Comparisons & Descriptions": fiveStages,
   },
   "N3": {
-     "Unit 1: Verb Forms & Auxiliary": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-     "Unit 2: Modality & Probability": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-     "Unit 3: Expressions": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+     "Unit 1: Verb Forms & Auxiliary": fiveStages,
+     "Unit 2: Modality & Probability": fiveStages,
+     "Unit 3: Expressions": fiveStages,
   },
   "N2": {
-    "Unit 1: Action & State": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 2: Modality": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 3: Time & Condition": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 4: Comparison & Emphasis": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 1: Action & State": fiveStages,
+    "Unit 2: Modality": fiveStages,
+    "Unit 3: Time & Condition": fiveStages,
+    "Unit 4: Comparison & Emphasis": fiveStages,
   },
   "N1": {
-    "Unit 1: Advanced Modality & Reasoning": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 2: Formal & Written Structures": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
-    "Unit 3: Expressions of Judgment": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 1: Advanced Modality & Reasoning": fiveStages,
+    "Unit 2: Formal & Written Structures": fiveStages,
+    "Unit 3: Expressions of Judgment": fiveStages,
   },
 };
