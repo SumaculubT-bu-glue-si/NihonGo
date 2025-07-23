@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/auth-context';
 
 const USER_DATA_STORAGE_KEY_PREFIX = 'nihongo-app-data';
 const AB_TEST_STORAGE_KEY = 'nihongo-ab-variants';
+const HEART_REGEN_MINUTES = 30;
 
 export const challengeData = {
   "N5": {
@@ -35,6 +36,7 @@ export interface AppData {
   challengeProgress: ChallengeProgress;
   hearts: number;
   diamonds: number;
+  lastHeartLossTimestamp: number | null;
 }
 
 export interface FullAppData {
@@ -74,6 +76,7 @@ interface GlobalStateContextType {
   addGeneratedQuiz: (quizData: Omit<Quiz, 'id'>) => void;
   completeChallengeNode: (nodeId: string) => void;
   loseHeart: () => void;
+  addHeart: () => void;
   addDiamonds: (amount: number) => void;
   setActiveVariants: (variants: ActiveVariants) => void;
 }
@@ -99,6 +102,7 @@ const getInitialUserData = (): AppData => ({
     challengeProgress: {},
     hearts: 5,
     diamonds: 100,
+    lastHeartLossTimestamp: null,
 });
 
 const getInitialVariants = (): ActiveVariants => ({
@@ -171,6 +175,37 @@ export const useGlobalStateData = () => {
             [user.uid]: updater(prevFullData[user.uid] || getInitialUserData()),
         }));
     }, [user]);
+    
+    const addHeart = useCallback(() => {
+        setCurrentUserData(prev => {
+            if (prev.hearts >= 5) {
+                return { ...prev, lastHeartLossTimestamp: null };
+            }
+            return {
+                ...prev,
+                hearts: prev.hearts + 1,
+                lastHeartLossTimestamp: Date.now(),
+            };
+        });
+    }, [setCurrentUserData]);
+    
+    useEffect(() => {
+        if (!user || !currentUserData) return;
+
+        const timer = setInterval(() => {
+            if (currentUserData.hearts < 5 && currentUserData.lastHeartLossTimestamp) {
+                const thirtyMinutes = HEART_REGEN_MINUTES * 60 * 1000;
+                const timePassed = Date.now() - currentUserData.lastHeartLossTimestamp;
+
+                if (timePassed >= thirtyMinutes) {
+                    addHeart();
+                }
+            }
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [user, currentUserData, addHeart]);
+
 
     const addDeck = useCallback((deckData: Omit<Deck, 'id' | 'cards'>) => {
         setCurrentUserData(prevData => {
@@ -489,10 +524,19 @@ export const useGlobalStateData = () => {
     }, []);
 
     const loseHeart = useCallback(() => {
-        setCurrentUserData(prev => ({
-            ...prev,
-            hearts: Math.max(0, prev.hearts - 1),
-        }));
+        setCurrentUserData(prev => {
+            const newHearts = Math.max(0, prev.hearts - 1);
+            let newTimestamp = prev.lastHeartLossTimestamp;
+            // Set timestamp only when the first heart is lost (when going from 5 to 4)
+            if (prev.hearts === 5 && newHearts < 5) {
+                newTimestamp = Date.now();
+            }
+            return {
+                ...prev,
+                hearts: newHearts,
+                lastHeartLossTimestamp: newTimestamp,
+            };
+        });
     }, [setCurrentUserData]);
     
     const addDiamonds = useCallback((amount: number) => {
@@ -528,7 +572,9 @@ export const useGlobalStateData = () => {
         addGeneratedQuiz,
         completeChallengeNode,
         loseHeart,
+        addHeart,
         addDiamonds,
         setActiveVariants,
     };
 };
+

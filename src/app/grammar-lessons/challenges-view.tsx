@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Stage, Unit, ChallengeProgress } from '@/lib/data';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,8 @@ import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
+
+const HEART_REGEN_MINUTES = 30;
 
 const getNodeStatus = (unitId: string, stageId: string, progress: ChallengeProgress) => {
   // This logic will need to be updated based on how progress is tracked.
@@ -52,6 +54,40 @@ const NodeIcon = ({
   }
   return <Lock {...iconProps} className="text-muted-foreground/50" />;
 };
+
+const CooldownTimer = () => {
+  const { appData } = useGlobalState();
+  const { hearts, lastHeartLossTimestamp } = appData;
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    if (hearts >= 5 || !lastHeartLossTimestamp) {
+      setTimeLeft('');
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const timePassed = Date.now() - lastHeartLossTimestamp;
+      const cooldown = HEART_REGEN_MINUTES * 60 * 1000;
+      const remainingTime = Math.max(0, cooldown - timePassed);
+
+      if (remainingTime === 0) {
+        setTimeLeft('Next heart soon!');
+      } else {
+        const minutes = Math.floor((remainingTime / 1000 / 60) % 60);
+        const seconds = Math.floor((remainingTime / 1000) % 60);
+        setTimeLeft(`Next heart in ${minutes}m ${seconds}s`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [hearts, lastHeartLossTimestamp]);
+  
+  if (!timeLeft) return null;
+
+  return <p className="text-xs mt-2">{timeLeft}</p>;
+}
+
 
 export function ChallengesView() {
   const router = useRouter();
@@ -115,7 +151,7 @@ export function ChallengesView() {
             <div className="text-center text-destructive-foreground bg-destructive/80 p-4 rounded-lg">
                 <h3 className="font-bold text-lg">You're out of hearts!</h3>
                 <p className="text-sm">Refill your hearts to continue learning.</p>
-                <p className="text-xs mt-2">(Heart regeneration timer coming soon!)</p>
+                <CooldownTimer />
             </div>
         )}
         {Object.keys(currentUnit).map((stageId, index) => {
@@ -170,3 +206,4 @@ export function ChallengesView() {
     </div>
   );
 }
+
