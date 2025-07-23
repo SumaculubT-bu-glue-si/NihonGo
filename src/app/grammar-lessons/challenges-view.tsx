@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { ChallengeProgress } from '@/lib/data';
+import type { ChallengeProgress, ChallengeData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { BookOpen, ChevronLeft, CircleCheck, Lock, Trophy, Swords, Castle, Gem, Heart, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShopDialog } from './shop-dialog';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 const HEART_REGEN_MINUTES = 30;
 
@@ -120,8 +121,13 @@ export function ChallengesView() {
 
   const currentUnit = units[currentUnitId];
   const unitNames = Object.keys(units);
-  const currentUnitIndex = unitNames.indexOf(currentUnitId);
-  const nextUnitId = unitNames[currentUnitIndex + 1];
+  
+  const isUnitComplete = (unitId: string) => {
+    const unit = units[unitId];
+    if (!unit) return false;
+    const allStagesInUnit = Object.keys(unit);
+    return allStagesInUnit.every(stageId => getNodeStatus(unitId, stageId, challengeProgress) === 'completed');
+  };
 
   if (!currentUnit) {
     return (
@@ -134,8 +140,6 @@ export function ChallengesView() {
   }
   
   const allStages = Object.keys(currentUnit);
-  const isUnitComplete = allStages.every(stageId => getNodeStatus(currentUnitId, stageId, challengeProgress) === 'completed');
-
 
   return (
     <>
@@ -143,9 +147,26 @@ export function ChallengesView() {
       
        <Card className="mb-8 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">Level 1</h2>
-            <p className="text-sm font-medium text-primary-foreground/80">{currentUnitId}</p>
+          <div className="flex-1">
+            <h2 className="text-lg font-bold">Level 1</h2>
+             <Select value={currentUnitId} onValueChange={setCurrentUnitId}>
+                <SelectTrigger className="w-full sm:w-[300px] h-9 text-base font-semibold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
+                    <SelectValue placeholder="Select a unit" />
+                </SelectTrigger>
+                <SelectContent>
+                    {unitNames.map((unitName, index) => {
+                        const isFirstUnit = index === 0;
+                        const prevUnitName = unitNames[index - 1];
+                        const isPrevUnitComplete = isFirstUnit || isUnitComplete(prevUnitName);
+                        
+                        return (
+                            <SelectItem key={unitName} value={unitName} disabled={!isPrevUnitComplete}>
+                                {unitName} {!isPrevUnitComplete && ' (Locked)'}
+                            </SelectItem>
+                        );
+                    })}
+                </SelectContent>
+             </Select>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -207,28 +228,13 @@ export function ChallengesView() {
             </div>
           );
         })}
-        {isUnitComplete && (
+        {isUnitComplete(currentUnitId) && (
             <div className="relative flex flex-col items-center pt-8">
             <Trophy className="h-20 w-20 text-yellow-400" />
             <p className="mt-2 font-bold">{currentUnitId.split(':')[0]} Complete</p>
             </div>
         )}
       </div>
-
-      {/* Footer / Next Unit */}
-      {nextUnitId && (
-        <div className=" bottom-0 left-0 right-0 p-4 border-t bg-background/90 backdrop-blur-sm">
-          <div className="container mx-auto flex items-center justify-center">
-            <Button
-              variant="ghost"
-              className="w-full h-12 text-lg"
-              onClick={() => setCurrentUnitId(nextUnitId)}
-            >
-              Next up: {nextUnitId.split(':')[0]}
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
     <ShopDialog isOpen={isShopOpen} onOpenChange={setIsShopOpen} />
     </>
