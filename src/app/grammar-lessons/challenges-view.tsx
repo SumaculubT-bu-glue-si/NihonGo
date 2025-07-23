@@ -86,7 +86,7 @@ export function ChallengesView() {
   }
 
   return (
-    <div className="mx-auto flex h-full w-11/12 max-w-2xl flex-col font-sans">
+    <div className="mx-auto flex h-full w-full max-w-2xl flex-col font-sans">
       
        <Card className="mb-8 bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
