@@ -66,7 +66,7 @@ Your task is to generate exactly **{{{count}}}** unique challenge items. Each it
     -   **N4:** Introduce some common, basic kanji (e.g., 日, 本, 人, 大, 小) but keep many words in kana. Sentences can be slightly longer than N5.
     -   **N3 and above (N2, N1):** Use standard kanji for all words that are commonly written with kanji. Sentence complexity should increase with the level.
 2.  **Word Bank Accuracy:**
-    -   The elements of the 'word_bank' array, when joined together in order, MUST perfectly match the 'correct_japanese' string.
+    -   The elements of the 'word_bank' array, when joined together in order without any spaces, MUST perfectly match the 'correct_japanese' string.
     -   The final punctuation mark (like '。') MUST be attached to the last word and not be a separate element.
     -   The 'word_bank' must NOT contain any empty, null, or standalone punctuation strings.
 3.  **Content Requirements for Each Item:**

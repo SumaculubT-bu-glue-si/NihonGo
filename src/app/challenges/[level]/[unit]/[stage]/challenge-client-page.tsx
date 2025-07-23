@@ -136,7 +136,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
   const checkAnswer = () => {
     if (isAnswered) return;
     const userAnswer = selectedWords.join('');
-    const correctAnswer = currentItem.correct_japanese;
+    const correctAnswer = currentItem.correct_japanese.replace(/\s/g, '');
 
     const correct = userAnswer === correctAnswer;
     setIsCorrect(correct);
