@@ -16,18 +16,26 @@ import { ShopDialog } from './shop-dialog';
 const HEART_REGEN_MINUTES = 30;
 
 const getNodeStatus = (unitId: string, stageId: string, progress: ChallengeProgress) => {
-  // This logic will need to be updated based on how progress is tracked.
-  // For now, we'll simulate it.
-  if (stageId === 'stage1') return 'active';
-  if (progress?.N5?.[unitId]?.[stageId] === 'completed') return 'completed';
-  // Check if previous stage is complete to unlock the current one
+  // Check if the current stage is completed
+  if (progress?.N5?.[unitId]?.[stageId] === 'completed') {
+    return 'completed';
+  }
+  
+  // The first stage is always active by default
   const stageNum = parseInt(stageId.replace('stage', ''), 10);
+  if (stageNum === 1) {
+    return 'active';
+  }
+
+  // Check if the previous stage is complete to unlock the current one
   if (stageNum > 1) {
     const prevStageId = `stage${stageNum - 1}`;
     if (progress?.N5?.[unitId]?.[prevStageId] === 'completed') {
       return 'active';
     }
   }
+
+  // Otherwise, it's locked
   return 'locked';
 };
 
@@ -124,6 +132,10 @@ export function ChallengesView() {
       </div>
     );
   }
+  
+  const allStages = Object.keys(currentUnit);
+  const isUnitComplete = allStages.every(stageId => getNodeStatus(currentUnitId, stageId, challengeProgress) === 'completed');
+
 
   return (
     <>
@@ -136,9 +148,6 @@ export function ChallengesView() {
             <p className="text-sm font-medium text-primary-foreground/80">{currentUnitId}</p>
           </div>
           <div className="flex items-center gap-4">
-             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary-foreground hover:bg-primary/80" onClick={() => setIsShopOpen(true)}>
-                <Store className="h-6 w-6" />
-            </Button>
             <div className="flex items-center gap-2">
               <Gem className="h-6 w-6" />
               <span className="text-lg font-bold">{diamonds}</span>
@@ -148,8 +157,11 @@ export function ChallengesView() {
                     <Heart className="h-6 w-6" />
                     <span className="text-lg font-bold">{hearts}</span>
                 </div>
-                <CooldownTimer />
+                {hearts < 5 && <CooldownTimer />}
             </div>
+            <button className="text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)}>
+                <Store className="h-6 w-6" />
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -157,22 +169,26 @@ export function ChallengesView() {
 
       {/* Learning Path */}
       <div className="flex flex-1 flex-col items-center justify-start space-y-8 overflow-y-auto pb-24">
-        {hearts === 0 && (
-            <div className="text-center text-destructive-foreground bg-destructive/80 p-4 rounded-lg">
-                <h3 className="font-bold text-lg">You're out of hearts!</h3>
-                <p className="text-sm">Refill your hearts to continue learning.</p>
-                <CooldownTimer />
-            </div>
-        )}
-        {Object.keys(currentUnit).map((stageId, index) => {
+      {hearts === 0 && (
+        <div className="text-center text-orange-500 bg-orange-100 p-4 rounded-lg">
+          <h3 className="font-bold text-lg">You're out of hearts!</h3>
+          <p className="text-sm">
+            Refill your hearts to continue learning.
+          </p>
+          <CooldownTimer />
+        </div>
+      )}
+        {allStages.map((stageId, index) => {
           const status = getNodeStatus(currentUnitId, stageId, challengeProgress);
           const isLocked = hearts === 0 && status === 'active';
           const finalStatus = isLocked ? 'locked' : status;
 
           const isBoss = index === Object.keys(currentUnit).length - 1;
           const isOffset = index % 2 !== 0;
+          
+          const lessonId = `gl-n5-${currentUnitIndex * 5 + index + 1}`; // Simple mapping for now
+          const stageHref = `/grammar-lessons/${lessonId}?challengeNodeId=N5|${encodeURIComponent(currentUnitId)}|${stageId}`;
 
-          const stageHref = `/challenges/N5/${encodeURIComponent(currentUnitId)}/${stageId}`;
 
           return (
             <div
@@ -193,10 +209,12 @@ export function ChallengesView() {
             </div>
           );
         })}
-        <div className="relative flex flex-col items-center pt-8">
-          <Trophy className="h-20 w-20 text-yellow-400" />
-          <p className="mt-2 font-bold">{currentUnitId.split(':')[0]} Complete</p>
-        </div>
+        {isUnitComplete && (
+            <div className="relative flex flex-col items-center pt-8">
+            <Trophy className="h-20 w-20 text-yellow-400" />
+            <p className="mt-2 font-bold">{currentUnitId.split(':')[0]} Complete</p>
+            </div>
+        )}
       </div>
 
       {/* Footer / Next Unit */}

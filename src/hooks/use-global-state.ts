@@ -519,10 +519,19 @@ export const useGlobalStateData = () => {
     }, [setCurrentUserData]);
     
     const completeChallengeNode = useCallback((nodeId: string) => {
-        // This function will need to be updated to handle the new challenge structure.
-        // For now, it is a placeholder.
-        console.log("Completing challenge node:", nodeId);
-    }, []);
+        const [level, unitId, stageId] = nodeId.split('|');
+        setCurrentUserData(prev => {
+            const newProgress = { ...prev.challengeProgress };
+            if (!newProgress[level]) newProgress[level] = {};
+            if (!newProgress[level][unitId]) newProgress[level][unitId] = {};
+            newProgress[level][unitId][stageId] = 'completed';
+            
+            return {
+                ...prev,
+                challengeProgress: newProgress
+            }
+        })
+    }, [setCurrentUserData]);
 
     const loseHeart = useCallback(() => {
         setCurrentUserData(prev => {
