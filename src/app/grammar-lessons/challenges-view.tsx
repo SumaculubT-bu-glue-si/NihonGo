@@ -105,10 +105,11 @@ export function ChallengesView() {
   const router = useRouter();
   const { appData, setCurrentChallengeLevel } = useGlobalState();
   const { challengeData, challengeProgress, hearts, diamonds, currentChallengeLevel } = appData;
-  const units = challengeData[currentChallengeLevel];
   
   const [currentUnitId, setCurrentUnitId] = useState('');
   const [isShopOpen, setIsShopOpen] = useState(false);
+  
+  const units = challengeData?.[currentChallengeLevel];
 
   useEffect(() => {
     // When level changes, reset the selected unit to the first one of that level
@@ -134,6 +135,10 @@ export function ChallengesView() {
   }
   
   const allLevels: Level[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
+  
+  const currentUnit = units?.[currentUnitId];
+  const unitNames = units ? Object.keys(units) : [];
+
 
   if (!units) {
     return (
@@ -144,9 +149,6 @@ export function ChallengesView() {
       </div>
     );
   }
-
-  const currentUnit = units[currentUnitId];
-  const unitNames = Object.keys(units);
   
   if (!currentUnitId || !currentUnit) {
      return (
@@ -177,7 +179,7 @@ export function ChallengesView() {
 
                         return (
                             <SelectItem key={level} value={level} disabled={!isPrevLevelComplete}>
-                                Level {level} {!isPrevLevelComplete && '(Locked)'}
+                                Level {index + 1}: {level} {!isPrevLevelComplete && '(Locked)'}
                             </SelectItem>
                         );
                     })}
