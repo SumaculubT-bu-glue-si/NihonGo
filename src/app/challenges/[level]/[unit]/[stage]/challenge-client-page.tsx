@@ -77,7 +77,8 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     setSessionItems([...items]);
     setCurrentIndex(0);
   }, [items]);
-
+  
+  // Reset for new item
   useEffect(() => {
     if (!currentItem) return;
     const newWordBank = shuffle([...currentItem.word_bank, ...currentItem.distractors]);
@@ -86,9 +87,9 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     setIsAnswered(false);
   }, [currentItem]);
   
-    useEffect(() => {
+  // Auto-play TTS when the item appears
+  useEffect(() => {
     if (currentItem?.correct_japanese) {
-      // Auto-play TTS when the item appears
       const utterance = new SpeechSynthesisUtterance(currentItem.correct_japanese);
       utterance.lang = 'ja-JP';
       const voices = window.speechSynthesis.getVoices();
@@ -106,8 +107,9 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     };
   }, [currentItem]);
   
+  // Check for no hearts
   useEffect(() => {
-    if (hearts === 0 && !isCorrect) {
+    if (hearts === 0 && !isAnswered) { // Only show toast if they haven't just answered
         toast({
             title: "You're out of hearts!",
             description: "Refill your hearts or practice to earn more.",
@@ -118,7 +120,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
         }, 2000);
         return () => clearTimeout(timer);
     }
-  }, [hearts, toast, isCorrect, getRedirectUrl, router]);
+  }, [hearts, isAnswered, getRedirectUrl, router, toast]);
 
   const handleSelectWord = (word: string) => {
     setSelectedWords((prev) => [...prev, word]);
@@ -135,7 +137,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
   
   const checkAnswer = () => {
     if (isAnswered) return;
-    const userAnswer = selectedWords.join('');
+    const userAnswer = selectedWords.join('').replace(/\s/g, '');
     const correctAnswer = currentItem.correct_japanese.replace(/\s/g, '');
 
     const correct = userAnswer === correctAnswer;
@@ -170,39 +172,41 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
   }
 
   const handleContinue = () => {
-    let newItems = [...sessionItems];
     if (isCorrect) {
-        // If correct, remove the item from the session
-        newItems.splice(currentIndex, 1);
-    } else {
-        // If incorrect, just move to the next index
-        // If we are at the end, loop back to the beginning
-        if (currentIndex < newItems.length - 1) {
-            setCurrentIndex(prev => prev + 1);
-        } else {
-            setCurrentIndex(0);
-        }
-    }
-    
-    setSessionItems(newItems);
-    
-    if (newItems.length === 0) {
-      // All items completed
-      addDiamonds(100);
-      const decodedUnitId = decodeURIComponent(params.unit as string);
-      completeChallengeNode(`${params.level}|${decodedUnitId}|${params.stage}`);
-      toast({
+      const newItems = sessionItems.filter((_, i) => i !== currentIndex);
+      setSessionItems(newItems);
+
+      if (newItems.length === 0) {
+        // All items completed
+        addDiamonds(100);
+        const decodedUnitId = decodeURIComponent(params.unit as string);
+        completeChallengeNode(`${params.level}|${decodedUnitId}|${params.stage}`);
+        toast({
           title: "Stage Complete!",
           description: "You earned 100 diamonds!",
-      });
-      router.push(getRedirectUrl());
+        });
+        router.push(getRedirectUrl());
+      } else {
+        // If we removed an item and it was the last one, reset index to 0
+        if (currentIndex >= newItems.length) {
+          setCurrentIndex(0);
+        }
+      }
     } else {
-      // If we removed the last item, reset index
-      if (currentIndex >= newItems.length) {
-        setCurrentIndex(0);
+      // If incorrect...
+      if (sessionItems.length === 1) {
+        // This is the last item, allow user to retry it.
+        // We just reset the current item's state without changing the items array or index.
+        const newWordBank = shuffle([...currentItem.word_bank, ...currentItem.distractors]);
+        setWordBank(newWordBank);
+        setSelectedWords([]);
+        setIsAnswered(false);
+      } else {
+        // More items remain, cycle to the next one
+        setCurrentIndex((prev) => (prev + 1) % sessionItems.length);
       }
     }
-  }
+  };
   
   const handleExit = () => {
     router.push(getRedirectUrl());
