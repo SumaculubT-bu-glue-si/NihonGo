@@ -68,6 +68,7 @@ Your task is to generate exactly **{{{count}}}** unique challenge items. Each it
 2.  **Word Bank Accuracy:**
     -   The elements of the 'word_bank' array, when joined together in order, MUST perfectly match the 'correct_japanese' string.
     -   The final punctuation mark (like '。') MUST be attached to the last word and not be a separate element.
+    -   The 'word_bank' must NOT contain any empty, null, or standalone punctuation strings.
 3.  **Content Requirements for Each Item:**
     -   'id': A sequential number for the item.
     -   'grammar_point': The specific grammar point being tested. This MUST be relevant to both the 'unit_topic' and the 'level'.
@@ -80,11 +81,15 @@ Your task is to generate exactly **{{{count}}}** unique challenge items. Each it
     });
 
     const { output } = await prompt(input);
-    // Ensure IDs are sequential starting from 1
-    const itemsWithSequentialIds = output!.items.map((item, index) => ({
+    
+    // Post-processing to ensure data quality
+    const cleanedItems = output!.items.map((item, index) => ({
         ...item,
-        id: index + 1,
+        id: index + 1, // Ensure sequential IDs
+        // Filter out any empty strings the AI might have generated in the word bank
+        word_bank: item.word_bank.filter(word => word && word.trim() !== ''),
     }));
-    return { items: itemsWithSequentialIds };
+
+    return { items: cleanedItems };
   }
 );
