@@ -122,10 +122,11 @@ export const useGlobalStateData = () => {
             const serializedUserData = localStorage.getItem(USER_DATA_STORAGE_KEY_PREFIX);
             if (serializedUserData) {
                 const parsedData: FullAppData = JSON.parse(serializedUserData);
-                // Ensure all users have the latest challenge data structure
+                // Ensure all users have the latest data structure
                 Object.keys(parsedData).forEach(userId => {
-                    if (!parsedData[userId].challengeData) {
-                        parsedData[userId].challengeData = initialChallengeData;
+                    parsedData[userId] = {
+                      ...getInitialUserData(),
+                      ...parsedData[userId],
                     }
                 });
                 setFullAppData(parsedData);
