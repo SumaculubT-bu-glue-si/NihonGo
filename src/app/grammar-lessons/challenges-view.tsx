@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ChallengeProgress, ChallengeData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { BookOpen, ChevronLeft, CircleCheck, Lock, Trophy, Swords, Castle, Gem, Heart, Store } from 'lucide-react';
+import { BookOpen, CircleCheck, Lock, Trophy, Castle, Gem, Heart, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
@@ -106,17 +106,18 @@ export function ChallengesView() {
   const router = useRouter();
   const { appData, setCurrentChallengeLevel } = useGlobalState();
   const { challengeData, challengeProgress, hearts, diamonds, currentChallengeLevel } = appData;
-  
-  const [currentUnitId, setCurrentUnitId] = useState(Object.keys(challengeData[currentChallengeLevel])[0]);
+  const units = challengeData[currentChallengeLevel];
+  const firstUnitId = units ? Object.keys(units)[0] : '';
+
+  const [currentUnitId, setCurrentUnitId] = useState(firstUnitId);
   const [isShopOpen, setIsShopOpen] = useState(false);
 
   useEffect(() => {
     // When level changes, reset the selected unit to the first one of that level
-    setCurrentUnitId(Object.keys(challengeData[currentChallengeLevel])[0]);
-  }, [currentChallengeLevel, challengeData]);
-
-
-  const units = challengeData[currentChallengeLevel];
+    if (units) {
+      setCurrentUnitId(Object.keys(units)[0]);
+    }
+  }, [currentChallengeLevel, units]);
 
   if (!units) {
     return (
@@ -137,13 +138,13 @@ export function ChallengesView() {
     const allStagesInUnit = Object.keys(unit);
     return allStagesInUnit.every(stageId => getNodeStatus(currentChallengeLevel, unitId, stageId, challengeProgress) === 'completed');
   };
-
+  
   if (!currentUnit) {
     return (
       <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
         <Trophy className="h-16 w-16 mb-4" />
         <h3 className="text-xl font-semibold">Error Loading Unit</h3>
-        <p>Could not find data for {currentUnitId}.</p>
+        <p>Could not find data for the selected unit.</p>
       </div>
     );
   }
@@ -198,9 +199,9 @@ export function ChallengesView() {
                 </div>
                 {hearts < 5 && <CooldownTimer />}
             </div>
-            <a className="text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)}>
+            <button className="text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)}>
                 <Store className="h-6 w-6" />
-            </a>
+            </button>
           </div>
         </CardContent>
       </Card>
