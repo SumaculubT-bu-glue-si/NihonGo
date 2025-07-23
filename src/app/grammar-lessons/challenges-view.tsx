@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { ChallengeProgress, ChallengeData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { BookOpen, CircleCheck, Lock, Trophy, Castle, Gem, Heart, Store } from 'lucide-react';
@@ -103,22 +103,39 @@ const CooldownTimer = () => {
 
 export function ChallengesView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { appData, setCurrentChallengeLevel } = useGlobalState();
   const { challengeData, challengeProgress, hearts, diamonds, currentChallengeLevel } = appData;
   
   const [currentUnitId, setCurrentUnitId] = useState('');
   const [isShopOpen, setIsShopOpen] = useState(false);
+
+  useEffect(() => {
+    const levelFromQuery = searchParams.get('level') as Level | null;
+    const unitFromQuery = searchParams.get('unit');
+
+    if (levelFromQuery && appData.challengeData[levelFromQuery]) {
+        setCurrentChallengeLevel(levelFromQuery);
+    }
+    if (unitFromQuery && appData.challengeData[levelFromQuery]?.[unitFromQuery]) {
+        setCurrentUnitId(unitFromQuery);
+    }
+  }, [searchParams, appData.challengeData, setCurrentChallengeLevel]);
+  
   
   const units = challengeData?.[currentChallengeLevel];
   
   useEffect(() => {
     // When level changes or data loads, reset the selected unit to the first one of that level
     if (units && Object.keys(units).length > 0) {
-      setCurrentUnitId(Object.keys(units)[0]);
+      // Only reset if the currentUnitId is not valid for the new level
+      if (!units[currentUnitId]) {
+        setCurrentUnitId(Object.keys(units)[0]);
+      }
     } else {
       setCurrentUnitId('');
     }
-  }, [currentChallengeLevel, units]);
+  }, [currentChallengeLevel, units, currentUnitId]);
   
    const isUnitComplete = (level: Level, unitId: string) => {
     const unit = challengeData[level]?.[unitId];

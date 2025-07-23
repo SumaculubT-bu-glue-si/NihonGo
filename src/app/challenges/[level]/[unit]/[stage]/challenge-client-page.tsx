@@ -37,7 +37,7 @@ function WordButton({
   );
 }
 
-export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
+export function ChallengeClientPage({ items, level, unitId }: { items: ChallengeItem[], level: string, unitId: string }) {
   const router = useRouter();
   const { toast } = useToast();
   const { appData, loseHeart, addDiamonds, completeChallengeNode } = useGlobalState();
@@ -55,6 +55,10 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const incorrectSound = new Howl({ src: ['/incorrect-sound.mp3'] });
   
   const currentItem = sessionItems[currentIndex];
+  
+  const getRedirectUrl = () => {
+    return `/grammar-lessons?tab=challenges&level=${level}&unit=${encodeURIComponent(unitId)}`;
+  };
 
   useEffect(() => {
     // Initialize session items when the component mounts or `items` prop changes
@@ -98,11 +102,11 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
             variant: "destructive"
         });
         const timer = setTimeout(() => {
-            router.push('/grammar-lessons?tab=challenges');
+            router.push(getRedirectUrl());
         }, 2000);
         return () => clearTimeout(timer);
     }
-  }, [hearts, router, toast, isCorrect]);
+  }, [hearts, router, toast, isCorrect, getRedirectUrl]);
 
   const handleSelectWord = (word: string) => {
     setSelectedWords((prev) => [...prev, word]);
@@ -178,7 +182,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
           title: "Stage Complete!",
           description: "You earned 100 diamonds!",
       });
-      router.push('/grammar-lessons?tab=challenges');
+      router.push(getRedirectUrl());
     } else {
       // If we removed the last item, reset index
       if (currentIndex >= newItems.length) {
@@ -188,7 +192,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   }
   
   const handleExit = () => {
-    router.push('/grammar-lessons?tab=challenges');
+    router.push(getRedirectUrl());
   }
 
   if (!currentItem) {

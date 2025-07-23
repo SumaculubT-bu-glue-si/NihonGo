@@ -59,7 +59,7 @@ export default function ChallengePage() {
 
   return (
     <AuthGuard>
-        <ChallengeClientPage items={challenge.items} />
+        <ChallengeClientPage items={challenge.items} level={level} unitId={decodedUnitId} />
     </AuthGuard>
   );
 }
