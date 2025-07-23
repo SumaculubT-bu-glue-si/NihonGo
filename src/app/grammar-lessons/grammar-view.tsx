@@ -9,7 +9,7 @@ import { GrammarCheckerTool } from './checker-view';
 import type { AppData } from '@/hooks/use-global-state';
 import { useSearchParams } from 'next/navigation';
 
-export function GrammarView({ appData }: { appData: AppData }) {
+export function GrammarView() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'library';
     

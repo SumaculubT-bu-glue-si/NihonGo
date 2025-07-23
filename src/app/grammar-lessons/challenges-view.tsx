@@ -13,7 +13,6 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShopDialog } from './shop-dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const HEART_REGEN_MINUTES = 30;
 
@@ -118,6 +117,22 @@ export function ChallengesView() {
       setCurrentUnitId(Object.keys(units)[0]);
     }
   }, [currentChallengeLevel, units]);
+  
+   const isUnitComplete = (level: Level, unitId: string) => {
+    const unit = challengeData[level]?.[unitId];
+    if (!unit) return false;
+    const allStagesInUnit = Object.keys(unit);
+    return allStagesInUnit.every(stageId => getNodeStatus(level, unitId, stageId, challengeProgress) === 'completed');
+  };
+  
+  const isLevelComplete = (level: Level) => {
+    const unitsInLevel = challengeData[level];
+    if (!unitsInLevel || Object.keys(unitsInLevel).length === 0) return true; // No units, so it's "complete"
+
+    return Object.keys(unitsInLevel).every(unitId => isUnitComplete(level, unitId));
+  }
+  
+  const allLevels: Level[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
 
   if (!units) {
     return (
@@ -131,13 +146,6 @@ export function ChallengesView() {
 
   const currentUnit = units[currentUnitId];
   const unitNames = Object.keys(units);
-  
-  const isUnitComplete = (unitId: string) => {
-    const unit = units[unitId];
-    if (!unit) return false;
-    const allStagesInUnit = Object.keys(unit);
-    return allStagesInUnit.every(stageId => getNodeStatus(currentChallengeLevel, unitId, stageId, challengeProgress) === 'completed');
-  };
   
   if (!currentUnit) {
     return (
@@ -153,30 +161,36 @@ export function ChallengesView() {
 
   return (
     <>
-    <Tabs value={currentChallengeLevel} onValueChange={(v) => setCurrentChallengeLevel(v as Level)} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="N5">N5</TabsTrigger>
-            <TabsTrigger value="N4">N4</TabsTrigger>
-            <TabsTrigger value="N3">N3</TabsTrigger>
-            <TabsTrigger value="N2">N2</TabsTrigger>
-            <TabsTrigger value="N1">N1</TabsTrigger>
-        </TabsList>
-    </Tabs>
-    <div className="mx-auto flex h-full w-3/4 min-w-2xl flex-col font-sans">
-    
-       <Card className="px-10 mb-24 w-full bg-primary text-primary-foreground">
+     <Card className="px-10 mb-24 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
-          <div className="flex-1">
-            <h2 className="text-lg font-bold">Level {currentChallengeLevel}</h2>
+          <div className="flex-1 space-y-2">
+             <Select value={currentChallengeLevel} onValueChange={(v) => setCurrentChallengeLevel(v as Level)}>
+                <SelectTrigger className="w-full sm:w-[200px] h-9 text-lg font-bold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
+                    <SelectValue placeholder="Select a level" />
+                </SelectTrigger>
+                <SelectContent>
+                    {allLevels.map((level, index) => {
+                       const isFirstLevel = index === 0;
+                       const prevLevel = allLevels[index - 1];
+                       const isPrevLevelComplete = isFirstLevel || isLevelComplete(prevLevel);
+
+                        return (
+                            <SelectItem key={level} value={level} disabled={!isPrevLevelComplete}>
+                                Level {level} {!isPrevLevelComplete && '(Locked)'}
+                            </SelectItem>
+                        );
+                    })}
+                </SelectContent>
+             </Select>
              <Select value={currentUnitId} onValueChange={setCurrentUnitId}>
-                <SelectTrigger className="w-full sm:w-[300px] h-9 text-base font-semibold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
+                <SelectTrigger className="w-full sm:w-[350px] h-9 text-base font-semibold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
                     <SelectValue placeholder="Select a unit" />
                 </SelectTrigger>
                 <SelectContent>
                     {unitNames.map((unitName, index) => {
                         const isFirstUnit = index === 0;
                         const prevUnitName = unitNames[index - 1];
-                        const isPrevUnitComplete = isFirstUnit || isUnitComplete(prevUnitName);
+                        const isPrevUnitComplete = isFirstUnit || isUnitComplete(currentChallengeLevel, prevUnitName);
                         
                         return (
                             <SelectItem key={unitName} value={unitName} disabled={!isPrevUnitComplete}>
@@ -208,6 +222,7 @@ export function ChallengesView() {
 
 
       {/* Learning Path */}
+      <div className="mx-auto flex h-full w-3/4 min-w-2xl flex-col font-sans">
       <div className="flex flex-1 flex-col items-center justify-start space-y-8 overflow-y-auto mb-24">
       {hearts === 0 && (
         <div className="text-center text-orange-500 bg-orange-100 p-4 rounded-lg">
@@ -218,7 +233,7 @@ export function ChallengesView() {
         </div>
       )}
         {allStages.map((stageId, index) => {
-          const status = getNodeStatus(currentChallengeLevel, currentUnitId, stageId, challengeProgress);
+          const status = getNodeStatus(currentChallengeLevel, currentUnitId, challengeProgress);
           const isLocked = hearts === 0 && status === 'active';
           const finalStatus = isLocked ? 'locked' : status;
 
@@ -246,7 +261,7 @@ export function ChallengesView() {
             </div>
           );
         })}
-        {isUnitComplete(currentUnitId) && (
+        {isUnitComplete(currentChallengeLevel, currentUnitId) && (
             <div className="relative flex flex-col items-center pt-36">
             <Trophy className="h-20 w-20 text-yellow-400" />
             <p className="mt-2 font-bold">{currentUnitId.split(':')[0]} Complete</p>

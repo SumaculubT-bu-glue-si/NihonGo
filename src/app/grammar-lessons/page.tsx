@@ -9,7 +9,7 @@ import { useGlobalState } from '@/hooks/use-global-state';
 import { Suspense } from 'react';
 
 function GrammarPageContent() {
-    const { appData, isLoading } = useGlobalState();
+    const { isLoading } = useGlobalState();
 
     if (isLoading) {
         return (
@@ -19,7 +19,7 @@ function GrammarPageContent() {
         );
     }
     
-    return <GrammarView appData={appData} />;
+    return <GrammarView />;
 }
 
 export default function GrammarLessonsPage() {
