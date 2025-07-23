@@ -180,16 +180,16 @@ export function ChallengesView() {
                 </div>
                 {hearts < 5 && <CooldownTimer />}
             </div>
-            <Button variant="ghost" size="icon" className="text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)}>
+            <a className="text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)}>
                 <Store className="h-6 w-6" />
-            </Button>
+            </a>
           </div>
         </CardContent>
       </Card>
 
 
       {/* Learning Path */}
-      <div className="flex flex-1 flex-col items-center justify-start space-y-8 overflow-y-auto pb-24">
+      <div className="flex flex-1 flex-col items-center justify-start space-y-8 overflow-y-auto mb-24">
       {hearts === 0 && (
         <div className="text-center text-orange-500 bg-orange-100 p-4 rounded-lg">
           <h3 className="font-bold text-lg">You're out of hearts!</h3>
@@ -211,12 +211,12 @@ export function ChallengesView() {
           return (
             <div
               key={stageId}
-              className={cn('relative flex flex-col items-center', isOffset ? 'translate-x-20' : '-translate-x-20')}
+              className={cn('relative flex flex-col items-center pt-5', isOffset ? 'translate-x-20' : '-translate-x-20')}
             >
               <Link href={stageHref} passHref aria-disabled={finalStatus === 'locked'}>
                 <button
                   disabled={finalStatus === 'locked'}
-                  className="transition-transform duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:opacity-50"
+                  className="transition-transform duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <NodeIcon status={finalStatus} isBoss={isBoss} />
                 </button>

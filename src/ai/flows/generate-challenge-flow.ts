@@ -14,12 +14,12 @@ import { z } from 'zod';
 
 const ChallengeItemSchema = z.object({
   id: z.number(),
-  grammar_point: z.string().describe('The specific grammar point being tested.'),
+  grammar_point: z.string().describe('The specific grammar point being tested, which must be directly related to the unit topic.'),
   english_sentence: z.string().describe('The English sentence prompt for the user to translate.'),
-  correct_japanese: z.string().describe('The correct Japanese translation of the English sentence.'),
-  word_bank: z.array(z.string()).describe('An array of Japanese words/particles that make up the correct answer. The final punctuation (like 。) should be attached to the last word.'),
+  correct_japanese: z.string().describe('The correct and natural Japanese translation of the English sentence.'),
+  word_bank: z.array(z.string()).describe("An array of Japanese words/particles that, when joined in order, EXACTLY form the 'correct_japanese' sentence. The final punctuation (like 。) should be attached to the last word."),
   hint: z.string().describe('A short, helpful hint about the grammar point.'),
-  distractors: z.array(z.string()).length(2).describe('An array of exactly 2 incorrect words to distract the user.'),
+  distractors: z.array(z.string()).length(2).describe('An array of exactly 2 incorrect but relevant Japanese words to distract the user.'),
 });
 
 const GenerateChallengeInputSchema = z.object({
@@ -56,16 +56,18 @@ const generateChallengeFlow = ai.defineFlow(
 
 The topic for this unit is: **{{{unit_topic}}}**
 
-Your task is to generate exactly **{{{count}}}** unique challenge items related to this topic. Each item must be a simple sentence suitable for a beginner.
+Your task is to generate exactly **{{{count}}}** unique challenge items. Each item's grammar point and sentence MUST be directly related to the unit topic.
 
 For each item, you must provide:
 1.  'id': A sequential number for the item.
-2.  'grammar_point': The specific N5 grammar point being tested (e.g., "です", "じゃないです", "でした").
+2.  'grammar_point': The specific N5 grammar point being tested. This MUST be relevant to the 'unit_topic'. For example, if the topic is "Particles", the grammar point should be a specific particle like "は" or "が".
 3.  'english_sentence': A simple English sentence for the user to translate.
 4.  'correct_japanese': The correct and natural Japanese translation.
-5.  'word_bank': An array of the exact words/particles that form the correct Japanese sentence, in order. The words in the bank should primarily be in hiragana or katakana, avoiding kanji where possible for this beginner level. The final punctuation mark (like '。') MUST be attached to the last word and not be a separate element.
+5.  'word_bank': An array of the exact words/particles that form the correct Japanese sentence. The words in the bank should primarily be in hiragana or katakana, avoiding kanji where possible.
+    - **CRITICAL RULE**: The elements of the 'word_bank' array, when joined together in order, MUST perfectly match the 'correct_japanese' string.
+    - The final punctuation mark (like '。') MUST be attached to the last word and not be a separate element.
 6.  'hint': A brief, one-sentence hint about the grammar rule.
-7.  'distractors': An array of exactly 2 Japanese words that are incorrect but plausible distractors. These should also be in kana.
+7.  'distractors': An array of exactly 2 Japanese words that are incorrect but plausible distractors. These should also be in kana and relevant to the sentence.
 `,
     });
 
