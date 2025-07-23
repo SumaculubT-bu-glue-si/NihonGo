@@ -51,14 +51,26 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const correctSound = new Howl({ src: ['/correct-sound.mp3'] });
-  const incorrectSound = new Howl({ src: ['/incorrect-sound.mp3'] });
+  const correctSoundRef = useRef<Howl | null>(null);
+  const incorrectSoundRef = useRef<Howl | null>(null);
   
   const currentItem = sessionItems[currentIndex];
   
   const getRedirectUrl = () => {
     return `/grammar-lessons?tab=challenges&level=${level}&unit=${encodeURIComponent(unitId)}`;
   };
+  
+  // Initialize sounds
+  useEffect(() => {
+    correctSoundRef.current = new Howl({ src: ['/correct-sound.mp3'], volume: 0.5 });
+    incorrectSoundRef.current = new Howl({ src: ['/incorrect-sound.mp3'], volume: 0.5 });
+    
+    // Cleanup sounds on component unmount
+    return () => {
+        correctSoundRef.current?.unload();
+        incorrectSoundRef.current?.unload();
+    }
+  }, []);
 
   useEffect(() => {
     // Initialize session items when the component mounts or `items` prop changes
@@ -117,6 +129,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     const newSelectedWords = [...selectedWords];
     newSelectedWords.splice(index, 1);
     setSelectedWords(newSelectedWords);
+    // When deselecting, add the word back to the word bank and shuffle
     setWordBank((prev) => shuffle([...prev, word]));
   };
   
@@ -130,9 +143,9 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     setIsAnswered(true);
 
     if (correct) {
-      correctSound.play();
+      correctSoundRef.current?.play();
     } else {
-      incorrectSound.play();
+      incorrectSoundRef.current?.play();
       loseHeart();
     }
   };
