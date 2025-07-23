@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Heart, X as CloseIcon } from 'lucide-react';
 import { PronunciationButton } from '@/components/pronunciation-button';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Howl } from 'howler';
 import Image from 'next/image';
 import { useGlobalState } from '@/hooks/use-global-state';
@@ -40,8 +40,9 @@ function WordButton({
 export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const router = useRouter();
   const { toast } = useToast();
-  const { appData, loseHeart, addDiamonds } = useGlobalState();
+  const { appData, loseHeart, addDiamonds, completeChallengeNode } = useGlobalState();
   const { hearts } = appData;
+  const params = useParams<{ level: string; unit: string; stage: string }>();
 
   const [sessionItems, setSessionItems] = useState<ChallengeItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -151,6 +152,12 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
     if (newItems.length === 0) {
       // All items completed
       addDiamonds(100);
+      const decodedUnitId = decodeURIComponent(params.unit);
+      completeChallengeNode(`${params.level}|${decodedUnitId}|${params.stage}`);
+      toast({
+          title: "Stage Complete!",
+          description: "You earned 100 diamonds!",
+      });
       router.push('/grammar-lessons');
     } else {
       // If we removed the last item, reset index

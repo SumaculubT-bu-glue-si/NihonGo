@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Stage, Unit, ChallengeProgress } from '@/lib/data';
+import type { ChallengeProgress } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { BookOpen, ChevronLeft, CircleCheck, Lock, Trophy, Swords, Castle, Gem, Heart, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';

@@ -66,6 +66,21 @@ export interface ChallengeItem {
   distractors: string[];
 }
 
+export interface Stage {
+    // This can be expanded with stage-specific metadata if needed
+}
+
+export interface Unit {
+    [stageId: string]: Stage[];
+}
+
+export interface ChallengeData {
+    [level: string]: {
+        [unitId: string]: Unit;
+    }
+}
+
+
 export interface ChallengeProgress {
   [level: string]: {
     [unitId: string]: {
