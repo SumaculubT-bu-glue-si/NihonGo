@@ -187,6 +187,10 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
       }
     }
   }
+  
+  const handleExit = () => {
+    router.push('/grammar-lessons');
+  }
 
   if (!currentItem) {
     // This can happen briefly when the session ends before navigation.
@@ -208,7 +212,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
       {/* Header */}
       <header className="p-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="hover:bg-white/10" onClick={() => router.back()}>
+          <Button variant="ghost" size="icon" className="hover:bg-white/10" onClick={handleExit}>
             <CloseIcon className="h-7 w-7" />
           </Button>
           <Progress value={progressPercentage} className="h-4 bg-gray-500 [&>div]:bg-green-400" />
