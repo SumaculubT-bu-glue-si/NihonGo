@@ -106,9 +106,8 @@ export function ChallengesView() {
   const { appData, setCurrentChallengeLevel } = useGlobalState();
   const { challengeData, challengeProgress, hearts, diamonds, currentChallengeLevel } = appData;
   const units = challengeData[currentChallengeLevel];
-  const firstUnitId = units ? Object.keys(units)[0] : '';
-
-  const [currentUnitId, setCurrentUnitId] = useState(firstUnitId);
+  
+  const [currentUnitId, setCurrentUnitId] = useState(units ? Object.keys(units)[0] : '');
   const [isShopOpen, setIsShopOpen] = useState(false);
 
   useEffect(() => {
@@ -233,7 +232,7 @@ export function ChallengesView() {
         </div>
       )}
         {allStages.map((stageId, index) => {
-          const status = getNodeStatus(currentChallengeLevel, currentUnitId, challengeProgress);
+          const status = getNodeStatus(currentChallengeLevel, currentUnitId, stageId, challengeProgress);
           const isLocked = hearts === 0 && status === 'active';
           const finalStatus = isLocked ? 'locked' : status;
 
