@@ -76,7 +76,7 @@ const CooldownTimer = () => {
       } else {
         const minutes = Math.floor((remainingTime / 1000 / 60) % 60);
         const seconds = Math.floor((remainingTime / 1000) % 60);
-        setTimeLeft(`Next heart in ${minutes}m ${seconds}s`);
+        setTimeLeft(`${minutes}m ${seconds}s`);
       }
     }, 1000);
 
@@ -85,7 +85,7 @@ const CooldownTimer = () => {
   
   if (!timeLeft) return null;
 
-  return <p className="text-xs mt-2">{timeLeft}</p>;
+  return <p className="text-xs text-primary-foreground/80">{timeLeft}</p>;
 }
 
 
@@ -136,9 +136,12 @@ export function ChallengesView() {
               <Gem className="h-6 w-6" />
               <span className="text-lg font-bold">{diamonds}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Heart className="h-6 w-6" />
-              <span className="text-lg font-bold">{hearts}</span>
+            <div className="flex flex-col items-center gap-0">
+                <div className="flex items-center gap-2">
+                    <Heart className="h-6 w-6" />
+                    <span className="text-lg font-bold">{hearts}</span>
+                </div>
+                {hearts < 5 && <CooldownTimer />}
             </div>
           </div>
         </CardContent>
@@ -206,4 +209,3 @@ export function ChallengesView() {
     </div>
   );
 }
-

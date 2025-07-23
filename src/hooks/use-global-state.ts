@@ -527,8 +527,8 @@ export const useGlobalStateData = () => {
         setCurrentUserData(prev => {
             const newHearts = Math.max(0, prev.hearts - 1);
             let newTimestamp = prev.lastHeartLossTimestamp;
-            // Set timestamp only when the first heart is lost (when going from 5 to 4)
-            if (prev.hearts === 5 && newHearts < 5) {
+            // Set timestamp only when a heart is lost and the timer isn't already running
+            if (prev.hearts > newHearts && prev.hearts === 5) {
                 newTimestamp = Date.now();
             }
             return {
@@ -577,4 +577,3 @@ export const useGlobalStateData = () => {
         setActiveVariants,
     };
 };
-
