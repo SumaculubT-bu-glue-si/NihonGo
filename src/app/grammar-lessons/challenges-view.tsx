@@ -76,7 +76,7 @@ const CooldownTimer = () => {
       } else {
         const minutes = Math.floor((remainingTime / 1000 / 60) % 60);
         const seconds = Math.floor((remainingTime / 1000) % 60);
-        setTimeLeft(`${minutes}m ${seconds}s`);
+        setTimeLeft(`${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`);
       }
     }, 1000);
 

@@ -525,10 +525,11 @@ export const useGlobalStateData = () => {
 
     const loseHeart = useCallback(() => {
         setCurrentUserData(prev => {
-            const newHearts = Math.max(0, prev.hearts - 1);
+            if (prev.hearts === 0) return prev;
+            const newHearts = prev.hearts - 1;
             let newTimestamp = prev.lastHeartLossTimestamp;
-            // Set timestamp only when a heart is lost and the timer isn't already running
-            if (prev.hearts > newHearts && prev.hearts === 5) {
+            // Set timestamp only when the timer isn't already running (i.e., when going from 5 to 4 hearts)
+            if (prev.hearts === 5) {
                 newTimestamp = Date.now();
             }
             return {
