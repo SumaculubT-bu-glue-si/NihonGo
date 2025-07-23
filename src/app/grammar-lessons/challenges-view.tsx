@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -55,7 +56,7 @@ const NodeIcon = ({
 export function ChallengesView() {
   const router = useRouter();
   const { appData } = useGlobalState();
-  const { challengeData, challengeProgress } = appData;
+  const { challengeData, challengeProgress, hearts } = appData;
   const [currentUnitId, setCurrentUnitId] = useState('Unit 1: Basic Sentences & Endings');
 
   const units = challengeData.N5;
@@ -101,7 +102,7 @@ export function ChallengesView() {
             </div>
             <div className="flex items-center gap-2">
               <Heart className="h-6 w-6" />
-              <span className="text-lg font-bold">5</span>
+              <span className="text-lg font-bold">{hearts}</span>
             </div>
           </div>
         </CardContent>

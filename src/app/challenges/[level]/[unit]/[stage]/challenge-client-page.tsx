@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -10,6 +11,8 @@ import { Heart, X as CloseIcon } from 'lucide-react';
 import { PronunciationButton } from '@/components/pronunciation-button';
 import { useRouter } from 'next/navigation';
 import { Howl } from 'howler';
+import Image from 'next/image';
+import { useGlobalState } from '@/hooks/use-global-state';
 
 function WordButton({
   word,
@@ -35,9 +38,11 @@ function WordButton({
 
 export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const router = useRouter();
+  const { appData, loseHeart } = useGlobalState();
+  const { hearts } = appData;
+
   const [sessionItems, setSessionItems] = useState<ChallengeItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [lives, setLives] = useState(5);
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const [wordBank, setWordBank] = useState<string[]>([]);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -87,7 +92,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
       correctSound.play();
     } else {
       incorrectSound.play();
-      setLives(prev => prev > 0 ? prev - 1 : 0);
+      loseHeart();
     }
   };
 
@@ -164,7 +169,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
           <Progress value={progressPercentage} className="h-4 bg-gray-500 [&>div]:bg-green-400" />
           <div className="flex items-center gap-2">
             <Heart className="h-7 w-7 text-red-500 fill-red-500" />
-            <span className="text-xl font-bold">{lives}</span>
+            <span className="text-xl font-bold">{hearts}</span>
           </div>
         </div>
       </header>
@@ -177,6 +182,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
              <div className="text-2xl sm:text-4xl font-bold tracking-wider">
                {currentItem.english_sentence}
             </div>
+            <PronunciationButton text={currentItem.correct_japanese} />
            </div>
         </div>
         

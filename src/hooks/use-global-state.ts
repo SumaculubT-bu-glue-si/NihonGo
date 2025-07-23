@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
@@ -32,6 +33,7 @@ export interface AppData {
   favoriteGrammarLessons: string[];
   challengeData: ChallengeData;
   challengeProgress: ChallengeProgress;
+  hearts: number;
 }
 
 export interface FullAppData {
@@ -70,6 +72,7 @@ interface GlobalStateContextType {
   deleteQuestionFromQuiz: (quizId: string, questionId: string) => void;
   addGeneratedQuiz: (quizData: Omit<Quiz, 'id'>) => void;
   completeChallengeNode: (nodeId: string) => void;
+  loseHeart: () => void;
   setActiveVariants: (variants: ActiveVariants) => void;
 }
 
@@ -92,6 +95,7 @@ const getInitialUserData = (): AppData => ({
     favoriteGrammarLessons: [],
     challengeData: challengeData,
     challengeProgress: {},
+    hearts: 5,
 });
 
 const getInitialVariants = (): ActiveVariants => ({
@@ -481,6 +485,13 @@ export const useGlobalStateData = () => {
         console.log("Completing challenge node:", nodeId);
     }, []);
 
+    const loseHeart = useCallback(() => {
+        setCurrentUserData(prev => ({
+            ...prev,
+            hearts: Math.max(0, prev.hearts - 1),
+        }));
+    }, [setCurrentUserData]);
+
 
     return {
         appData: { ...currentUserData, activeVariants },
@@ -506,6 +517,7 @@ export const useGlobalStateData = () => {
         deleteQuestionFromQuiz,
         addGeneratedQuiz,
         completeChallengeNode,
+        loseHeart,
         setActiveVariants,
     };
 };
