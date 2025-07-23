@@ -55,7 +55,6 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const incorrectSound = new Howl({ src: ['/incorrect-sound.mp3'] });
   
   const currentItem = sessionItems[currentIndex];
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     // Initialize session items when the component mounts or `items` prop changes
@@ -173,7 +172,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
     if (newItems.length === 0) {
       // All items completed
       addDiamonds(100);
-      const decodedUnitId = decodeURIComponent(params.unit);
+      const decodedUnitId = decodeURIComponent(params.unit as string);
       completeChallengeNode(`${params.level}|${decodedUnitId}|${params.stage}`);
       toast({
           title: "Stage Complete!",
