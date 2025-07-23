@@ -196,7 +196,6 @@ export function ChallengesView() {
           <p className="text-sm">
             Refill your hearts to continue learning.
           </p>
-          <CooldownTimer />
         </div>
       )}
         {allStages.map((stageId, index) => {

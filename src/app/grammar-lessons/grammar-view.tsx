@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,8 +7,11 @@ import { GrammarLessonsView } from './lessons-view';
 import { ChallengesView } from './challenges-view';
 import { GrammarCheckerTool } from './checker-view';
 import type { AppData } from '@/hooks/use-global-state';
+import { useSearchParams } from 'next/navigation';
 
 export function GrammarView({ appData }: { appData: AppData }) {
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get('tab') || 'library';
     
   return (
     <div className="container mx-auto space-y-8">
@@ -18,7 +22,7 @@ export function GrammarView({ appData }: { appData: AppData }) {
             </p>
         </div>
 
-        <Tabs defaultValue="library" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 mt-6 h-12">
                 <TabsTrigger value="library" className="text-lg font-bold">Lessons Library</TabsTrigger>
                 <TabsTrigger value="checker" className="text-lg font-bold">Grammar Checker</TabsTrigger>
@@ -31,7 +35,7 @@ export function GrammarView({ appData }: { appData: AppData }) {
                 <GrammarCheckerTool />
             </TabsContent>
             <TabsContent value="challenges" className="mt-6">
-                 <ChallengesView appData={appData} />
+                 <ChallengesView />
             </TabsContent>
         </Tabs>
     </div>

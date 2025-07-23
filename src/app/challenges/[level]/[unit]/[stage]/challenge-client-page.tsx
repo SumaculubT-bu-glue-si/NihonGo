@@ -98,7 +98,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
             variant: "destructive"
         });
         const timer = setTimeout(() => {
-            router.push('/grammar-lessons');
+            router.push('/grammar-lessons?tab=challenges');
         }, 2000);
         return () => clearTimeout(timer);
     }
@@ -178,7 +178,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
           title: "Stage Complete!",
           description: "You earned 100 diamonds!",
       });
-      router.push('/grammar-lessons');
+      router.push('/grammar-lessons?tab=challenges');
     } else {
       // If we removed the last item, reset index
       if (currentIndex >= newItems.length) {
@@ -188,7 +188,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   }
   
   const handleExit = () => {
-    router.push('/grammar-lessons');
+    router.push('/grammar-lessons?tab=challenges');
   }
 
   if (!currentItem) {
