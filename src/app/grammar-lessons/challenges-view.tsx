@@ -107,13 +107,15 @@ export function ChallengesView() {
   const { challengeData, challengeProgress, hearts, diamonds, currentChallengeLevel } = appData;
   const units = challengeData[currentChallengeLevel];
   
-  const [currentUnitId, setCurrentUnitId] = useState(units ? Object.keys(units)[0] : '');
+  const [currentUnitId, setCurrentUnitId] = useState('');
   const [isShopOpen, setIsShopOpen] = useState(false);
 
   useEffect(() => {
     // When level changes, reset the selected unit to the first one of that level
-    if (units) {
+    if (units && Object.keys(units).length > 0) {
       setCurrentUnitId(Object.keys(units)[0]);
+    } else {
+      setCurrentUnitId('');
     }
   }, [currentChallengeLevel, units]);
   
@@ -146,12 +148,12 @@ export function ChallengesView() {
   const currentUnit = units[currentUnitId];
   const unitNames = Object.keys(units);
   
-  if (!currentUnit) {
-    return (
+  if (!currentUnitId || !currentUnit) {
+     return (
       <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
         <Trophy className="h-16 w-16 mb-4" />
-        <h3 className="text-xl font-semibold">Error Loading Unit</h3>
-        <p>Could not find data for the selected unit.</p>
+        <h3 className="text-xl font-semibold">No Challenges Found</h3>
+        <p>There are no units available for this level yet.</p>
       </div>
     );
   }
