@@ -67,12 +67,12 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
     setWordBank((prev) => shuffle([...prev, word]));
   };
   
-  const checkAnswer = (skipped = false) => {
+  const checkAnswer = () => {
     if (isAnswered) return;
-    const userAnswer = selectedWords.join('').replace(/ /g, '');
-    const correctAnswer = currentItem.correct_japanese.replace(/ /g, '');
+    const userAnswer = selectedWords.join('');
+    const correctAnswer = currentItem.correct_japanese;
 
-    const correct = !skipped && userAnswer === correctAnswer;
+    const correct = userAnswer === correctAnswer;
     setIsCorrect(correct);
     setIsAnswered(true);
 
@@ -85,7 +85,9 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   };
 
   const handleSkip = () => {
-    checkAnswer(true);
+    if (isAnswered) return;
+    setIsAnswered(true);
+    setIsCorrect(false); // Mark as incorrect to show the answer, but don't penalize
   }
 
   const handleContinue = () => {
@@ -171,7 +173,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
                 <Button 
                     size="lg" 
                     className="bg-green-500 hover:bg-green-600 text-white text-lg px-12"
-                    onClick={() => checkAnswer(false)}
+                    onClick={checkAnswer}
                     disabled={selectedWords.length === 0}
                 >
                     CHECK
