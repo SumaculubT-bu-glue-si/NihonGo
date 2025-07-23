@@ -113,29 +113,28 @@ export function ChallengesView() {
   useEffect(() => {
     const levelFromQuery = searchParams.get('level') as Level | null;
     const unitFromQuery = searchParams.get('unit');
-
+    const targetLevel = levelFromQuery || currentChallengeLevel;
+    
+    // Set level from query or use current state
     if (levelFromQuery && appData.challengeData[levelFromQuery]) {
         setCurrentChallengeLevel(levelFromQuery);
     }
-    if (unitFromQuery && appData.challengeData[levelFromQuery]?.[unitFromQuery]) {
+    
+    const unitsForLevel = appData.challengeData[targetLevel];
+    if (!unitsForLevel) return;
+
+    // Set unit from query if valid, otherwise default to the first unit of the target level
+    if (unitFromQuery && unitsForLevel[unitFromQuery]) {
         setCurrentUnitId(unitFromQuery);
+    } else if (Object.keys(unitsForLevel).length > 0) {
+        setCurrentUnitId(Object.keys(unitsForLevel)[0]);
+    } else {
+        setCurrentUnitId('');
     }
-  }, [searchParams, appData.challengeData, setCurrentChallengeLevel]);
+  }, [searchParams, appData.challengeData, setCurrentChallengeLevel, currentChallengeLevel]);
   
   
   const units = challengeData?.[currentChallengeLevel];
-  
-  useEffect(() => {
-    // When level changes or data loads, reset the selected unit to the first one of that level
-    if (units && Object.keys(units).length > 0) {
-      // Only reset if the currentUnitId is not valid for the new level
-      if (!units[currentUnitId]) {
-        setCurrentUnitId(Object.keys(units)[0]);
-      }
-    } else {
-      setCurrentUnitId('');
-    }
-  }, [currentChallengeLevel, units, currentUnitId]);
   
    const isUnitComplete = (level: Level, unitId: string) => {
     const unit = challengeData[level]?.[unitId];
