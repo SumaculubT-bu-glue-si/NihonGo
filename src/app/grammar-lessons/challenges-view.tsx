@@ -47,22 +47,22 @@ const NodeIcon = ({
   status: 'completed' | 'active' | 'locked';
   isBoss: boolean;
 }) => {
-  const iconSize = 'h-14 w-14';
-  const iconProps = { className: iconSize };
+  const iconBaseStyle = "h-20 w-20 p-4 rounded-full drop-shadow-lg";
+  const iconProps = { className: "h-full w-full" };
 
   if (isBoss) {
-    if (status === 'completed') return <Trophy {...iconProps} className={cn(iconSize, 'text-yellow-400')} />;
-    if (status === 'active') return <Castle {...iconProps} className={cn(iconSize, 'text-yellow-500')} />;
-    return <Castle {...iconProps} className="text-muted-foreground/50" />;
+    if (status === 'completed') return <div className={cn(iconBaseStyle, "bg-yellow-400 text-white")}><Trophy {...iconProps} /></div>;
+    if (status === 'active') return <div className={cn(iconBaseStyle, "bg-yellow-500 text-white")}><Castle {...iconProps} /></div>;
+    return <div className={cn(iconBaseStyle, "bg-muted text-muted-foreground/50")}><Castle {...iconProps} /></div>;
   }
 
   if (status === 'completed') {
-    return <CircleCheck {...iconProps} className="text-green-500" />;
+    return <div className={cn(iconBaseStyle, "bg-green-500 text-white")}><CircleCheck {...iconProps} /></div>;
   }
   if (status === 'active') {
-    return <BookOpen {...iconProps} className="text-primary" />;
+    return <div className={cn(iconBaseStyle, "bg-primary text-primary-foreground")}><BookOpen {...iconProps} /></div>;
   }
-  return <Lock {...iconProps} className="text-muted-foreground/50" />;
+  return <div className={cn(iconBaseStyle, "bg-muted text-muted-foreground/50")}><Lock {...iconProps} /></div>;
 };
 
 const CooldownTimer = () => {
@@ -143,9 +143,9 @@ export function ChallengesView() {
 
   return (
     <>
-    <div className="mx-auto flex h-full w-full max-w-2xl flex-col font-sans">
-      
-       <Card className="mb-8 w-full bg-primary text-primary-foreground">
+    <div className="mx-auto flex h-full w-3/4 min-w-2xl flex-col font-sans">
+    
+       <Card className="px-10 mb-24 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex-1">
             <h2 className="text-lg font-bold">Level 1</h2>
@@ -180,9 +180,9 @@ export function ChallengesView() {
                 </div>
                 {hearts < 5 && <CooldownTimer />}
             </div>
-            <button className="text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)}>
+            <Button variant="ghost" size="icon" className="text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)}>
                 <Store className="h-6 w-6" />
-            </button>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -228,7 +228,7 @@ export function ChallengesView() {
           );
         })}
         {isUnitComplete(currentUnitId) && (
-            <div className="relative flex flex-col items-center pt-8">
+            <div className="relative flex flex-col items-center pt-36">
             <Trophy className="h-20 w-20 text-yellow-400" />
             <p className="mt-2 font-bold">{currentUnitId.split(':')[0]} Complete</p>
             </div>
