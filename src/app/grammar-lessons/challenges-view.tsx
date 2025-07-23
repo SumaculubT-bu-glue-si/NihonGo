@@ -6,11 +6,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Stage, Unit, ChallengeProgress } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { BookOpen, ChevronLeft, CircleCheck, Lock, Trophy, Swords, Castle, Gem, Heart } from 'lucide-react';
+import { BookOpen, ChevronLeft, CircleCheck, Lock, Trophy, Swords, Castle, Gem, Heart, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
+import { ShopDialog } from './shop-dialog';
 
 const HEART_REGEN_MINUTES = 30;
 
@@ -83,7 +84,7 @@ const CooldownTimer = () => {
     return () => clearInterval(interval);
   }, [hearts, lastHeartLossTimestamp]);
   
-  if (!timeLeft) return null;
+  if (!timeLeft || hearts >= 5) return null;
 
   return <p className="text-xs text-primary-foreground/80">{timeLeft}</p>;
 }
@@ -94,6 +95,8 @@ export function ChallengesView() {
   const { appData } = useGlobalState();
   const { challengeData, challengeProgress, hearts, diamonds } = appData;
   const [currentUnitId, setCurrentUnitId] = useState('Unit 1: Basic Sentences & Endings');
+  const [isShopOpen, setIsShopOpen] = useState(false);
+
 
   const units = challengeData.N5;
 
@@ -123,6 +126,7 @@ export function ChallengesView() {
   }
 
   return (
+    <>
     <div className="mx-auto flex h-full w-full max-w-2xl flex-col font-sans">
       
        <Card className="mb-8 w-full bg-primary text-primary-foreground">
@@ -132,6 +136,9 @@ export function ChallengesView() {
             <p className="text-sm font-medium text-primary-foreground/80">{currentUnitId}</p>
           </div>
           <div className="flex items-center gap-4">
+             <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary/80" onClick={() => setIsShopOpen(true)}>
+                <Store className="h-6 w-6" />
+            </Button>
             <div className="flex items-center gap-2">
               <Gem className="h-6 w-6" />
               <span className="text-lg font-bold">{diamonds}</span>
@@ -141,7 +148,7 @@ export function ChallengesView() {
                     <Heart className="h-6 w-6" />
                     <span className="text-lg font-bold">{hearts}</span>
                 </div>
-                {hearts < 5 && <CooldownTimer />}
+                <CooldownTimer />
             </div>
           </div>
         </CardContent>
@@ -207,5 +214,7 @@ export function ChallengesView() {
         </div>
       )}
     </div>
+    <ShopDialog isOpen={isShopOpen} onOpenChange={setIsShopOpen} />
+    </>
   );
 }

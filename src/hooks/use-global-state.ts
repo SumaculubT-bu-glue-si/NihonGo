@@ -78,6 +78,7 @@ interface GlobalStateContextType {
   loseHeart: () => void;
   addHeart: () => void;
   addDiamonds: (amount: number) => void;
+  purchaseHearts: (heartsToBuy: number, cost: number) => boolean;
   setActiveVariants: (variants: ActiveVariants) => void;
 }
 
@@ -546,6 +547,26 @@ export const useGlobalStateData = () => {
             diamonds: (prev.diamonds || 0) + amount,
         }));
     }, [setCurrentUserData]);
+    
+    const purchaseHearts = useCallback((heartsToBuy: number, cost: number): boolean => {
+        let success = false;
+        setCurrentUserData(prev => {
+            if (prev.diamonds >= cost && prev.hearts < 5) {
+                success = true;
+                const newHearts = Math.min(5, prev.hearts + heartsToBuy);
+                 // If hearts are now full, clear the timer timestamp
+                const newTimestamp = newHearts === 5 ? null : prev.lastHeartLossTimestamp;
+                return {
+                    ...prev,
+                    diamonds: prev.diamonds - cost,
+                    hearts: newHearts,
+                    lastHeartLossTimestamp: newTimestamp,
+                };
+            }
+            return prev;
+        });
+        return success;
+    }, [setCurrentUserData]);
 
 
     return {
@@ -575,6 +596,7 @@ export const useGlobalStateData = () => {
         loseHeart,
         addHeart,
         addDiamonds,
+        purchaseHearts,
         setActiveVariants,
     };
 };
