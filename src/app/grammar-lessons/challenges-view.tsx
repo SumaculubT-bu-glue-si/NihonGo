@@ -136,7 +136,7 @@ export function ChallengesView() {
             <p className="text-sm font-medium text-primary-foreground/80">{currentUnitId}</p>
           </div>
           <div className="flex items-center gap-4">
-             <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary/80" onClick={() => setIsShopOpen(true)}>
+             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary-foreground hover:bg-primary/80" onClick={() => setIsShopOpen(true)}>
                 <Store className="h-6 w-6" />
             </Button>
             <div className="flex items-center gap-2">
