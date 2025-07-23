@@ -63,9 +63,9 @@ For each item, you must provide:
 2.  'grammar_point': The specific N5 grammar point being tested (e.g., "です", "じゃないです", "でした").
 3.  'english_sentence': A simple English sentence for the user to translate.
 4.  'correct_japanese': The correct and natural Japanese translation.
-5.  'word_bank': An array of the exact words/particles that form the correct Japanese sentence, in order. The final punctuation mark (like '。') MUST be attached to the last word and not be a separate element.
+5.  'word_bank': An array of the exact words/particles that form the correct Japanese sentence, in order. The words in the bank should primarily be in hiragana or katakana, avoiding kanji where possible for this beginner level. The final punctuation mark (like '。') MUST be attached to the last word and not be a separate element.
 6.  'hint': A brief, one-sentence hint about the grammar rule.
-7.  'distractors': An array of exactly 2 Japanese words that are incorrect but plausible distractors. The distractors should not be part of the correct answer.
+7.  'distractors': An array of exactly 2 Japanese words that are incorrect but plausible distractors. These should also be in kana.
 `,
     });
 

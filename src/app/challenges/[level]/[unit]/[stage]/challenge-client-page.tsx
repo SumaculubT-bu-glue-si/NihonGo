@@ -9,7 +9,6 @@ import { Progress } from '@/components/ui/progress';
 import { Heart, X as CloseIcon } from 'lucide-react';
 import { PronunciationButton } from '@/components/pronunciation-button';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { Howl } from 'howler';
 
 function WordButton({
@@ -49,6 +48,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const currentItem = items[currentIndex];
 
   useEffect(() => {
+    if (!currentItem) return;
     const newWordBank = shuffle([...currentItem.word_bank, ...currentItem.distractors]);
     setWordBank(newWordBank);
     setSelectedWords([]);
@@ -67,12 +67,12 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
     setWordBank((prev) => shuffle([...prev, word]));
   };
   
-  const checkAnswer = () => {
+  const checkAnswer = (skipped = false) => {
     if (isAnswered) return;
     const userAnswer = selectedWords.join('').replace(/ /g, '');
     const correctAnswer = currentItem.correct_japanese.replace(/ /g, '');
 
-    const correct = userAnswer === correctAnswer;
+    const correct = !skipped && userAnswer === correctAnswer;
     setIsCorrect(correct);
     setIsAnswered(true);
 
@@ -83,6 +83,10 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
       setLives(prev => prev > 0 ? prev - 1 : 0);
     }
   };
+
+  const handleSkip = () => {
+    checkAnswer(true);
+  }
 
   const handleContinue = () => {
     if (currentIndex < items.length - 1) {
@@ -115,14 +119,6 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
         <h1 className="text-2xl sm:text-3xl font-bold">Write this in Japanese</h1>
         
         <div className="flex items-center gap-4">
-           <Image
-              src="/waving_character.gif"
-              alt="Waving Character"
-              width={128}
-              height={128}
-              unoptimized
-              className="w-24 h-24 sm:w-32 sm:h-32"
-            />
            <div className="flex items-center gap-2">
              <div className="text-2xl sm:text-4xl font-bold tracking-wider">
                {currentItem.english_sentence}
@@ -171,11 +167,11 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           {!isAnswered ? (
              <>
-                <Button variant="ghost" size="lg" className="hover:bg-white/10 text-lg">SKIP</Button>
+                <Button variant="ghost" size="lg" className="hover:bg-white/10 text-lg" onClick={handleSkip}>SKIP</Button>
                 <Button 
                     size="lg" 
                     className="bg-green-500 hover:bg-green-600 text-white text-lg px-12"
-                    onClick={checkAnswer}
+                    onClick={() => checkAnswer(false)}
                     disabled={selectedWords.length === 0}
                 >
                     CHECK
@@ -188,7 +184,10 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
                     {!isCorrect && (
                         <div className="flex items-center gap-2">
                             <span className="text-sm">{currentItem.hint}</span>
-                            <PronunciationButton text={currentItem.correct_japanese} />
+                             <div className="text-sm font-semibold flex items-center gap-1">
+                                {currentItem.correct_japanese}
+                                <PronunciationButton text={currentItem.correct_japanese} />
+                            </div>
                         </div>
                     )}
                 </div>
