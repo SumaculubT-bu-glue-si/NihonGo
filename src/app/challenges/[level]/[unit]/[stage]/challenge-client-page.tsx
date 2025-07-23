@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ChallengeItem } from '@/lib/data';
 import { cn, shuffle } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -56,9 +56,9 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
   
   const currentItem = sessionItems[currentIndex];
   
-  const getRedirectUrl = () => {
+  const getRedirectUrl = useCallback(() => {
     return `/grammar-lessons?tab=challenges&level=${level}&unit=${encodeURIComponent(unitId)}`;
-  };
+  }, [level, unitId]);
   
   // Initialize sounds
   useEffect(() => {
@@ -118,7 +118,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
         }, 2000);
         return () => clearTimeout(timer);
     }
-  }, [hearts, router, toast, isCorrect, getRedirectUrl]);
+  }, [hearts, toast, isCorrect, getRedirectUrl, router]);
 
   const handleSelectWord = (word: string) => {
     setSelectedWords((prev) => [...prev, word]);
