@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { Howl } from 'howler';
 import Image from 'next/image';
 import { useGlobalState } from '@/hooks/use-global-state';
+import { useToast } from '@/hooks/use-toast';
 
 function WordButton({
   word,
@@ -38,6 +39,7 @@ function WordButton({
 
 export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const router = useRouter();
+  const { toast } = useToast();
   const { appData, loseHeart, addDiamonds } = useGlobalState();
   const { hearts } = appData;
 
@@ -66,6 +68,20 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
     setSelectedWords([]);
     setIsAnswered(false);
   }, [currentItem]);
+  
+  useEffect(() => {
+    if (hearts === 0 && !isCorrect) {
+        toast({
+            title: "You're out of hearts!",
+            description: "Refill your hearts or practice to earn more.",
+            variant: "destructive"
+        });
+        const timer = setTimeout(() => {
+            router.push('/grammar-lessons');
+        }, 2000);
+        return () => clearTimeout(timer);
+    }
+  }, [hearts, router, toast, isCorrect]);
 
   const handleSelectWord = (word: string) => {
     setSelectedWords((prev) => [...prev, word]);
