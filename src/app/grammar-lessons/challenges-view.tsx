@@ -186,9 +186,7 @@ export function ChallengesView() {
           const isBoss = index === Object.keys(currentUnit).length - 1;
           const isOffset = index % 2 !== 0;
           
-          const lessonId = `gl-n5-${currentUnitIndex * 5 + index + 1}`; // Simple mapping for now
-          const stageHref = `/grammar-lessons/${lessonId}?challengeNodeId=N5|${encodeURIComponent(currentUnitId)}|${stageId}`;
-
+          const stageHref = `/challenges/N5/${encodeURIComponent(currentUnitId)}/${stageId}`;
 
           return (
             <div
