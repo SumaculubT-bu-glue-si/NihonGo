@@ -34,6 +34,7 @@ export interface AppData {
   challengeData: ChallengeData;
   challengeProgress: ChallengeProgress;
   hearts: number;
+  diamonds: number;
 }
 
 export interface FullAppData {
@@ -73,6 +74,7 @@ interface GlobalStateContextType {
   addGeneratedQuiz: (quizData: Omit<Quiz, 'id'>) => void;
   completeChallengeNode: (nodeId: string) => void;
   loseHeart: () => void;
+  addDiamonds: (amount: number) => void;
   setActiveVariants: (variants: ActiveVariants) => void;
 }
 
@@ -96,6 +98,7 @@ const getInitialUserData = (): AppData => ({
     challengeData: challengeData,
     challengeProgress: {},
     hearts: 5,
+    diamonds: 100,
 });
 
 const getInitialVariants = (): ActiveVariants => ({
@@ -491,6 +494,13 @@ export const useGlobalStateData = () => {
             hearts: Math.max(0, prev.hearts - 1),
         }));
     }, [setCurrentUserData]);
+    
+    const addDiamonds = useCallback((amount: number) => {
+        setCurrentUserData(prev => ({
+            ...prev,
+            diamonds: (prev.diamonds || 0) + amount,
+        }));
+    }, [setCurrentUserData]);
 
 
     return {
@@ -518,6 +528,7 @@ export const useGlobalStateData = () => {
         addGeneratedQuiz,
         completeChallengeNode,
         loseHeart,
+        addDiamonds,
         setActiveVariants,
     };
 };

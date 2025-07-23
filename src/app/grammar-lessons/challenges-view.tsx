@@ -56,7 +56,7 @@ const NodeIcon = ({
 export function ChallengesView() {
   const router = useRouter();
   const { appData } = useGlobalState();
-  const { challengeData, challengeProgress, hearts } = appData;
+  const { challengeData, challengeProgress, hearts, diamonds } = appData;
   const [currentUnitId, setCurrentUnitId] = useState('Unit 1: Basic Sentences & Endings');
 
   const units = challengeData.N5;
@@ -98,7 +98,7 @@ export function ChallengesView() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Gem className="h-6 w-6" />
-              <span className="text-lg font-bold">100</span>
+              <span className="text-lg font-bold">{diamonds}</span>
             </div>
             <div className="flex items-center gap-2">
               <Heart className="h-6 w-6" />
@@ -111,8 +111,18 @@ export function ChallengesView() {
 
       {/* Learning Path */}
       <div className="flex flex-1 flex-col items-center justify-start space-y-8 overflow-y-auto pb-24">
+        {hearts === 0 && (
+            <div className="text-center text-destructive-foreground bg-destructive/80 p-4 rounded-lg">
+                <h3 className="font-bold text-lg">You're out of hearts!</h3>
+                <p className="text-sm">Refill your hearts to continue learning.</p>
+                <p className="text-xs mt-2">(Heart regeneration timer coming soon!)</p>
+            </div>
+        )}
         {Object.keys(currentUnit).map((stageId, index) => {
           const status = getNodeStatus(currentUnitId, stageId, challengeProgress);
+          const isLocked = hearts === 0 && status === 'active';
+          const finalStatus = isLocked ? 'locked' : status;
+
           const isBoss = index === Object.keys(currentUnit).length - 1;
           const isOffset = index % 2 !== 0;
 
@@ -123,12 +133,12 @@ export function ChallengesView() {
               key={stageId}
               className={cn('relative flex flex-col items-center', isOffset ? 'translate-x-20' : '-translate-x-20')}
             >
-              <Link href={stageHref} passHref aria-disabled={status === 'locked'}>
+              <Link href={stageHref} passHref aria-disabled={finalStatus === 'locked'}>
                 <button
-                  disabled={status === 'locked'}
-                  className="transition-transform duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  disabled={finalStatus === 'locked'}
+                  className="transition-transform duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:opacity-50"
                 >
-                  <NodeIcon status={status} isBoss={isBoss} />
+                  <NodeIcon status={finalStatus} isBoss={isBoss} />
                 </button>
               </Link>
               <p className="mt-2 w-32 text-center text-sm font-semibold text-foreground">

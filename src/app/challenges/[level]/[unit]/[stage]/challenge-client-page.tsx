@@ -38,7 +38,7 @@ function WordButton({
 
 export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const router = useRouter();
-  const { appData, loseHeart } = useGlobalState();
+  const { appData, loseHeart, addDiamonds } = useGlobalState();
   const { hearts } = appData;
 
   const [sessionItems, setSessionItems] = useState<ChallengeItem[]>([]);
@@ -134,6 +134,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
     
     if (newItems.length === 0) {
       // All items completed
+      addDiamonds(100);
       router.push('/grammar-lessons');
     } else {
       // If we removed the last item, reset index
