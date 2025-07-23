@@ -1,4 +1,5 @@
 
+
 import type { Deck, StatsData, GrammarLesson, Quiz } from './data';
 import { grammarLessons as initialGrammarLessons } from './grammar-lessons-data';
 import { allQuizzes } from './quiz-data';
@@ -252,3 +253,36 @@ export const initialQuizzes: Quiz[] = [
     ...allQuizzes.grammar.N2,
     ...allQuizzes.grammar.N1,
 ];
+
+export const challengeData = {
+  "N5": {
+    "Unit 1: Basic Sentences & Endings": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 2: Verb Forms and Conjugation": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 3: Particles": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 4: Common Sentence Patterns": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 5: Existence & Possession": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+  },
+  "N4": {
+    "Unit 1: Verb Forms & Conjugations": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 2: Adjectives & Descriptions": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 3: Requests & Advice": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 4: Expressions of Intention / Possibility": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 5: Sequence, Time & Frequency": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+  },
+  "N3": {
+     "Unit 1: Verb Forms & Auxiliary": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+     "Unit 2: Modality & Probability": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+     "Unit 3: Expressions": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+  },
+  "N2": {
+    "Unit 1: Action & State": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 2: Modality": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 3: Time & Condition": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 4: Comparison & Emphasis": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+  },
+  "N1": {
+    "Unit 1: Advanced Modality & Reasoning": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 2: Formal & Written Structures": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+    "Unit 3: Expressions of Judgment": { "stage1": [], "stage2": [], "stage3": [], "stage4": [], "stage5": [] },
+  },
+};
