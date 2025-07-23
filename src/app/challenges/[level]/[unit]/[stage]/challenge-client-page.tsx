@@ -35,6 +35,7 @@ function WordButton({
 
 export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const router = useRouter();
+  const [sessionItems, setSessionItems] = useState<ChallengeItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lives, setLives] = useState(5);
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
@@ -45,7 +46,13 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const correctSound = new Howl({ src: ['/correct-sound.mp3'] });
   const incorrectSound = new Howl({ src: ['/incorrect-sound.mp3'] });
   
-  const currentItem = items[currentIndex];
+  const currentItem = sessionItems[currentIndex];
+
+  useEffect(() => {
+    // Initialize session items when the component mounts or `items` prop changes
+    setSessionItems([...items]);
+    setCurrentIndex(0);
+  }, [items]);
 
   useEffect(() => {
     if (!currentItem) return;
@@ -53,7 +60,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
     setWordBank(newWordBank);
     setSelectedWords([]);
     setIsAnswered(false);
-  }, [currentIndex, currentItem]);
+  }, [currentItem]);
 
   const handleSelectWord = (word: string) => {
     setSelectedWords((prev) => [...prev, word]);
@@ -86,20 +93,65 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
 
   const handleSkip = () => {
     if (isAnswered) return;
-    setIsAnswered(true);
-    setIsCorrect(false); // Mark as incorrect to show the answer, but don't penalize
-  }
 
-  const handleContinue = () => {
-    if (currentIndex < items.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      // TODO: Show results screen
-      router.push('/grammar-lessons');
+    // Move the current item to the end of the queue
+    setSessionItems(prevItems => {
+        const newItems = [...prevItems];
+        const skippedItem = newItems.splice(currentIndex, 1)[0];
+        newItems.push(skippedItem);
+        return newItems;
+    });
+
+    // We don't increment the index here because the array re-orders,
+    // so the item at the `currentIndex` will be the next item automatically.
+    // If we're at the end, loop back to the start.
+    if (currentIndex >= sessionItems.length - 1) {
+        setCurrentIndex(0);
     }
   }
 
-  const progressPercentage = (currentIndex / items.length) * 100;
+  const handleContinue = () => {
+    let newItems = [...sessionItems];
+    if (isCorrect) {
+        // If correct, remove the item from the session
+        newItems.splice(currentIndex, 1);
+    } else {
+        // If incorrect, just move to the next index
+        // If we are at the end, loop back to the beginning
+        if (currentIndex < newItems.length - 1) {
+            setCurrentIndex(prev => prev + 1);
+        } else {
+            setCurrentIndex(0);
+        }
+    }
+    
+    setSessionItems(newItems);
+    
+    if (newItems.length === 0) {
+      // All items completed
+      router.push('/grammar-lessons');
+    } else {
+      // If we removed the last item, reset index
+      if (currentIndex >= newItems.length) {
+        setCurrentIndex(0);
+      }
+    }
+  }
+
+  if (!currentItem) {
+    // This can happen briefly when the session ends before navigation.
+    // Or if initial items are empty.
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#2e3856]">
+        <div className="flex flex-col items-center gap-4 text-white">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-white border-t-transparent" />
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const progressPercentage = ((items.length - sessionItems.length) / items.length) * 100;
 
   return (
     <div className="flex flex-col h-screen bg-[#2e3856] text-white font-sans">
