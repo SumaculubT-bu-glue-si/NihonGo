@@ -55,6 +55,7 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
   const incorrectSound = new Howl({ src: ['/incorrect-sound.mp3'] });
   
   const currentItem = sessionItems[currentIndex];
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     // Initialize session items when the component mounts or `items` prop changes
@@ -68,6 +69,26 @@ export function ChallengeClientPage({ items }: { items: ChallengeItem[] }) {
     setWordBank(newWordBank);
     setSelectedWords([]);
     setIsAnswered(false);
+  }, [currentItem]);
+  
+    useEffect(() => {
+    if (currentItem?.correct_japanese) {
+      // Auto-play TTS when the item appears
+      const utterance = new SpeechSynthesisUtterance(currentItem.correct_japanese);
+      utterance.lang = 'ja-JP';
+      const voices = window.speechSynthesis.getVoices();
+      const japaneseVoice = voices.find(voice => voice.lang === 'ja-JP');
+      if (japaneseVoice) {
+        utterance.voice = japaneseVoice;
+      }
+      window.speechSynthesis.speak(utterance);
+    }
+     // Cleanup on unmount
+    return () => {
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
+    };
   }, [currentItem]);
   
   useEffect(() => {
