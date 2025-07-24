@@ -11,6 +11,7 @@ import { useGlobalState } from '@/hooks/use-global-state';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BookCheck, BarChart3, Trophy } from 'lucide-react';
 import { useMemo } from 'react';
+import { Progress } from '@/components/ui/progress';
 
 export function GrammarView() {
   const searchParams = useSearchParams();
@@ -22,39 +23,47 @@ export function GrammarView() {
     const lessonsCompleted = appData.grammarLessons.filter(l => l.read).length;
     const totalLessons = appData.grammarLessons.length;
 
-    // Challenge Progress
-    const { challengeData, challengeProgress, currentChallengeLevel } = appData;
-    const unitsInCurrentLevel = Object.keys(challengeData[currentChallengeLevel]);
-    let stagesCompletedInLevel = 0;
-    let totalStagesInLevel = 0;
+    // Challenge Progress for all levels
+    const { challengeData, challengeProgress } = appData;
+    const allLevels: ('N5'|'N4'|'N3'|'N2'|'N1')[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
     
-    if (unitsInCurrentLevel.length > 0) {
-        unitsInCurrentLevel.forEach(unitId => {
-            const stages = Object.keys(challengeData[currentChallengeLevel][unitId]);
+    const progressByLevel = allLevels.map(level => {
+        const unitsInLevel = Object.keys(challengeData[level] || {});
+        if (unitsInLevel.length === 0) {
+            return { level, percentage: 0 };
+        }
+
+        let stagesCompletedInLevel = 0;
+        let totalStagesInLevel = 0;
+
+        unitsInLevel.forEach(unitId => {
+            const stages = Object.keys(challengeData[level][unitId]);
             totalStagesInLevel += stages.length;
             stages.forEach(stageId => {
-                if (challengeProgress[currentChallengeLevel]?.[unitId]?.[stageId] === 'completed') {
+                if (challengeProgress[level]?.[unitId]?.[stageId] === 'completed') {
                     stagesCompletedInLevel++;
                 }
             });
         });
-    }
+        
+        return {
+            level,
+            percentage: totalStagesInLevel > 0 ? Math.round((stagesCompletedInLevel / totalStagesInLevel) * 100) : 0,
+        };
+    });
 
-    const levelCompletionPercent = totalStagesInLevel > 0 ? Math.round((stagesCompletedInLevel / totalStagesInLevel) * 100) : 0;
-    
     // Total challenges passed
     let totalChallengesPassed = 0;
-    Object.keys(challengeProgress).forEach(level => {
-        Object.keys(challengeProgress[level]).forEach(unitId => {
-            totalChallengesPassed += Object.values(challengeProgress[level][unitId]).filter(s => s === 'completed').length;
+    Object.values(challengeProgress).forEach(levelData => {
+        Object.values(levelData).forEach(unitData => {
+            totalChallengesPassed += Object.values(unitData).filter(s => s === 'completed').length;
         })
     })
 
     return {
         lessonsCompleted,
         totalLessons,
-        levelCompletionPercent,
-        currentChallengeLevel,
+        progressByLevel,
         totalChallengesPassed,
     };
 
@@ -73,7 +82,7 @@ export function GrammarView() {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Lessons Completed</CardTitle>
-                    <BookCheck className="h-4 w-4 text-muted-foreground" />
+                    <BookCheck className="h-4 w-4 text-blue-500" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{grammarStats.lessonsCompleted} / {grammarStats.totalLessons}</div>
@@ -82,18 +91,23 @@ export function GrammarView() {
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{grammarStats.currentChallengeLevel} Progress</CardTitle>
-                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Overall Challenge Progress</CardTitle>
+                    <BarChart3 className="h-4 w-4 text-green-500" />
                 </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{grammarStats.levelCompletionPercent}%</div>
-                    <p className="text-xs text-muted-foreground">Completion of current level</p>
+                <CardContent className="space-y-1 pt-2">
+                   {grammarStats.progressByLevel.map(p => (
+                    <div key={p.level} className="flex items-center gap-2">
+                        <span className="text-xs font-semibold w-8">{p.level}</span>
+                        <Progress value={p.percentage} className="h-2 flex-1" />
+                        <span className="text-xs font-semibold w-10 text-right">{p.percentage}%</span>
+                    </div>
+                   ))}
                 </CardContent>
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Challenges Passed</CardTitle>
-                    <Trophy className="h-4 w-4 text-muted-foreground" />
+                    <Trophy className="h-4 w-4 text-yellow-500" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{grammarStats.totalChallengesPassed}</div>
