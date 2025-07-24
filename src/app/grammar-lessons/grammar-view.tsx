@@ -103,10 +103,10 @@ export function GrammarView() {
         </div>
 
         <Tabs defaultValue={defaultTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mt-6 h-12">
-                <TabsTrigger value="library" className="text-lg font-bold">Lessons Library</TabsTrigger>
-                <TabsTrigger value="checker" className="text-lg font-bold">Grammar Checker</TabsTrigger>
-                <TabsTrigger value="challenges" className="text-lg font-bold">Challenges</TabsTrigger>
+             <TabsList className="border-b w-full justify-start rounded-none bg-transparent p-0">
+                <TabsTrigger value="library" className="relative h-10 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">Lessons Library</TabsTrigger>
+                <TabsTrigger value="checker" className="relative h-10 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">Grammar Checker</TabsTrigger>
+                <TabsTrigger value="challenges" className="relative h-10 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">Challenges</TabsTrigger>
             </TabsList>
             <TabsContent value="library" className="mt-6">
                 <GrammarLessonsView />
