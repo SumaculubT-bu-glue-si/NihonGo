@@ -19,52 +19,37 @@ export function GrammarView() {
   const { appData } = useGlobalState();
   
   const grammarStats = useMemo(() => {
-    // Lessons Completed
     const lessonsCompleted = appData.grammarLessons.filter(l => l.read).length;
     const totalLessons = appData.grammarLessons.length;
-
-    // Challenge Progress for all levels
-    const { challengeData, challengeProgress } = appData;
+    const { challengeData, challengeProgress, currentChallengeLevel } = appData;
     const allLevels: ('N5'|'N4'|'N3'|'N2'|'N1')[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
     
-    const progressByLevel = allLevels.map(level => {
+    let totalCompletedStages = 0;
+    let totalAvailableStages = 0;
+
+    allLevels.forEach(level => {
         const unitsInLevel = Object.keys(challengeData[level] || {});
-        if (unitsInLevel.length === 0) {
-            return { level, percentage: 0 };
-        }
-
-        let stagesCompletedInLevel = 0;
-        let totalStagesInLevel = 0;
-
         unitsInLevel.forEach(unitId => {
             const stages = Object.keys(challengeData[level][unitId]);
-            totalStagesInLevel += stages.length;
+            totalAvailableStages += stages.length;
             stages.forEach(stageId => {
                 if (challengeProgress[level]?.[unitId]?.[stageId] === 'completed') {
-                    stagesCompletedInLevel++;
+                    totalCompletedStages++;
                 }
             });
         });
-        
-        return {
-            level,
-            percentage: totalStagesInLevel > 0 ? Math.round((stagesCompletedInLevel / totalStagesInLevel) * 100) : 0,
-        };
     });
 
-    // Total challenges passed
-    let totalChallengesPassed = 0;
-    Object.values(challengeProgress).forEach(levelData => {
-        Object.values(levelData).forEach(unitData => {
-            totalChallengesPassed += Object.values(unitData).filter(s => s === 'completed').length;
-        })
-    })
+    const overallProgressPercentage = totalAvailableStages > 0 
+        ? Math.round((totalCompletedStages / totalAvailableStages) * 100) 
+        : 0;
 
     return {
         lessonsCompleted,
         totalLessons,
-        progressByLevel,
-        totalChallengesPassed,
+        overallProgressPercentage,
+        currentChallengeLevel,
+        totalChallengesPassed: totalCompletedStages,
     };
 
   }, [appData]);
@@ -95,13 +80,11 @@ export function GrammarView() {
                     <BarChart3 className="h-4 w-4 text-green-500" />
                 </CardHeader>
                 <CardContent>
-                   {grammarStats.progressByLevel.map(p => (
-                    <div key={p.level} className="flex items-center gap-2">
-                        <span className="text-xs font-semibold w-8">{p.level}</span>
-                        <Progress value={p.percentage} className="h-2 flex-1" />
-                        <span className="text-xs font-semibold w-10 text-right">{p.percentage}%</span>
-                    </div>
-                   ))}
+                    <div className="text-2xl font-bold">{grammarStats.overallProgressPercentage}%</div>
+                    <p className="text-xs text-muted-foreground">
+                      Current Level: {grammarStats.currentChallengeLevel}
+                    </p>
+                    <Progress value={grammarStats.overallProgressPercentage} className="h-2 mt-2" />
                 </CardContent>
             </Card>
             <Card>
