@@ -6,13 +6,21 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ChallengeProgress, ChallengeData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { BookOpen, CircleCheck, Lock, Trophy, Castle, Gem, Heart, Store } from 'lucide-react';
+import { BookOpen, CircleCheck, Lock, Trophy, Castle, Gem, Heart, Store, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShopDialog } from './shop-dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { generateGrammarGuidebook, type GenerateGrammarGuidebookOutput } from '@/ai/flows/generate-grammar-guidebook-flow';
 
 const HEART_REGEN_MINUTES = 30;
 
@@ -109,6 +117,9 @@ export function ChallengesView() {
   
   const [currentUnitId, setCurrentUnitId] = useState('');
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const [isGuidebookOpen, setIsGuidebookOpen] = useState(false);
+  const [guidebookContent, setGuidebookContent] = useState<GenerateGrammarGuidebookOutput | null>(null);
+  const [isGuidebookLoading, setIsGuidebookLoading] = useState(false);
 
   useEffect(() => {
     const levelFromQuery = searchParams.get('level') as Level | null;
@@ -133,9 +144,26 @@ export function ChallengesView() {
 
 
   const handleLevelChange = (level: Level) => {
-    // Navigate to a clean URL for the new level, clearing the old unit.
-    // The useEffect will then handle setting the correct states.
     router.push(`/grammar-lessons?tab=challenges&level=${level}`);
+  };
+  
+  const handleOpenGuidebook = async () => {
+    setIsGuidebookOpen(true);
+    setGuidebookContent(null);
+    setIsGuidebookLoading(true);
+
+    try {
+        const result = await generateGrammarGuidebook({
+            level: currentChallengeLevel,
+            unit_topic: currentUnitId,
+        });
+        setGuidebookContent(result);
+    } catch (error) {
+        console.error("Failed to generate guidebook", error);
+        setGuidebookContent({ guidebook: "Could not load guidebook at this time. Please try again." });
+    } finally {
+        setIsGuidebookLoading(false);
+    }
   };
   
   const units = challengeData?.[currentChallengeLevel];
@@ -186,7 +214,7 @@ export function ChallengesView() {
     <>
      <Card className="px-10 mb-20 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
-          <div className="flex flex-row ">
+          <div className="flex flex-row items-center gap-2">
             <div>
               <Select value={currentChallengeLevel} onValueChange={(v) => handleLevelChange(v as Level)}>
                   <SelectTrigger className="w-full sm:w-[200px] h-9 text-lg font-bold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
@@ -227,7 +255,15 @@ export function ChallengesView() {
                   </SelectContent>
               </Select>
             </div>
-             
+             <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleOpenGuidebook}
+                className="text-primary-foreground hover:bg-primary/80"
+                aria-label="Open Guidebook"
+              >
+                <BookOpen className="h-5 w-5" />
+              </Button>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -298,6 +334,30 @@ export function ChallengesView() {
       </div>
     </div>
     <ShopDialog isOpen={isShopOpen} onOpenChange={setIsShopOpen} />
+    
+    <Dialog open={isGuidebookOpen} onOpenChange={setIsGuidebookOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Unit Guidebook: {currentUnitId}</DialogTitle>
+            <DialogDescription>
+              A quick overview of the key points for this unit at the {currentChallengeLevel} level.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 max-h-[60vh] overflow-y-auto pr-4">
+             {isGuidebookLoading ? (
+                 <div className="flex items-center justify-center gap-3 text-muted-foreground h-48">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <p>Generating your guide...</p>
+                </div>
+             ) : (
+                <div 
+                    className="prose prose-sm dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: guidebookContent?.guidebook ?? '' }}
+                />
+             )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
