@@ -84,13 +84,22 @@ export function ChallengesView() {
   const [isGuidebookOpen, setIsGuidebookOpen] = useState(false);
   const [guidebookContent, setGuidebookContent] = useState<GenerateGrammarGuidebookOutput | null>(null);
   const [isGuidebookLoading, setIsGuidebookLoading] = useState(false);
-  const audioPlayer = useRef<HTMLAudioElement | null>(null);
+  const guidebookAudioPlayer = useRef<HTMLAudioElement | null>(null);
+  const stageAudioPlayer = useRef<HTMLAudioElement | null>(null);
 
-  function playAudio() {
-    if (audioPlayer.current) {
-      audioPlayer.current.play().catch(error => {
+  function playGuidebookAudio() {
+    if (guidebookAudioPlayer.current) {
+      guidebookAudioPlayer.current.play().catch(error => {
         console.error("Audio play failed:", error);
       });
+    }
+  }
+
+  function playStageAudio() {
+    if (stageAudioPlayer.current) {
+        stageAudioPlayer.current.play().catch(error => {
+            console.error("Stage audio play failed:", error);
+        });
     }
   }
 
@@ -121,7 +130,7 @@ export function ChallengesView() {
   };
   
   const handleOpenGuidebook = async () => {
-    playAudio()
+    playGuidebookAudio()
     setIsGuidebookOpen(true);
     setGuidebookContent(null);
     setIsGuidebookLoading(true);
@@ -186,7 +195,8 @@ export function ChallengesView() {
 
   return (
     <>
-     <audio ref={audioPlayer} src="/sounds/open.mp3" />
+     <audio ref={guidebookAudioPlayer} src="/sounds/open.mp3" />
+     <audio ref={stageAudioPlayer} src="/sounds/stage.mp3" />
      <Card className="px-10 mb-20 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex flex-row items-center gap-2">
@@ -271,7 +281,7 @@ export function ChallengesView() {
               key={stageId}
               className={cn('relative flex flex-col items-center pt-5', isOffset ? 'translate-x-20' : '-translate-x-20')}
             >
-              <Link href={stageHref} passHref aria-disabled={finalStatus === 'locked'}>
+              <Link href={stageHref} passHref aria-disabled={finalStatus === 'locked'} onClick={playStageAudio}>
                 <button
                   disabled={finalStatus === 'locked'}
                   className="transition-transform duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50"
