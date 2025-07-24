@@ -90,22 +90,9 @@ export function ChallengesView() {
     if (audioPlayer.current) {
       audioPlayer.current.play().catch(error => {
         console.error("Audio play failed:", error);
-        toast({
-            title: "Audio Error",
-            description: "Could not play the sound effect.",
-            variant: "destructive"
-        })
       });
     }
   }
-
-  const handleAudioError = () => {
-    toast({
-        title: "Audio File Error",
-        description: "Failed to load sound effect. Please ensure '/sounds/open.mp3' exists in the public directory.",
-        variant: "destructive"
-    });
-  };
 
   useEffect(() => {
     const levelFromQuery = searchParams.get('level') as Level | null;
@@ -199,7 +186,7 @@ export function ChallengesView() {
 
   return (
     <>
-     <audio ref={audioPlayer} src="/sounds/open.mp3" onError={handleAudioError} />
+     <audio ref={audioPlayer} src="/sounds/open.mp3" />
      <Card className="px-10 mb-20 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex flex-row items-center gap-2">
