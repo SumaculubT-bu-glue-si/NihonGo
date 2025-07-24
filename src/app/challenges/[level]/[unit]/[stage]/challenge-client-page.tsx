@@ -109,7 +109,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     setIsAnswered(false);
     
     // Automatically speak the sentence when a new item appears
-    speak(currentItem.english_sentence);
+    speak(currentItem.correct_japanese);
 
   }, [currentItem]);
   
