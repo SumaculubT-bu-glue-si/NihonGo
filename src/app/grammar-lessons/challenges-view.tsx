@@ -174,12 +174,12 @@ export function ChallengesView() {
 
   return (
     <>
-     <Card className="px-10 mb-20 w-full bg-slate-700 text-slate-50">
+     <Card className="px-10 mb-20 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex flex-row items-center gap-2">
             <div>
               <Select value={currentChallengeLevel} onValueChange={(v) => handleLevelChange(v as Level)}>
-                  <SelectTrigger className="w-full sm:w-[200px] h-9 text-lg font-bold border-none bg-slate-700 hover:bg-slate-600 focus:ring-0 focus:ring-offset-0">
+                  <SelectTrigger className="w-full sm:w-[200px] h-9 text-lg font-bold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
                       <SelectValue placeholder="Select a level" />
                   </SelectTrigger>
                   <SelectContent>
@@ -199,7 +199,7 @@ export function ChallengesView() {
             </div>
             <div>
               <Select value={currentUnitId} onValueChange={setCurrentUnitId}>
-                  <SelectTrigger className="w-full sm:w-[350px] h-9 text-base font-semibold border-none bg-slate-700 hover:bg-slate-600 focus:ring-0 focus:ring-offset-0">
+                  <SelectTrigger className="w-full sm:w-[350px] h-9 text-base font-semibold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
                       <SelectValue placeholder="Select a unit" />
                   </SelectTrigger>
                   <SelectContent>
@@ -222,7 +222,7 @@ export function ChallengesView() {
           <div className="flex items-center gap-6">
             <button
                   onClick={handleOpenGuidebook}
-                  className="flex flex-row gap-2 font-semibold text-slate-50 hover:text-slate-300 duration-100"
+                  className="flex flex-row gap-2 font-semibold text-primary-foreground hover:text-primary-foreground/80 duration-100"
                   aria-label="Open Guidebook">
                   <BookOpen className="h-6 w-6" />
                   <h1>Guide Book</h1>
