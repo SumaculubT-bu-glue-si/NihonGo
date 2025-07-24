@@ -113,17 +113,15 @@ export function ChallengesView() {
   useEffect(() => {
     const levelFromQuery = searchParams.get('level') as Level | null;
     const unitFromQuery = searchParams.get('unit');
+    
     const targetLevel = levelFromQuery || currentChallengeLevel;
-    
-    // Set level from query or use current state
-    if (levelFromQuery && appData.challengeData[levelFromQuery]) {
-        setCurrentChallengeLevel(levelFromQuery);
+    if (targetLevel !== currentChallengeLevel) {
+        setCurrentChallengeLevel(targetLevel);
     }
-    
-    const unitsForLevel = appData.challengeData[targetLevel];
+
+    const unitsForLevel = challengeData?.[targetLevel];
     if (!unitsForLevel) return;
 
-    // Set unit from query if valid, otherwise default to the first unit of the target level
     if (unitFromQuery && unitsForLevel[unitFromQuery]) {
         setCurrentUnitId(unitFromQuery);
     } else if (Object.keys(unitsForLevel).length > 0) {
@@ -131,8 +129,14 @@ export function ChallengesView() {
     } else {
         setCurrentUnitId('');
     }
-  }, [searchParams, appData.challengeData, setCurrentChallengeLevel, currentChallengeLevel]);
-  
+  }, [searchParams, challengeData, currentChallengeLevel, setCurrentChallengeLevel]);
+
+
+  const handleLevelChange = (level: Level) => {
+    // Navigate to a clean URL for the new level, clearing the old unit.
+    // The useEffect will then handle setting the correct states.
+    router.push(`/grammar-lessons?tab=challenges&level=${level}`);
+  };
   
   const units = challengeData?.[currentChallengeLevel];
   
@@ -184,7 +188,7 @@ export function ChallengesView() {
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex flex-row ">
             <div>
-              <Select value={currentChallengeLevel} onValueChange={(v) => setCurrentChallengeLevel(v as Level)}>
+              <Select value={currentChallengeLevel} onValueChange={(v) => handleLevelChange(v as Level)}>
                   <SelectTrigger className="w-full sm:w-[200px] h-9 text-lg font-bold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
                       <SelectValue placeholder="Select a level" />
                   </SelectTrigger>
