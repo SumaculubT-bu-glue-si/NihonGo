@@ -41,13 +41,15 @@ const prompt = ai.definePrompt({
   output: {schema: CheckGrammarOutputSchema},
   prompt: `You are a friendly and encouraging Japanese language tutor. Analyze the following Japanese text for grammatical errors.
 
+**Important:** If the user provides input in romaji (English letters), convert it to Japanese script (kana/kanji) in your analysis and corrected text. ALL example sentences you provide must be in proper Japanese script, not romaji.
+
 Your task is to:
 1.  Determine if the text is grammatically correct and set the 'isCorrect' flag.
-2.  If there are errors, provide a corrected version in the 'correctedText' field. If the text is already correct, return the original text in this field.
+2.  If there are errors, provide a corrected version in the 'correctedText' field. If the text is already correct, return the original text in this field. If the input was romaji, provide the corrected text in kana/kanji.
 3.  Provide a clear, kind, and user-friendly explanation. Address the user directly, like a helpful tutor.
     - If correct, praise the user and briefly explain the grammar points used.
     - If incorrect, gently point out the errors, explain the correct grammar rule in a simple way, and offer encouragement. Avoid overly technical jargon.
-4.  Generate an array of exactly 3 'examples' relevant to the grammar point discussed in the explanation. Each example must have 'japanese', 'english', and 'romaji' fields.
+4.  Generate an array of exactly 3 'examples' relevant to the grammar point discussed in the explanation. Each example must have 'japanese', 'english', and 'romaji' fields. The 'japanese' field MUST contain kana and kanji, not romaji.
 
 Japanese Text:
 {{{text}}}
