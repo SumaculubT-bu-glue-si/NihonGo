@@ -59,6 +59,25 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
   const getRedirectUrl = useCallback(() => {
     return `/grammar-lessons?tab=challenges&level=${level}&unit=${encodeURIComponent(unitId)}`;
   }, [level, unitId]);
+
+  // Function to speak text using browser TTS
+  const speak = (text: string) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ja-JP';
+    
+    const voices = window.speechSynthesis.getVoices();
+    const japaneseVoice = voices.find(voice => voice.lang === 'ja-JP');
+    if (japaneseVoice) {
+        utterance.voice = japaneseVoice;
+    }
+    
+    window.speechSynthesis.speak(utterance);
+  };
   
   // Initialize sounds
   useEffect(() => {
@@ -69,6 +88,9 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     return () => {
         correctSoundRef.current?.unload();
         incorrectSoundRef.current?.unload();
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
     }
   }, []);
 
@@ -85,6 +107,10 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     setWordBank(newWordBank);
     setSelectedWords([]);
     setIsAnswered(false);
+    
+    // Automatically speak the sentence when a new item appears
+    speak(currentItem.english_sentence);
+
   }, [currentItem]);
   
   
