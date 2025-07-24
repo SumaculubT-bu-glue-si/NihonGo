@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ChallengeProgress, ChallengeData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
@@ -82,6 +82,11 @@ export function ChallengesView() {
   const [isGuidebookOpen, setIsGuidebookOpen] = useState(false);
   const [guidebookContent, setGuidebookContent] = useState<GenerateGrammarGuidebookOutput | null>(null);
   const [isGuidebookLoading, setIsGuidebookLoading] = useState(false);
+  const audioPlayer = useRef<HTMLAudioElement | null>(null);
+
+  function playOpenSound() {
+    audioPlayer.current?.play();
+  }
 
   useEffect(() => {
     const levelFromQuery = searchParams.get('level') as Level | null;
@@ -110,6 +115,7 @@ export function ChallengesView() {
   };
   
   const handleOpenGuidebook = async () => {
+    playOpenSound();
     setIsGuidebookOpen(true);
     setGuidebookContent(null);
     setIsGuidebookLoading(true);
@@ -174,6 +180,7 @@ export function ChallengesView() {
 
   return (
     <>
+     <audio ref={audioPlayer} src="/sounds/open.mp3" preload="auto" />
      <Card className="px-10 mb-20 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex flex-row items-center gap-2">
