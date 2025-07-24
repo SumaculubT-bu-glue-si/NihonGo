@@ -20,6 +20,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { generateGrammarGuidebook, type GenerateGrammarGuidebookOutput } from '@/ai/flows/generate-grammar-guidebook-flow';
+import { useToast } from '@/hooks/use-toast';
 
 type Level = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 
@@ -77,6 +78,7 @@ export function ChallengesView() {
   const searchParams = useSearchParams();
   const { appData, setCurrentChallengeLevel } = useGlobalState();
   const { challengeData, challengeProgress, hearts, diamonds, currentChallengeLevel } = appData;
+  const { toast } = useToast();
   
   const [currentUnitId, setCurrentUnitId] = useState('');
   const [isGuidebookOpen, setIsGuidebookOpen] = useState(false);
@@ -86,9 +88,24 @@ export function ChallengesView() {
 
   function playAudio() {
     if (audioPlayer.current) {
-      audioPlayer.current.play();
+      audioPlayer.current.play().catch(error => {
+        console.error("Audio play failed:", error);
+        toast({
+            title: "Audio Error",
+            description: "Could not play the sound effect.",
+            variant: "destructive"
+        })
+      });
     }
   }
+
+  const handleAudioError = () => {
+    toast({
+        title: "Audio File Error",
+        description: "Failed to load sound effect. Please ensure '/sounds/open.mp3' exists in the public directory.",
+        variant: "destructive"
+    });
+  };
 
   useEffect(() => {
     const levelFromQuery = searchParams.get('level') as Level | null;
@@ -130,7 +147,7 @@ export function ChallengesView() {
         setGuidebookContent(result);
     } catch (error) {
         console.error("Failed to generate guidebook", error);
-        setGuidebookContent({ guidebook: "<p>Could not load the guidebook at this time. The AI model may be overloaded. Please try again in a moment.</p>" });
+        setGuidebookContent({ guidebook: "<p class='text-destructive'>Could not load the guidebook. The AI model may be overloaded. Please try again in a moment.</p>" });
     } finally {
         setIsGuidebookLoading(false);
     }
@@ -182,7 +199,7 @@ export function ChallengesView() {
 
   return (
     <>
-     <audio ref={audioPlayer} src="/sounds/open.mp3"/>
+     <audio ref={audioPlayer} src="/sounds/open.mp3" onError={handleAudioError} />
      <Card className="px-10 mb-20 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex flex-row items-center gap-2">
