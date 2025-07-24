@@ -255,17 +255,20 @@ export function ChallengesView() {
                   </SelectContent>
               </Select>
             </div>
-             <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleOpenGuidebook}
-                className="text-primary-foreground hover:bg-primary/80"
-                aria-label="Open Guidebook"
-              >
-                <BookOpen className="h-5 w-5" />
-              </Button>
           </div>
-          <div className="flex items-center gap-4">
+
+          <div className="flex items-center gap-6">
+            <button
+                  onClick={handleOpenGuidebook}
+                  className="flex flex-row gap-2 font-semibold text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)} 
+                  aria-label="Open Guidebook">
+                  <BookOpen className="h-6 w-6" />
+                  <h1>Guide Book</h1>
+            </button>
+            <button className="flex flex-row gap-2 font-semibold text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)}>
+                <Store className="h-6 w-6" />
+                <h1>Shop</h1>
+            </button>
             <div className="flex items-center gap-2">
               <Gem className="h-6 w-6" />
               <span className="text-lg font-bold">{diamonds}</span>
@@ -277,9 +280,6 @@ export function ChallengesView() {
                 </div>
                 {hearts < 5 && <CooldownTimer />}
             </div>
-            <button className="text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)}>
-                <Store className="h-6 w-6" />
-            </button>
           </div>
         </CardContent>
       </Card>

@@ -87,25 +87,6 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     setIsAnswered(false);
   }, [currentItem]);
   
-  // Auto-play TTS when the item appears
-  useEffect(() => {
-    if (currentItem?.correct_japanese) {
-      const utterance = new SpeechSynthesisUtterance(currentItem.correct_japanese);
-      utterance.lang = 'ja-JP';
-      const voices = window.speechSynthesis.getVoices();
-      const japaneseVoice = voices.find(voice => voice.lang === 'ja-JP');
-      if (japaneseVoice) {
-        utterance.voice = japaneseVoice;
-      }
-      window.speechSynthesis.speak(utterance);
-    }
-     // Cleanup on unmount
-    return () => {
-        if (typeof window !== 'undefined' && window.speechSynthesis) {
-            window.speechSynthesis.cancel();
-        }
-    };
-  }, [currentItem]);
   
   // Check for no hearts
   useEffect(() => {
@@ -178,12 +159,12 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
 
       if (newItems.length === 0) {
         // All items completed
-        addDiamonds(100);
+        addDiamonds(25);
         const decodedUnitId = decodeURIComponent(params.unit as string);
         completeChallengeNode(`${params.level}|${decodedUnitId}|${params.stage}`);
         toast({
           title: "Stage Complete!",
-          description: "You earned 100 diamonds!",
+          description: "You earned 25 diamonds!",
         });
         router.push(getRedirectUrl());
       } else {
