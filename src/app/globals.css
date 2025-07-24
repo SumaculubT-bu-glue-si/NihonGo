@@ -87,6 +87,37 @@ body {
     font-family: 'Raleway', sans-serif;
   }
 
+  .prose {
+    --tw-prose-body: hsl(var(--foreground));
+    --tw-prose-headings: hsl(var(--primary));
+    --tw-prose-lead: hsl(var(--muted-foreground));
+    --tw-prose-links: hsl(var(--primary));
+    --tw-prose-bold: hsl(var(--primary));
+    --tw-prose-counters: hsl(var(--muted-foreground));
+    --tw-prose-bullets: hsl(var(--muted-foreground));
+    --tw-prose-hr: hsl(var(--border));
+    --tw-prose-quotes: hsl(var(--foreground));
+    --tw-prose-quote-borders: hsl(var(--border));
+    --tw-prose-captions: hsl(var(--muted-foreground));
+    --tw-prose-code: hsl(var(--foreground));
+    --tw-prose-pre-code: hsl(var(--card-foreground));
+    --tw-prose-pre-bg: hsl(var(--card));
+    --tw-prose-th-borders: hsl(var(--border));
+    --tw-prose-td-borders: hsl(var(--border));
+  }
+
+  .prose h2 {
+    @apply mt-6 border-b pb-2;
+  }
+
+  .prose p {
+    @apply leading-7;
+  }
+  
+  .prose ul > li {
+    @apply my-1;
+  }
+
   @keyframes gentle-bounce {
     0%, 100% {
       transform: translateY(-2%);
