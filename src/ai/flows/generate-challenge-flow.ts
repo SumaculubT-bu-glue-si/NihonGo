@@ -44,6 +44,9 @@ const generateChallengeFlow = ai.defineFlow(
     name: 'generateChallengeFlow',
     inputSchema: GenerateChallengeInputSchema,
     outputSchema: GenerateChallengeOutputSchema,
+    flow: {
+      retries: 3,
+    },
   },
   async (input) => {
     const customOutputSchema = z.object({
