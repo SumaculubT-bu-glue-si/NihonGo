@@ -6,12 +6,14 @@ import { useState, useEffect, useCallback, createContext, useContext } from 'rea
 import type { Deck, StatsData, Flashcard, GrammarLesson, Quiz, QuizScore, QuizQuestion, ChallengeProgress } from '@/lib/data';
 import { decks as initialDecks, userStats as initialUserStats, grammarLessons as initialGrammarLessons, initialQuizzes, challengeData as initialChallengeData } from '@/lib/initial-data';
 import { useAuth } from '@/contexts/auth-context';
+import type { CheckGrammarOutput } from '@/ai/flows/grammar-checker-flow';
 
 const USER_DATA_STORAGE_KEY_PREFIX = 'nihongo-app-data';
 const AB_TEST_STORAGE_KEY = 'nihongo-ab-variants';
 const HEART_REGEN_MINUTES = 30;
 
 export type ChallengeData = typeof initialChallengeData;
+export type GrammarCheckHistoryItem = CheckGrammarOutput & { inputText: string };
 
 
 export interface AppData {
@@ -27,6 +29,7 @@ export interface AppData {
   diamonds: number;
   lastHeartLossTimestamp: number | null;
   currentChallengeLevel: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+  grammarCheckHistory: GrammarCheckHistoryItem[];
 }
 
 export interface FullAppData {
@@ -69,6 +72,8 @@ interface GlobalStateContextType {
   addHeart: () => void;
   addDiamonds: (amount: number) => void;
   purchaseHearts: (heartsToBuy: number, cost: number) => boolean;
+  addGrammarCheckToHistory: (item: GrammarCheckHistoryItem) => void;
+  clearGrammarCheckHistory: () => void;
   setActiveVariants: (variants: ActiveVariants) => void;
   setCurrentChallengeLevel: (level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1') => void;
 }
@@ -96,6 +101,7 @@ const getInitialUserData = (): AppData => ({
     diamonds: 100,
     lastHeartLossTimestamp: null,
     currentChallengeLevel: 'N5',
+    grammarCheckHistory: [],
 });
 
 const getInitialVariants = (): ActiveVariants => ({
@@ -501,7 +507,7 @@ export const useGlobalStateData = () => {
             ...prev,
             quizzes: prev.quizzes.map(q =>
                 q.id === quizId
-                    ? { ...q, questions: q.questions.map(qu => qu.id === questionId ? { ...qu, ...questionData } : qu) }
+                    ? { ...q, questions: q.questions.map(qu => qu.id === questionId ? { ...qu, ...quData, ...questionData } : qu) }
                     : q
             ),
         }));
@@ -583,6 +589,21 @@ export const useGlobalStateData = () => {
             currentChallengeLevel: level,
         }));
     }, [setCurrentUserData]);
+    
+    const addGrammarCheckToHistory = useCallback((item: GrammarCheckHistoryItem) => {
+      setCurrentUserData(prev => ({
+        ...prev,
+        // Add to the beginning of the array and keep the last 20 items
+        grammarCheckHistory: [item, ...prev.grammarCheckHistory].slice(0, 20),
+      }));
+    }, [setCurrentUserData]);
+
+    const clearGrammarCheckHistory = useCallback(() => {
+        setCurrentUserData(prev => ({
+            ...prev,
+            grammarCheckHistory: [],
+        }));
+    }, [setCurrentUserData]);
 
 
     return {
@@ -613,6 +634,8 @@ export const useGlobalStateData = () => {
         addHeart,
         addDiamonds,
         purchaseHearts,
+        addGrammarCheckToHistory,
+        clearGrammarCheckHistory,
         setActiveVariants,
         setCurrentChallengeLevel,
     };

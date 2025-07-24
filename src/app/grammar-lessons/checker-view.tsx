@@ -1,21 +1,25 @@
 
+
 'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, Wand2, CheckCircle, XCircle, Lightbulb } from 'lucide-react';
+import { Loader2, Wand2, CheckCircle, XCircle, Lightbulb, Trash2, History } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { checkGrammar, type CheckGrammarOutput } from '@/ai/flows/grammar-checker-flow';
 import { Separator } from '@/components/ui/separator';
 import { PronunciationButton } from '@/components/pronunciation-button';
+import { useGlobalState } from '@/hooks/use-global-state';
 
 export function GrammarCheckerTool() {
   const [text, setText] = useState('');
   const [result, setResult] = useState<CheckGrammarOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { appData, addGrammarCheckToHistory, clearGrammarCheckHistory } = useGlobalState();
+  const { grammarCheckHistory } = appData;
 
   const handleCheckGrammar = async () => {
     if (!text.trim()) {
@@ -32,6 +36,7 @@ export function GrammarCheckerTool() {
     try {
       const response = await checkGrammar({ text });
       setResult(response);
+      addGrammarCheckToHistory({ ...response, inputText: text });
     } catch (error) {
       console.error('Grammar check error:', error);
       toast({
@@ -129,6 +134,43 @@ export function GrammarCheckerTool() {
                 )}
           </CardContent>
         </Card>
+      )}
+
+      {grammarCheckHistory.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center text-xl font-bold font-headline">
+              <History className="mr-2 h-5 w-5" />
+              Recent Checks
+            </h2>
+            <Button variant="outline" size="sm" onClick={clearGrammarCheckHistory}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Clear History
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {grammarCheckHistory.map((item, index) => (
+              <Card key={index}>
+                <CardContent className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {item.isCorrect ? (
+                      <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+                    )}
+                    <div>
+                      <p className="text-sm text-muted-foreground">{item.inputText}</p>
+                      {!item.isCorrect && <p className="text-sm font-semibold text-primary">{item.correctedText}</p>}
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => { setText(item.inputText); setResult(item); window.scrollTo({top: 0, behavior: 'smooth'}) }}>
+                    View
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
