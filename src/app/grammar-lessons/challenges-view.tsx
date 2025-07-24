@@ -130,7 +130,7 @@ export function ChallengesView() {
         setGuidebookContent(result);
     } catch (error) {
         console.error("Failed to generate guidebook", error);
-        setGuidebookContent({ guidebook: "Could not load guidebook at this time. Please try again." });
+        setGuidebookContent({ guidebook: "<p>Could not load the guidebook at this time. The AI model may be overloaded. Please try again in a moment.</p>" });
     } finally {
         setIsGuidebookLoading(false);
     }
