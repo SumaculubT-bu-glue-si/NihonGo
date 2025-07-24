@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
-import { ShopDialog } from './shop-dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import {
   Dialog,
@@ -21,8 +20,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { generateGrammarGuidebook, type GenerateGrammarGuidebookOutput } from '@/ai/flows/generate-grammar-guidebook-flow';
-
-const HEART_REGEN_MINUTES = 30;
 
 type Level = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 
@@ -75,40 +72,6 @@ const NodeIcon = ({
   return <div className={cn(iconBaseStyle, "bg-muted text-muted-foreground/50")}><Lock {...iconProps} /></div>;
 };
 
-const CooldownTimer = () => {
-  const { appData } = useGlobalState();
-  const { hearts, lastHeartLossTimestamp } = appData;
-  const [timeLeft, setTimeLeft] = useState('');
-
-  useEffect(() => {
-    if (hearts >= 5 || !lastHeartLossTimestamp) {
-      setTimeLeft('');
-      return;
-    }
-
-    const interval = setInterval(() => {
-      const timePassed = Date.now() - lastHeartLossTimestamp;
-      const cooldown = HEART_REGEN_MINUTES * 60 * 1000;
-      const remainingTime = Math.max(0, cooldown - timePassed);
-
-      if (remainingTime === 0) {
-        setTimeLeft('Next heart soon!');
-      } else {
-        const minutes = Math.floor((remainingTime / 1000 / 60) % 60);
-        const seconds = Math.floor((remainingTime / 1000) % 60);
-        setTimeLeft(`${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [hearts, lastHeartLossTimestamp]);
-  
-  if (!timeLeft || hearts >= 5) return null;
-
-  return <p className="text-xs text-primary-foreground/80">{timeLeft}</p>;
-}
-
-
 export function ChallengesView() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -116,7 +79,6 @@ export function ChallengesView() {
   const { challengeData, challengeProgress, hearts, diamonds, currentChallengeLevel } = appData;
   
   const [currentUnitId, setCurrentUnitId] = useState('');
-  const [isShopOpen, setIsShopOpen] = useState(false);
   const [isGuidebookOpen, setIsGuidebookOpen] = useState(false);
   const [guidebookContent, setGuidebookContent] = useState<GenerateGrammarGuidebookOutput | null>(null);
   const [isGuidebookLoading, setIsGuidebookLoading] = useState(false);
@@ -212,12 +174,12 @@ export function ChallengesView() {
 
   return (
     <>
-     <Card className="px-10 mb-20 w-full bg-primary text-primary-foreground">
+     <Card className="px-10 mb-20 w-full bg-slate-700 text-slate-50">
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex flex-row items-center gap-2">
             <div>
               <Select value={currentChallengeLevel} onValueChange={(v) => handleLevelChange(v as Level)}>
-                  <SelectTrigger className="w-full sm:w-[200px] h-9 text-lg font-bold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
+                  <SelectTrigger className="w-full sm:w-[200px] h-9 text-lg font-bold border-none bg-slate-700 hover:bg-slate-600 focus:ring-0 focus:ring-offset-0">
                       <SelectValue placeholder="Select a level" />
                   </SelectTrigger>
                   <SelectContent>
@@ -237,7 +199,7 @@ export function ChallengesView() {
             </div>
             <div>
               <Select value={currentUnitId} onValueChange={setCurrentUnitId}>
-                  <SelectTrigger className="w-full sm:w-[350px] h-9 text-base font-semibold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
+                  <SelectTrigger className="w-full sm:w-[350px] h-9 text-base font-semibold border-none bg-slate-700 hover:bg-slate-600 focus:ring-0 focus:ring-offset-0">
                       <SelectValue placeholder="Select a unit" />
                   </SelectTrigger>
                   <SelectContent>
@@ -260,26 +222,11 @@ export function ChallengesView() {
           <div className="flex items-center gap-6">
             <button
                   onClick={handleOpenGuidebook}
-                  className="flex flex-row gap-2 font-semibold text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)} 
+                  className="flex flex-row gap-2 font-semibold text-slate-50 hover:text-slate-300 duration-100"
                   aria-label="Open Guidebook">
                   <BookOpen className="h-6 w-6" />
                   <h1>Guide Book</h1>
             </button>
-            <button className="flex flex-row gap-2 font-semibold text-primary-foreground hover:text-blue-300 duration-100" onClick={() => setIsShopOpen(true)}>
-                <Store className="h-6 w-6" />
-                <h1>Shop</h1>
-            </button>
-            <div className="flex items-center gap-2">
-              <Gem className="h-6 w-6" />
-              <span className="text-lg font-bold">{diamonds}</span>
-            </div>
-            <div className="flex flex-col items-center gap-0">
-                <div className="flex items-center gap-2">
-                    <Heart className="h-6 w-6" />
-                    <span className="text-lg font-bold">{hearts}</span>
-                </div>
-                {hearts < 5 && <CooldownTimer />}
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -333,7 +280,6 @@ export function ChallengesView() {
         )}
       </div>
     </div>
-    <ShopDialog isOpen={isShopOpen} onOpenChange={setIsShopOpen} />
     
     <Dialog open={isGuidebookOpen} onOpenChange={setIsGuidebookOpen}>
         <DialogContent className="max-w-2xl">

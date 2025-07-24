@@ -8,15 +8,54 @@ import { GrammarCheckerTool } from './checker-view';
 import { useSearchParams } from 'next/navigation';
 import { useGlobalState } from '@/hooks/use-global-state';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { BookCheck, BarChart3, Trophy } from 'lucide-react';
-import { useMemo } from 'react';
+import { BookCheck, BarChart3, Trophy, Heart, Gem, Store } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { GrammarLessonsView } from './lessons-view';
+import { ShopDialog } from './shop-dialog';
+
+const CooldownTimer = () => {
+  const { appData } = useGlobalState();
+  const { hearts, lastHeartLossTimestamp } = appData;
+  const [timeLeft, setTimeLeft] = useState('');
+  const HEART_REGEN_MINUTES = 30;
+
+
+  useEffect(() => {
+    if (hearts >= 5 || !lastHeartLossTimestamp) {
+      setTimeLeft('');
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const timePassed = Date.now() - lastHeartLossTimestamp;
+      const cooldown = HEART_REGEN_MINUTES * 60 * 1000;
+      const remainingTime = Math.max(0, cooldown - timePassed);
+
+      if (remainingTime === 0) {
+        setTimeLeft('Next heart soon!');
+      } else {
+        const minutes = Math.floor((remainingTime / 1000 / 60) % 60);
+        const seconds = Math.floor((remainingTime / 1000) % 60);
+        setTimeLeft(`${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [hearts, lastHeartLossTimestamp]);
+  
+  if (!timeLeft || hearts >= 5) return null;
+
+  return <p className="text-xs text-muted-foreground">{timeLeft}</p>;
+}
+
 
 export function GrammarView() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'library';
   const { appData } = useGlobalState();
+  const { hearts, diamonds } = appData;
+  const [isShopOpen, setIsShopOpen] = useState(false);
   
   const grammarStats = useMemo(() => {
     const lessonsCompleted = appData.grammarLessons.filter(l => l.read).length;
@@ -55,12 +94,32 @@ export function GrammarView() {
   }, [appData]);
     
   return (
+    <>
     <div className="container mx-auto space-y-8">
-        <div>
-            <h1 className="text-3xl font-bold font-headline">Grammar</h1>
-            <p className="text-muted-foreground">
-            Explore grammar points, check your sentences, and build your own library.
-            </p>
+        <div className="flex justify-between items-center">
+            <div>
+                <h1 className="text-3xl font-bold font-headline">Grammar</h1>
+                <p className="text-muted-foreground">
+                Explore grammar points, check your sentences, and build your own library.
+                </p>
+            </div>
+             <div className="flex items-center gap-6">
+                <button className="flex flex-row gap-2 font-semibold text-primary hover:text-primary/80 duration-100" onClick={() => setIsShopOpen(true)}>
+                    <Store className="h-6 w-6" />
+                    <h1>Shop</h1>
+                </button>
+                <div className="flex items-center gap-2 font-semibold text-primary">
+                <Gem className="h-6 w-6" />
+                <span className="text-lg font-bold">{diamonds}</span>
+                </div>
+                <div className="flex flex-col items-center gap-0">
+                    <div className="flex items-center gap-2 font-semibold text-primary">
+                        <Heart className="h-6 w-6" />
+                        <span className="text-lg font-bold">{hearts}</span>
+                    </div>
+                    {hearts < 5 && <CooldownTimer />}
+                </div>
+            </div>
         </div>
         
          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -118,5 +177,7 @@ export function GrammarView() {
             </TabsContent>
         </Tabs>
     </div>
+    <ShopDialog isOpen={isShopOpen} onOpenChange={setIsShopOpen} />
+    </>
   );
 }
