@@ -507,7 +507,7 @@ export const useGlobalStateData = () => {
             ...prev,
             quizzes: prev.quizzes.map(q =>
                 q.id === quizId
-                    ? { ...q, questions: q.questions.map(qu => qu.id === questionId ? { ...qu, ...quData, ...questionData } : qu) }
+                    ? { ...q, questions: q.questions.map(qu => qu.id === questionId ? { ...qu, ...questionData } : qu) }
                     : q
             ),
         }));
@@ -594,7 +594,7 @@ export const useGlobalStateData = () => {
       setCurrentUserData(prev => ({
         ...prev,
         // Add to the beginning of the array and keep the last 20 items
-        grammarCheckHistory: [item, ...prev.grammarCheckHistory].slice(0, 20),
+        grammarCheckHistory: [{ ...item, isCorrect: item.isCorrect, correctedText: item.correctedText, explanation: item.explanation, examples: item.examples }, ...prev.grammarCheckHistory].slice(0, 20),
       }));
     }, [setCurrentUserData]);
 

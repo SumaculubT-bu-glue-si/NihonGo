@@ -120,12 +120,14 @@ export function GrammarCheckerTool() {
                     <h3 className="flex items-center text-sm font-semibold uppercase text-muted-foreground mb-2">
                         Examples
                     </h3>
-                    <ul className="prose prose-sm max-w-none space-y-2 rounded-md border p-4">
+                    <ul className="prose prose-sm max-w-none space-y-4 rounded-md border p-4">
                         {result.examples.map((ex, i) => (
                           <li key={i} className="flex items-center justify-between gap-2">
-                              <span className="flex-1">
-                                {ex.japanese} <span className="text-muted-foreground">({ex.english})</span>
-                              </span>
+                              <div className="flex-1">
+                                <p className="m-0">{ex.japanese}</p>
+                                <p className="m-0 text-xs text-muted-foreground">{ex.romaji}</p>
+                                <p className="m-0 text-sm text-muted-foreground">({ex.english})</p>
+                              </div>
                               <PronunciationButton text={ex.japanese} size="sm" />
                           </li>
                         ))}

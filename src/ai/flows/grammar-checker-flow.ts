@@ -19,6 +19,7 @@ export type CheckGrammarInput = z.infer<typeof CheckGrammarInputSchema>;
 const ExampleSentenceSchema = z.object({
   japanese: z.string().describe('The Japanese example sentence.'),
   english: z.string().describe('The English translation of the sentence.'),
+  romaji: z.string().describe('The romaji reading of the Japanese sentence.'),
 });
 
 const CheckGrammarOutputSchema = z.object({
@@ -45,7 +46,7 @@ Your task is to:
 3.  Provide a clear, kind, and user-friendly explanation. Address the user directly, like a helpful tutor.
     - If correct, praise the user and briefly explain the grammar points used.
     - If incorrect, gently point out the errors, explain the correct grammar rule in a simple way, and offer encouragement. Avoid overly technical jargon.
-4.  Generate an array of exactly 3 'examples' relevant to the grammar point discussed in the explanation. Each example must have both a 'japanese' and 'english' field.
+4.  Generate an array of exactly 3 'examples' relevant to the grammar point discussed in the explanation. Each example must have 'japanese', 'english', and 'romaji' fields.
 
 Japanese Text:
 {{{text}}}
