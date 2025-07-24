@@ -94,7 +94,7 @@ export function GrammarView() {
                     <CardTitle className="text-sm font-medium">Overall Challenge Progress</CardTitle>
                     <BarChart3 className="h-4 w-4 text-green-500" />
                 </CardHeader>
-                <CardContent className="space-y-1 pt-2">
+                <CardContent>
                    {grammarStats.progressByLevel.map(p => (
                     <div key={p.level} className="flex items-center gap-2">
                         <span className="text-xs font-semibold w-8">{p.level}</span>
