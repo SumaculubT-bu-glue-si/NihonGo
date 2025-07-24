@@ -3,7 +3,6 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { GrammarLessonsView } from './lessons-view';
 import { ChallengesView } from './challenges-view';
 import { GrammarCheckerTool } from './checker-view';
 import { useSearchParams } from 'next/navigation';
@@ -12,6 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BookCheck, BarChart3, Trophy } from 'lucide-react';
 import { useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
+import { GrammarLessonsView } from './lessons-view';
 
 export function GrammarView() {
   const searchParams = useSearchParams();
@@ -80,11 +80,13 @@ export function GrammarView() {
                     <BarChart3 className="h-4 w-4 text-green-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{grammarStats.overallProgressPercentage}%</div>
-                    <p className="text-xs text-muted-foreground">
+                    <div className="flex items-center gap-4">
+                        <div className="text-2xl font-bold">{grammarStats.overallProgressPercentage}%</div>
+                        <Progress value={grammarStats.overallProgressPercentage} className="h-2 flex-1" />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
                       Current Level: {grammarStats.currentChallengeLevel}
                     </p>
-                    <Progress value={grammarStats.overallProgressPercentage} className="h-2 mt-2" />
                 </CardContent>
             </Card>
             <Card>
