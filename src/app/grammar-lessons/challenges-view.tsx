@@ -84,8 +84,10 @@ export function ChallengesView() {
   const [isGuidebookLoading, setIsGuidebookLoading] = useState(false);
   const audioPlayer = useRef<HTMLAudioElement | null>(null);
 
-  function playOpenSound() {
-    audioPlayer.current?.play();
+  function playAudio() {
+    if (audioPlayer.current) {
+      audioPlayer.current.play();
+    }
   }
 
   useEffect(() => {
@@ -115,7 +117,7 @@ export function ChallengesView() {
   };
   
   const handleOpenGuidebook = async () => {
-    playOpenSound();
+    playAudio()
     setIsGuidebookOpen(true);
     setGuidebookContent(null);
     setIsGuidebookLoading(true);
@@ -180,7 +182,7 @@ export function ChallengesView() {
 
   return (
     <>
-     <audio ref={audioPlayer} src="/sounds/open.mp3" preload="auto" />
+     <audio ref={audioPlayer} src="/sounds/open.mp3"/>
      <Card className="px-10 mb-20 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex flex-row items-center gap-2">
