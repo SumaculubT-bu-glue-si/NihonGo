@@ -112,10 +112,10 @@ const NodeButton = ({
 
 
 const Path = ({ isUnlocked, isRight }: { isUnlocked: boolean, isRight: boolean }) => (
-  <div className={cn("absolute -bottom-8 w-20 h-20", isRight ? "left-1/2 -translate-x-1/2" : "right-1/2 translate-x-1/2")}>
+  <div className={cn("absolute -bottom-8 w-20 h-20", isRight ? "right-1/2 translate-x-1/2" : "left-1/2 -translate-x-1/2")}>
     <svg width="100%" height="100%" viewBox="0 0 100 100">
       <path
-        d={isRight ? "M 20 80 Q 50 50, 80 20" : "M 80 80 Q 50 50, 20 20"}
+        d={isRight ? "M 80 80 Q 50 50, 20 20" : "M 20 80 Q 50 50, 80 20"}
         stroke={isUnlocked ? "#fbbf24" : "#4b5563"}
         strokeWidth="5"
         fill="transparent"
@@ -368,4 +368,5 @@ export function ChallengesView() {
     </>
   );
 }
+
 
