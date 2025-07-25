@@ -308,16 +308,24 @@ export function ChallengesView() {
               <NodeWrapper>
                 <NodeButton status={finalStatus} isBoss={isBoss} />
               </NodeWrapper>
-              <p className="mt-2 w-32 text-center text-sm font-semibold text-foreground">
+              <p 
+                className="mt-2 w-32 text-center text-sm font-bold text-white uppercase tracking-wider"
+                style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.4)'}}
+              >
                 {stageId.replace('stage', 'Stage ')}
               </p>
             </div>
           );
         })}
         {isUnitComplete(currentChallengeLevel, currentUnitId) && (
-            <div className="relative flex flex-col items-center pt-36">
-              <Image src="/images/trophy.png" alt="Trophy" width={80} height={80} className="h-20 w-20" />
-              <p className="mt-2 font-bold">{currentUnitId.split(':')[0]} Complete</p>
+            <div className="relative flex flex-col items-center pt-16">
+              <Image src="/images/trophy.png" alt="Trophy" width={200} height={200} className='h-auto w-auto' />
+              <p 
+                className="mt-2 text-xl font-bold text-white uppercase tracking-wider"
+                style={{ textShadow: '2px 2px 6px rgba(0,0,0,0.5)'}}
+              >
+                {currentUnitId.split(':')[0]} Complete
+              </p>
             </div>
         )}
       </div>
@@ -331,9 +339,8 @@ export function ChallengesView() {
               A quick overview of the key points for this unit at the {currentChallengeLevel} level.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 max-h-[60vh] overflow-y-auto pr-4">
+          <div className="py-4 max-h-[60vh] overflow-y-auto pr-6 prose prose-sm dark:prose-invert max-w-none">
             <div 
-                className="prose prose-sm dark:prose-invert max-w-none"
                 dangerouslySetInnerHTML={{ __html: guidebookContent ?? '' }}
             />
           </div>
