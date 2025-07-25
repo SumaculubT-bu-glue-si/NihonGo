@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -53,9 +51,9 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
 
   const correctSoundRef = useRef<Howl | null>(null);
   const incorrectSoundRef = useRef<Howl | null>(null);
-  
+
   const currentItem = sessionItems[currentIndex];
-  
+
   const getRedirectUrl = useCallback(() => {
     return `/grammar-lessons?tab=challenges&level=${level}&unit=${encodeURIComponent(unitId)}`;
   }, [level, unitId]);
@@ -63,22 +61,22 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
   // Function to speak text using browser TTS
   const speak = (text: string) => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
-    
+
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
-    
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'ja-JP';
-    
+
     const voices = window.speechSynthesis.getVoices();
     const japaneseVoice = voices.find(voice => voice.lang === 'ja-JP');
     if (japaneseVoice) {
         utterance.voice = japaneseVoice;
     }
-    
+
     window.speechSynthesis.speak(utterance);
   };
-  
+
   // Initialize sounds
   useEffect(() => {
     correctSoundRef.current = new Howl({ src: ['/sounds/correct.mp3'], volume: 0.7 });
@@ -98,7 +96,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     setSessionItems([...items]);
     setCurrentIndex(0);
   }, [items]);
-  
+
   // Reset for new item
   useEffect(() => {
     if (!currentItem) return;
@@ -106,13 +104,13 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     setWordBank(newWordBank);
     setSelectedWords([]);
     setIsAnswered(false);
-    
+
     // Automatically speak the sentence when a new item appears
     speak(currentItem.correct_japanese);
 
   }, [currentItem]);
-  
-  
+
+
   // Check for no hearts
   useEffect(() => {
     if (hearts === 0 && !isAnswered) { // Only show toast if they haven't just answered
@@ -130,7 +128,15 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
 
   const handleSelectWord = (word: string) => {
     setSelectedWords((prev) => [...prev, word]);
-    setWordBank((prev) => prev.filter((w) => w !== word));
+    // Find the index of the first occurrence of the word and remove only that one
+    setWordBank((prev) => {
+      const newWordBank = [...prev];
+      const indexToRemove = newWordBank.indexOf(word);
+      if (indexToRemove > -1) {
+        newWordBank.splice(indexToRemove, 1);
+      }
+      return newWordBank;
+    });
   };
 
   const handleDeselectWord = (word: string, index: number) => {
@@ -140,7 +146,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     // When deselecting, add the word back to the word bank and shuffle
     setWordBank((prev) => shuffle([...prev, word]));
   };
-  
+
   const checkAnswer = () => {
     if (isAnswered) return;
     const userAnswer = selectedWords.join('').replace(/\s/g, '');
@@ -213,7 +219,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
       }
     }
   };
-  
+
   const handleExit = () => {
     router.push(getRedirectUrl());
   }
@@ -251,30 +257,30 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
 
       <main className="flex-grow flex flex-col justify-center items-center p-4 sm:p-6 space-y-8">
         <h1 className="text-2xl sm:text-3xl font-bold">Write this in Japanese</h1>
-        
+
         <div className="flex items-center gap-4">
            <div className="flex items-center gap-2">
              <div className="text-2xl sm:text-4xl font-bold tracking-wider">
                {currentItem.english_sentence}
-            </div>
-            <PronunciationButton text={currentItem.correct_japanese} />
+             </div>
+             <PronunciationButton text={currentItem.correct_japanese} />
            </div>
         </div>
-        
+
         {/* Answer Area */}
         <div className="w-full max-w-2xl">
             <div className="flex flex-wrap gap-2 p-4 border-b-2 border-dashed border-gray-500 min-h-[6rem]">
-                 {selectedWords.map((word, index) => (
-                    <Button
-                        key={`${word}-${index}`}
-                        variant="outline"
-                        size="lg"
-                        onClick={() => handleDeselectWord(word, index)}
-                        className="h-14 text-lg bg-secondary/80 text-secondary-foreground hover:bg-secondary"
-                    >
-                    {word}
-                    </Button>
-                ))}
+                    {selectedWords.map((word, index) => (
+                        <Button
+                            key={`selected-${word}-${index}`} // Changed key to ensure uniqueness for identical words
+                            variant="outline"
+                            size="lg"
+                            onClick={() => handleDeselectWord(word, index)}
+                            className="h-14 text-lg bg-secondary/80 text-secondary-foreground hover:bg-secondary"
+                        >
+                        {word}
+                        </Button>
+                    ))}
             </div>
         </div>
 
@@ -283,7 +289,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
         <div className="w-full max-w-2xl flex flex-wrap justify-center gap-2">
           {wordBank.map((word, index) => (
             <WordButton
-              key={`${word}-${index}`}
+              key={`bank-${word}-${index}`} // Changed key to ensure uniqueness for identical words
               word={word}
               onClick={() => handleSelectWord(word)}
               isDisabled={isAnswered}
@@ -302,17 +308,17 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           {!isAnswered ? (
              <>
-                <Button variant="ghost" size="lg" className="hover:bg-white/10 text-lg" onClick={handleSkip}>SKIP</Button>
-                <Button 
-                    size="lg" 
-                    className="bg-green-500 hover:bg-green-600 text-white text-lg px-12"
-                    onClick={checkAnswer}
-                    disabled={selectedWords.length === 0}
-                >
-                    CHECK
-                </Button>
+               <Button variant="ghost" size="lg" className="hover:bg-white/10 text-lg" onClick={handleSkip}>SKIP</Button>
+               <Button
+                   size="lg"
+                   className="bg-green-500 hover:bg-green-600 text-white text-lg px-12"
+                   onClick={checkAnswer}
+                   disabled={selectedWords.length === 0}
+               >
+                   CHECK
+               </Button>
              </>
-          ) : (
+           ) : (
             <>
                 <div className="flex flex-col">
                     <span className="text-lg font-bold">{isCorrect ? "Correct!" : "Incorrect"}</span>
@@ -320,22 +326,22 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
                         <div className="flex items-center gap-2">
                             <span className="text-sm">{currentItem.hint}</span>
                              <div className="text-sm font-semibold flex items-center gap-1">
-                                {currentItem.correct_japanese}
-                                <PronunciationButton text={currentItem.correct_japanese} />
+                                 {currentItem.correct_japanese}
+                                 <PronunciationButton text={currentItem.correct_japanese} />
                             </div>
                         </div>
                     )}
                 </div>
-                 <Button 
-                    size="lg" 
-                    className={cn(
-                        "text-white text-lg px-12",
-                        isCorrect ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"
-                    )}
-                    onClick={handleContinue}
-                >
-                    CONTINUE
-                </Button>
+                   <Button
+                       size="lg"
+                       className={cn(
+                           "text-white text-lg px-12",
+                           isCorrect ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"
+                       )}
+                       onClick={handleContinue}
+                   >
+                       CONTINUE
+                   </Button>
             </>
           )}
         </div>

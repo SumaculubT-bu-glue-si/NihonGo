@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ChallengeProgress, ChallengeData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { BookOpen, CircleCheck, Lock, Trophy, Castle, Gem, Heart, Store, Loader2 } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { staticGuidebooks } from '@/lib/guidebook-data';
+import Image from 'next/image';
 
 
 type Level = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
@@ -56,22 +57,21 @@ const NodeIcon = ({
   status: 'completed' | 'active' | 'locked';
   isBoss: boolean;
 }) => {
-  const iconBaseStyle = "h-20 w-20 p-4 rounded-full drop-shadow-lg";
-  const iconProps = { className: "h-full w-full" };
+  const iconBaseStyle = "h-20 w-20 drop-shadow-lg";
 
   if (isBoss) {
-    if (status === 'completed') return <div className={cn(iconBaseStyle, "bg-yellow-400 text-white")}><Trophy {...iconProps} /></div>;
-    if (status === 'active') return <div className={cn(iconBaseStyle, "bg-yellow-500 text-white")}><Castle {...iconProps} /></div>;
-    return <div className={cn(iconBaseStyle, "bg-muted text-muted-foreground/50")}><Castle {...iconProps} /></div>;
+    if (status === 'completed') return <Image src="/images/medal.png" alt="Medal" width={80} height={80} className={iconBaseStyle} />;
+    if (status === 'active') return <Image src="/images/unlocked.png" alt="Unlocked" width={80} height={80} className={iconBaseStyle} />;
+    return <Image src="/images/locked.png" alt="Locked" width={80} height={80} className={iconBaseStyle} />;
   }
 
   if (status === 'completed') {
-    return <div className={cn(iconBaseStyle, "bg-green-500 text-white")}><CircleCheck {...iconProps} /></div>;
+    return <Image src="/images/star.png" alt="Star" width={80} height={80} className={iconBaseStyle} />;
   }
   if (status === 'active') {
-    return <div className={cn(iconBaseStyle, "bg-primary text-primary-foreground")}><BookOpen {...iconProps} /></div>;
+    return <Image src="/images/unlocked.png" alt="Unlocked" width={80} height={80} className={iconBaseStyle} />;
   }
-  return <div className={cn(iconBaseStyle, "bg-muted text-muted-foreground/50")}><Lock {...iconProps} /></div>;
+  return <Image src="/images/locked.png" alt="Locked" width={80} height={80} className={iconBaseStyle} />;
 };
 
 export function ChallengesView() {
@@ -154,7 +154,7 @@ export function ChallengesView() {
   if (!units) {
     return (
       <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
-        <Trophy className="h-16 w-16 mb-4" />
+        <Image src="/images/trophy.png" alt="Trophy" width={80} height={80} className="mb-4"/>
         <h3 className="text-xl font-semibold">No Challenges Available</h3>
         <p>Check back later for new content!</p>
       </div>
@@ -164,7 +164,7 @@ export function ChallengesView() {
   if (!currentUnitId || !currentUnit) {
      return (
       <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
-        <Trophy className="h-16 w-16 mb-4" />
+        <Image src="/images/trophy.png" alt="Trophy" width={80} height={80} className="mb-4"/>
         <h3 className="text-xl font-semibold">No Challenges Found</h3>
         <p>There are no units available for this level yet.</p>
       </div>
@@ -276,8 +276,8 @@ export function ChallengesView() {
         })}
         {isUnitComplete(currentChallengeLevel, currentUnitId) && (
             <div className="relative flex flex-col items-center pt-36">
-            <Trophy className="h-20 w-20 text-yellow-400" />
-            <p className="mt-2 font-bold">{currentUnitId.split(':')[0]} Complete</p>
+              <Image src="/images/trophy.png" alt="Trophy" width={80} height={80} />
+              <p className="mt-2 font-bold">{currentUnitId.split(':')[0]} Complete</p>
             </div>
         )}
       </div>
