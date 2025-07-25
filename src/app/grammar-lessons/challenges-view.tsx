@@ -316,7 +316,7 @@ export function ChallengesView() {
         })}
         {isUnitComplete(currentChallengeLevel, currentUnitId) && (
             <div className="relative flex flex-col items-center pt-36">
-              <Trophy className="h-20 w-20 text-yellow-400" />
+              <Image src="/images/trophy.png" alt="Trophy" width={80} height={80} className="h-20 w-20" />
               <p className="mt-2 font-bold">{currentUnitId.split(':')[0]} Complete</p>
             </div>
         )}
