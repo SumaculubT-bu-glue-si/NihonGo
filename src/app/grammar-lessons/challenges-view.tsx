@@ -112,10 +112,10 @@ const NodeButton = ({
 
 
 const Path = ({ isUnlocked, isRight }: { isUnlocked: boolean, isRight: boolean }) => (
-  <div className={cn("absolute -bottom-16 w-48 h-28", isRight ? "-right-32" : "-left-32")}>
+  <div className={cn("absolute -bottom-16 w-48 h-28", isRight ? "-left-28" : "-right-28")}>
     <svg width="100%" height="100%" viewBox="0 0 100 100">
       <path
-        d={isRight ? "M 80 20 Q 30 40, 10 80" : "M 20 20 Q 60 40, 80 80"}
+        d={!isRight ? "M 20 20 Q 60 40, 80 80" : "M 80 20 Q 30 40, 10 80"}
         stroke={isUnlocked ? "#fbbf24" : "#4b5563"}
         strokeWidth="5"
         fill="transparent"

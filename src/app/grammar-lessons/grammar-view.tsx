@@ -175,7 +175,10 @@ export function GrammarView() {
              <TabsContent value="checker" className="mt-6">
                 <GrammarCheckerTool />
             </TabsContent>
-            <TabsContent value="challenges" className="mt-6">
+            <TabsContent 
+                value="challenges" 
+                className="mt-6 bg-[#2e3856] rounded-lg bg-[url('data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2080%2040%27%20width=%2780%27%20height=%2740%27%3e%3cpath%20fill=%27%233e4a68%27%20fill-opacity=%270.4%27%20d=%27M0%2040c20%200%2020-40%2040-40s20%2040%2040%2040V0c-20%200-20%2040-40%2040S-20%200%200%200v40z%27/%3e%3c/svg%3e')]"
+                >
                  <ChallengesView />
             </TabsContent>
         </Tabs>
