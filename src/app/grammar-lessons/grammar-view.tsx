@@ -9,11 +9,12 @@ import { useSearchParams } from 'next/navigation';
 import { useGlobalState } from '@/hooks/use-global-state';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { BookCheck, BarChart3, Trophy, Heart, Gem, Store } from 'lucide-react';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { GrammarLessonsView } from './lessons-view';
 import { ShopDialog } from './shop-dialog';
 import { Button } from '@/components/ui/button';
+import { Howl } from 'howler';
 
 const CooldownTimer = () => {
   const { appData } = useGlobalState();
@@ -57,6 +58,15 @@ export function GrammarView() {
   const { appData } = useGlobalState();
   const { hearts, diamonds } = appData;
   const [isShopOpen, setIsShopOpen] = useState(false);
+
+  const shopSoundRef = useRef<Howl | null>(null);
+
+  useEffect(() => {
+    shopSoundRef.current = new Howl({ src: ['/sounds/shop.mp3'], volume: 0.7 });
+    return () => {
+      shopSoundRef.current?.unload();
+    }
+  }, []);
   
   const grammarStats = useMemo(() => {
     const lessonsCompleted = appData.grammarLessons.filter(l => l.read).length;
@@ -94,6 +104,11 @@ export function GrammarView() {
 
   }, [appData]);
     
+  const handleOpenShop = () => {
+    shopSoundRef.current?.play();
+    setIsShopOpen(true);
+  }
+
   return (
     <>
     <div className="container mx-auto space-y-8">
@@ -105,7 +120,7 @@ export function GrammarView() {
                 </p>
             </div>
              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => setIsShopOpen(true)}>
+                <Button variant="outline" onClick={handleOpenShop}>
                     <Store className="h-4 w-4 mr-2" />
                     Shop
                 </Button>

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ import { Heart, Gem } from 'lucide-react';
 import { useGlobalState } from '@/hooks/use-global-state';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Howl } from 'howler';
 
 interface ShopDialogProps {
   isOpen: boolean;
@@ -34,9 +35,19 @@ export function ShopDialog({ isOpen, onOpenChange }: ShopDialogProps) {
   const { toast } = useToast();
   const { diamonds, hearts } = appData;
 
+  const buySoundRef = useRef<Howl | null>(null);
+
+  useEffect(() => {
+    buySoundRef.current = new Howl({ src: ['/sounds/buy.mp3'], volume: 0.7 });
+    return () => {
+      buySoundRef.current?.unload();
+    }
+  }, []);
+
   const handlePurchase = (heartsToBuy: number, cost: number) => {
     const success = purchaseHearts(heartsToBuy, cost);
     if (success) {
+      buySoundRef.current?.play();
       toast({
         title: 'Purchase Successful!',
         description: `You bought ${heartsToBuy} heart(s) for ${cost} diamonds.`,
