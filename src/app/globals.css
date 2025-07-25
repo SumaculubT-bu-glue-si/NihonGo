@@ -117,6 +117,10 @@ body {
   .prose ul > li {
     @apply my-1;
   }
+  
+  .prose ul li p {
+    @apply my-0;
+  }
 
   @keyframes gentle-bounce {
     0%, 100% {
