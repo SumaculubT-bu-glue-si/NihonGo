@@ -112,10 +112,10 @@ const NodeButton = ({
 
 
 const Path = ({ isUnlocked, isRight }: { isUnlocked: boolean, isRight: boolean }) => (
-  <div className={cn("absolute -bottom-14 w-48 h-24", isRight ? "-right-24" : "-left-24")}>
+  <div className={cn("absolute -bottom-16 w-48 h-28", isRight ? "-right-32" : "-left-32")}>
     <svg width="100%" height="100%" viewBox="0 0 100 100">
       <path
-        d={isRight ? "M 20 20 Q 40 60, 80 80" : "M 80 20 Q 60 60, 20 80"}
+        d={isRight ? "M 80 20 Q 30 40, 10 80" : "M 20 20 Q 60 40, 80 80"}
         stroke={isUnlocked ? "#fbbf24" : "#4b5563"}
         strokeWidth="5"
         fill="transparent"
@@ -247,7 +247,11 @@ export function ChallengesView() {
      <audio ref={guidebookAudioPlayer} src="/sounds/open.mp3" />
      <Card className="px-4 sm:px-10 mb-20 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
-           <Button variant="ghost" size="icon" onClick={handlePreviousUnit} disabled={currentUnitIndex === 0} className="hover:bg-primary/80 disabled:opacity-50">
+           <Button variant="ghost" size="icon" onClick={handlePreviousUnit} disabled={currentUnitIndex === 0} className={cn(
+               "h-12 w-12 rounded-full bg-blue-400/80 hover:bg-blue-400 active:translate-y-1 transition-all duration-150",
+               "[box-shadow:0_6px_0_0_#1b6ff8,0_11px_0_0_#1b70f841] active:[box-shadow:0_0px_0_0_#1b6ff8,0_0px_0_0_#1b70f841] active:border-b-0",
+               "disabled:opacity-50 disabled:grayscale disabled:active:translate-y-0"
+           )}>
              <ChevronLeft className="h-8 w-8" />
           </Button>
           <div className="flex flex-col sm:flex-row items-center gap-2 text-center">
@@ -299,7 +303,11 @@ export function ChallengesView() {
                 <h1>Guide Book</h1>
             </button>
           </div>
-          <Button variant="ghost" size="icon" onClick={handleNextUnit} disabled={isNextUnitLocked} className="hover:bg-primary/80 disabled:opacity-50">
+          <Button variant="ghost" size="icon" onClick={handleNextUnit} disabled={isNextUnitLocked} className={cn(
+               "h-12 w-12 rounded-full bg-blue-400/80 hover:bg-blue-400 active:translate-y-1 transition-all duration-150",
+               "[box-shadow:0_6px_0_0_#1b6ff8,0_11px_0_0_#1b70f841] active:[box-shadow:0_0px_0_0_#1b6ff8,0_0px_0_0_#1b70f841] active:border-b-0",
+               "disabled:opacity-50 disabled:grayscale disabled:active:translate-y-0"
+           )}>
              <ChevronRight className="h-8 w-8" />
           </Button>
         </CardContent>
@@ -341,7 +349,7 @@ export function ChallengesView() {
               key={stageId}
               className={cn('relative flex flex-col items-center pt-5', isOffset ? 'translate-x-20' : '-translate-x-20')}
             >
-              {!isBoss && <Path isUnlocked={status === 'completed'} isRight={!isOffset} />}
+              {!isBoss && <Path isUnlocked={status === 'completed'} isRight={isOffset} />}
               <NodeWrapper>
                 <NodeButton status={finalStatus} isBoss={isBoss} />
               </NodeWrapper>
@@ -377,7 +385,7 @@ export function ChallengesView() {
             </DialogDescription>
           </DialogHeader>
           <div 
-            className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-primary prose-headings:border-b prose-headings:border-border prose-headings:pb-2 prose-ul:list-disc prose-ul:pl-6 prose-strong:text-primary max-h-[60vh] overflow-y-auto pr-6"
+            className="prose prose-sm dark:prose-invert max-w-none prose-headings:border-b prose-headings:pb-2 prose-ul:list-disc prose-ul:pl-6 prose-strong:text-primary max-h-[60vh] overflow-y-auto pr-6"
             dangerouslySetInnerHTML={{ __html: guidebookContent ?? '' }}
           />
         </DialogContent>
@@ -385,6 +393,7 @@ export function ChallengesView() {
     </>
   );
 }
+
 
 
 
