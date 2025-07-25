@@ -135,7 +135,7 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Profile Settings</DialogTitle>
           <DialogDescription>
