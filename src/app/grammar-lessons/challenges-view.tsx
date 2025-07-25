@@ -19,8 +19,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { generateGrammarGuidebook, type GenerateGrammarGuidebookOutput } from '@/ai/flows/generate-grammar-guidebook-flow';
 import { useToast } from '@/hooks/use-toast';
+import { staticGuidebooks } from '@/lib/guidebook-data';
+
 
 type Level = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 
@@ -82,8 +83,7 @@ export function ChallengesView() {
   
   const [currentUnitId, setCurrentUnitId] = useState('');
   const [isGuidebookOpen, setIsGuidebookOpen] = useState(false);
-  const [guidebookContent, setGuidebookContent] = useState<GenerateGrammarGuidebookOutput | null>(null);
-  const [isGuidebookLoading, setIsGuidebookLoading] = useState(false);
+  const [guidebookContent, setGuidebookContent] = useState<string | null>(null);
   const guidebookAudioPlayer = useRef<HTMLAudioElement | null>(null);
   const stageAudioPlayer = useRef<HTMLAudioElement | null>(null);
 
@@ -92,14 +92,6 @@ export function ChallengesView() {
       guidebookAudioPlayer.current.play().catch(error => {
         console.error("Audio play failed:", error);
       });
-    }
-  }
-
-  function playStageAudio() {
-    if (stageAudioPlayer.current) {
-        stageAudioPlayer.current.play().catch(error => {
-            console.error("Stage audio play failed:", error);
-        });
     }
   }
 
@@ -129,24 +121,12 @@ export function ChallengesView() {
     router.push(`/grammar-lessons?tab=challenges&level=${level}`);
   };
   
-  const handleOpenGuidebook = async () => {
-    playGuidebookAudio()
+  const handleOpenGuidebook = () => {
+    playGuidebookAudio();
     setIsGuidebookOpen(true);
-    setGuidebookContent(null);
-    setIsGuidebookLoading(true);
-
-    try {
-        const result = await generateGrammarGuidebook({
-            level: currentChallengeLevel,
-            unit_topic: currentUnitId,
-        });
-        setGuidebookContent(result);
-    } catch (error) {
-        console.error("Failed to generate guidebook", error);
-        setGuidebookContent({ guidebook: "<p class='text-destructive'>Could not load the guidebook. The AI model may be overloaded. Please try again in a moment.</p>" });
-    } finally {
-        setIsGuidebookLoading(false);
-    }
+    
+    const content = staticGuidebooks[currentChallengeLevel]?.[currentUnitId] ?? "<p>No guidebook available for this section yet.</p>";
+    setGuidebookContent(content);
   };
   
   const units = challengeData?.[currentChallengeLevel];
@@ -196,7 +176,6 @@ export function ChallengesView() {
   return (
     <>
      <audio ref={guidebookAudioPlayer} src="/sounds/open.mp3" />
-     <audio ref={stageAudioPlayer} src="/sounds/stage.mp3" />
      <Card className="px-10 mb-20 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex flex-row items-center gap-2">
@@ -281,7 +260,7 @@ export function ChallengesView() {
               key={stageId}
               className={cn('relative flex flex-col items-center pt-5', isOffset ? 'translate-x-20' : '-translate-x-20')}
             >
-              <Link href={stageHref} passHref aria-disabled={finalStatus === 'locked'} onClick={playStageAudio}>
+              <Link href={stageHref} passHref aria-disabled={finalStatus === 'locked'}>
                 <button
                   disabled={finalStatus === 'locked'}
                   className="transition-transform duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50"
@@ -313,17 +292,10 @@ export function ChallengesView() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 max-h-[60vh] overflow-y-auto pr-4">
-             {isGuidebookLoading ? (
-                 <div className="flex items-center justify-center gap-3 text-muted-foreground h-48">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                    <p>Generating your guide...</p>
-                </div>
-             ) : (
-                <div 
-                    className="prose prose-sm dark:prose-invert max-w-none"
-                    dangerouslySetInnerHTML={{ __html: guidebookContent?.guidebook ?? '' }}
-                />
-             )}
+            <div 
+                className="prose prose-sm dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: guidebookContent ?? '' }}
+            />
           </div>
         </DialogContent>
       </Dialog>

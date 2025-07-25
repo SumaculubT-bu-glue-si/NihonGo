@@ -81,9 +81,8 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
   
   // Initialize sounds
   useEffect(() => {
-    correctSoundRef.current = new Howl({ src: ['/correct-sound.mp3'], volume: 0.5 });
-    incorrectSoundRef.current = new Howl({ src: ['/incorrect-sound.mp3'], volume: 0.5 });
-    
+    correctSoundRef.current = new Howl({ src: ['/sounds/correct.mp3'], volume: 0.7 });
+    incorrectSoundRef.current = new Howl({ src: ['/sounds/wrong.mp3'], volume: 0.7 });
     // Cleanup sounds on component unmount
     return () => {
         correctSoundRef.current?.unload();

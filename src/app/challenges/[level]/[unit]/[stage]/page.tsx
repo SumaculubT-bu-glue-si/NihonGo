@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { AppLayout } from '@/components/app-layout';
@@ -7,7 +5,8 @@ import { AuthGuard } from '@/components/auth-guard';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import { ChallengeClientPage } from './challenge-client-page';
 import { generateChallenge, type GenerateChallengeOutput } from '@/ai/flows/generate-challenge-flow';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Howl } from 'howler';
 import { useToast } from '@/hooks/use-toast';
 
 type Level = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
@@ -20,36 +19,54 @@ export default function ChallengePage() {
   const { level, unit, stage } = params;
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const decodedUnitId = decodeURIComponent(unit as string);
+  const stageSoundRef = useRef<Howl | null>(null);
+  const soundPlayedRef = useRef(false); // ✅ tracks if sound has already played
+
+  useEffect(() => {
+    stageSoundRef.current = new Howl({
+      src: ['/sounds/stage.mp3'],
+      volume: 0.7,
+    });
+  }, []);
 
   useEffect(() => {
     const fetchChallenge = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const result = await generateChallenge({
-                unit_topic: decodedUnitId,
-                level: level as Level,
-                count: 5 // Generate 5 challenges per stage for now
-            });
-            if (!result || !result.items || result.items.length === 0) {
-              throw new Error("AI failed to generate challenge items.");
-            }
-            setChallenge(result);
-        } catch (error) {
-            console.error("Failed to generate challenge:", error);
-            setError("Could not generate challenges at this moment. Please try again later.");
-        } finally {
-            setIsLoading(false);
+      setIsLoading(true);
+      setError(null);
+      try {
+        const result = await generateChallenge({
+          unit_topic: decodedUnitId,
+          level: level as Level,
+          count: 5,
+        });
+        if (!result || !result.items || result.items.length === 0) {
+          throw new Error("AI failed to generate challenge items.");
         }
+        setChallenge(result);
+      } catch (error) {
+        console.error("Failed to generate challenge:", error);
+        setError("Could not generate challenges at this moment. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
     };
+
     fetchChallenge();
   }, [decodedUnitId, level]);
-  
+
+  // ✅ Play sound only once after challenge loads
+  useEffect(() => {
+    if (challenge && !soundPlayedRef.current) {
+      stageSoundRef.current?.play();
+      soundPlayedRef.current = true;
+    }
+  }, [challenge]);
+
   useEffect(() => {
     if (error) {
-       toast({
+      toast({
         title: 'Generation Failed',
         description: error,
         variant: 'destructive',
@@ -57,7 +74,6 @@ export default function ChallengePage() {
       router.push('/grammar-lessons?tab=challenges');
     }
   }, [error, router, toast]);
-
 
   if (isLoading || error) {
     return (
@@ -73,13 +89,16 @@ export default function ChallengePage() {
   }
 
   if (!challenge || !challenge.items || challenge.items.length === 0) {
-    // This case should ideally be handled by the error state now
     return notFound();
   }
 
   return (
     <AuthGuard>
-        <ChallengeClientPage items={challenge.items} level={level} unitId={decodedUnitId} />
+      <ChallengeClientPage
+        items={challenge.items}
+        level={level}
+        unitId={decodedUnitId}
+      />
     </AuthGuard>
   );
 }
