@@ -110,6 +110,24 @@ const NodeButton = ({
   );
 };
 
+
+const Path = ({ isUnlocked, isRight }: { isUnlocked: boolean, isRight: boolean }) => (
+  <div className={cn("absolute -bottom-8 w-20 h-20", isRight ? "-right-8" : "-left-8")}>
+    <svg width="100%" height="100%" viewBox="0 0 100 100">
+      <path
+        d={isRight ? "M 20 80 Q 50 50, 80 20" : "M 80 80 Q 50 50, 20 20"}
+        stroke={isUnlocked ? "#fbbf24" : "#4b5563"}
+        strokeWidth="5"
+        fill="transparent"
+        strokeLinecap="round"
+        strokeDasharray="10"
+        className="transition-all duration-500"
+      />
+    </svg>
+  </div>
+);
+
+
 export function ChallengesView() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -305,12 +323,13 @@ export function ChallengesView() {
               key={stageId}
               className={cn('relative flex flex-col items-center pt-5', isOffset ? 'translate-x-20' : '-translate-x-20')}
             >
+              {!isBoss && <Path isUnlocked={status === 'completed'} isRight={!isOffset} />}
               <NodeWrapper>
                 <NodeButton status={finalStatus} isBoss={isBoss} />
               </NodeWrapper>
               <p 
-                className="mt-2 w-32 text-center text-sm font-bold text-white uppercase tracking-wider"
-                style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.4)'}}
+                className="mt-2 w-32 text-xl text-center text-sm font-bold text-white uppercase tracking-wider"
+                style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.8)'}}
               >
                 {stageId.replace('stage', 'Stage ')}
               </p>
@@ -321,8 +340,8 @@ export function ChallengesView() {
             <div className="relative flex flex-col items-center pt-16">
               <Image src="/images/trophy.png" alt="Trophy" width={200} height={200} className='h-auto w-auto' />
               <p 
-                className="mt-2 text-xl font-bold text-white uppercase tracking-wider"
-                style={{ textShadow: '2px 2px 6px rgba(0,0,0,0.5)'}}
+                className="mt-2 text-2xl font-bold text-white uppercase tracking-wider"
+                style={{ textShadow: '2px 2px 12px rgba(0,0,0,0.9)'}}
               >
                 {currentUnitId.split(':')[0]} Complete
               </p>
