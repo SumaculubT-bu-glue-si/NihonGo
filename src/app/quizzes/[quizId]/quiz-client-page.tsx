@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Quiz, QuizQuestion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,6 +18,7 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
+import { Howl } from 'howler';
 
 
 export function QuizClientPage({ quiz, onComplete, backLink, onBack }: { quiz: Quiz, onComplete?: () => void, backLink?: { href: string; label: string; }, onBack?: () => void }) {
@@ -28,6 +29,20 @@ export function QuizClientPage({ quiz, onComplete, backLink, onBack }: { quiz: Q
   const [showResults, setShowResults] = useState(false);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const { updateQuizScore } = useGlobalState();
+
+  const correctSoundRef = useRef<Howl | null>(null);
+  const incorrectSoundRef = useRef<Howl | null>(null);
+
+  // Initialize sounds
+  useEffect(() => {
+    correctSoundRef.current = new Howl({ src: ['/sounds/correct.mp3'], volume: 0.7 });
+    incorrectSoundRef.current = new Howl({ src: ['/sounds/wrong.mp3'], volume: 0.7 });
+    
+    return () => {
+        correctSoundRef.current?.unload();
+        incorrectSoundRef.current?.unload();
+    }
+  }, []);
   
   const resetQuizState = () => {
     setCurrentQuestionIndex(0);
@@ -65,6 +80,9 @@ export function QuizClientPage({ quiz, onComplete, backLink, onBack }: { quiz: Q
     
     if (isCorrect) {
       setScore(s => s + 1);
+      correctSoundRef.current?.play();
+    } else {
+      incorrectSoundRef.current?.play();
     }
 
     setUserAnswers(prev => [...prev, selectedAnswer]);
