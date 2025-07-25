@@ -323,7 +323,7 @@ export function ChallengesView() {
               key={stageId}
               className={cn('relative flex flex-col items-center pt-5', isOffset ? 'translate-x-20' : '-translate-x-20')}
             >
-              {!isBoss && <Path isUnlocked={status === 'completed'} isRight={!isOffset} />}
+              {!isBoss && <Path isUnlocked={status === 'completed'} isRight={isOffset} />}
               <NodeWrapper>
                 <NodeButton status={finalStatus} isBoss={isBoss} />
               </NodeWrapper>
