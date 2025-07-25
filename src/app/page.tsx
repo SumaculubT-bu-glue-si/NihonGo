@@ -10,8 +10,44 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+
+function ForgotPasswordForm({ onOpenChange }: { onOpenChange: (open: boolean) => void }) {
+  const [email, setEmail] = useState('');
+  const { toast } = useToast();
+
+  const handleForgotPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real app, you would call a backend service here.
+    // For this mock, we just show a confirmation.
+    toast({
+      title: "Password Reset Sent",
+      description: `If an account exists for ${email}, a password reset link has been sent.`,
+    });
+    onOpenChange(false);
+  };
+
+  return (
+    <form onSubmit={handleForgotPassword} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="forgot-email">Email</Label>
+        <Input
+          id="forgot-email"
+          type="email"
+          placeholder="your@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
+      <DialogFooter>
+        <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+        <Button type="submit">Send Reset Link</Button>
+      </DialogFooter>
+    </form>
+  )
+}
 
 function AuthForm({
   mode,
@@ -22,8 +58,8 @@ function AuthForm({
 }: {
   mode: 'login' | 'signup';
   role: 'admin' | 'learner';
-  onSignIn: (email: string, role: 'admin' | 'learner') => Promise<void>;
-  onSignUp: (displayName: string, email: string) => Promise<void>;
+  onSignIn: (email: string, pass: string, role: 'admin' | 'learner') => Promise<void>;
+  onSignUp: (displayName: string, email: string, pass: string) => Promise<void>;
   onSwitchMode?: () => void;
 }) {
   const { allUsers } = useAuth();
@@ -32,6 +68,7 @@ function AuthForm({
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isForgotPassOpen, setIsForgotPassOpen] = useState(false);
 
   const adminUser = allUsers.find(u => u.role === 'admin');
 
@@ -41,9 +78,9 @@ function AuthForm({
     setError(null);
     try {
       if (mode === 'login') {
-        await onSignIn(email, role);
+        await onSignIn(email, password, role);
       } else {
-        await onSignUp(displayName, email);
+        await onSignUp(displayName, email, password);
       }
     } catch (err: any) {
       setError(err.message);
@@ -56,6 +93,7 @@ function AuthForm({
   const loadingText = mode === 'login' ? 'Logging In...' : 'Signing Up...';
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-4">
       {mode === 'signup' && (
         <div className="space-y-2">
@@ -75,20 +113,28 @@ function AuthForm({
         <Input
           id={`${role}-email`}
           type="email"
-          placeholder={mode === 'login' && role === 'admin' ? (adminUser?.email ?? '') : (mode === 'login' ? 'learner@example.com' : 'your@email.com')}
+          placeholder={mode === 'login' ? 'your@email.com' : 'your@email.com'}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`${role}-password`}>Password</Label>
+        <div className="flex items-center justify-between">
+            <Label htmlFor={`${role}-password`}>Password</Label>
+            {mode === 'login' && (
+                <button type="button" onClick={() => setIsForgotPassOpen(true)} className="text-xs text-primary hover:underline">
+                    Forgot Password?
+                </button>
+            )}
+        </div>
         <Input
           id={`${role}-password`}
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password (any value is fine)"
+          placeholder="••••••••"
+          required
         />
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
@@ -112,6 +158,16 @@ function AuthForm({
           </p>
         )}
     </form>
+    <Dialog open={isForgotPassOpen} onOpenChange={setIsForgotPassOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Forgot Password</DialogTitle>
+                <DialogDescription>Enter your email to receive a password reset link.</DialogDescription>
+            </DialogHeader>
+            <ForgotPasswordForm onOpenChange={setIsForgotPassOpen} />
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
 
@@ -132,22 +188,22 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
-  const handleSignIn = async (email: string, role: 'admin' | 'learner') => {
+  const handleSignIn = async (email: string, pass: string, role: 'admin' | 'learner') => {
     const foundUser = allUsers.find(u => u.email === email && u.role === role);
 
-    if (foundUser) {
+    if (foundUser && foundUser.password === pass) {
       await signInAs(foundUser.uid);
     } else {
       throw new Error('Incorrect email or password');
     }
   };
 
-  const handleSignUp = async (displayName: string, email: string) => {
+  const handleSignUp = async (displayName: string, email: string, pass: string) => {
     const existingUser = allUsers.find(u => u.email === email);
     if (existingUser) {
         throw new Error('An account with this email already exists.');
     }
-    await addUser({ displayName, email, photoURL: '' });
+    await addUser({ displayName, email, photoURL: '', password: pass });
     toast({
         title: "Account Created",
         description: "You can now log in with your new credentials.",
@@ -167,9 +223,6 @@ export default function LoginPage() {
     );
   }
   
-  const adminUser = allUsers.find(u => u.role === 'admin');
-  const learnerUsers = allUsers.filter(u => u.role === 'learner');
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
       <div className="flex w-full max-w-sm flex-col items-center">
@@ -191,7 +244,7 @@ export default function LoginPage() {
                     <CardHeader>
                         <CardTitle>{authMode === 'login' ? 'Login as Learner' : 'Create an Account'}</CardTitle>
                         <CardDescription>
-                            {authMode === 'login' ? "Enter a learner's email to continue." : 'Sign up to start your learning journey.'}
+                            {authMode === 'login' ? "Enter your credentials to continue." : 'Sign up to start your learning journey.'}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -203,51 +256,17 @@ export default function LoginPage() {
                           onSwitchMode={switchAuthMode}
                         />
                     </CardContent>
-                    {authMode === 'login' && (
-                        <CardFooter>
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="link" className="text-xs p-0 h-auto text-muted-foreground">
-                                        Use a sample email
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-md">
-                                    <DialogHeader>
-                                        <DialogTitle>Sample Learner Accounts</DialogTitle>
-                                    </DialogHeader>
-                                    <p className="text-sm text-muted-foreground">Click any email to copy it.</p>
-                                    <ul className="space-y-1 rounded-md border p-2 text-sm">
-                                        {learnerUsers.map(learner => (
-                                            <li key={learner.uid}>
-                                                <button 
-                                                    onClick={() => navigator.clipboard.writeText(learner.email ?? '')}
-                                                    className="w-full text-left p-1 rounded hover:bg-muted"
-                                                >
-                                                    {learner.email}
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </DialogContent>
-                            </Dialog>
-                        </CardFooter>
-                    )}
                 </Card>
             </TabsContent>
             <TabsContent value="admin">
                  <Card>
                     <CardHeader>
                         <CardTitle>Login as Admin</CardTitle>
-                        <CardDescription>Enter the admin's email to continue.</CardDescription>
+                        <CardDescription>Enter admin credentials to continue.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <AuthForm mode="login" role="admin" onSignIn={handleSignIn} onSignUp={handleSignUp} />
                     </CardContent>
-                    <CardFooter>
-                        <p className="text-xs text-muted-foreground">
-                           Use email: <code className="bg-muted p-1 rounded">{adminUser?.email}</code>
-                        </p>
-                    </CardFooter>
                 </Card>
             </TabsContent>
         </Tabs>

@@ -8,6 +8,7 @@ export const allUsers: User[] = [
     email: 'kenji.tanaka@example.com',
     photoURL: 'https://placehold.co/100x100/E2D0B8/443322?text=KT',
     role: 'admin',
+    password: '123'
   },
   {
     uid: 'learner-001',
@@ -15,6 +16,7 @@ export const allUsers: User[] = [
     email: 'yuki.sato@example.com',
     photoURL: 'https://placehold.co/100x100/B8E2D0/224433?text=YS',
     role: 'learner',
+    password: '123'
   },
   {
     uid: 'learner-002',
@@ -22,6 +24,7 @@ export const allUsers: User[] = [
     email: 'haru.ito@example.com',
     photoURL: 'https://placehold.co/100x100/D0B8E2/332244?text=HI',
     role: 'learner',
+    password: '123'
   },
   {
     uid: 'learner-003',
@@ -29,6 +32,7 @@ export const allUsers: User[] = [
     email: 'mei.watanabe@example.com',
     photoURL: 'https://placehold.co/100x100/E2B8B8/442222?text=MW',
     role: 'learner',
+    password: '123'
   },
   {
     uid: 'learner-004',
@@ -36,6 +40,7 @@ export const allUsers: User[] = [
     email: 'ren.yamamoto@example.com',
     photoURL: 'https://placehold.co/100x100/B8D0E2/223344?text=RY',
     role: 'learner',
+    password: '123'
   },
   {
     uid: 'learner-005',
@@ -43,5 +48,6 @@ export const allUsers: User[] = [
     email: 'sora.takahashi@example.com',
     photoURL: 'https://placehold.co/100x100/E2E2B8/444422?text=ST',
     role: 'learner',
+    password: '123'
   },
 ];

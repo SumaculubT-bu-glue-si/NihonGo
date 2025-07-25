@@ -22,6 +22,7 @@ export interface User {
   email: string | null;
   photoURL: string | null;
   role: 'learner' | 'admin';
+  password?: string;
 }
 
 // Mock Auth context type
@@ -37,6 +38,7 @@ interface AuthContextType {
       displayName?: string;
       photoURL?: string;
       email?: string;
+      password?: string;
     }
   ) => Promise<void>;
   addUser: (
@@ -109,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUser = useCallback(
     async (
       userId: string,
-      data: { displayName?: string; photoURL?: string; email?: string }
+      data: { displayName?: string; photoURL?: string; email?: string, password?: string; }
     ) => {
       setAllUsers((currentUsers) =>
         currentUsers.map((u) => (u.uid === userId ? { ...u, ...data } : u))
