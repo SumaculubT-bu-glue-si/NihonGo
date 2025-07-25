@@ -176,7 +176,6 @@ export function UserManagementView({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[300px]">User</TableHead>
-                <TableHead>Mock Password</TableHead>
                 <TableHead>Login History (Mock)</TableHead>
                 <TableHead className="w-24 text-right">Actions</TableHead>
               </TableRow>
@@ -202,11 +201,6 @@ export function UserManagementView({
                         </p>
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <p className="font-mono text-sm tracking-widest text-muted-foreground">
-                      ••••••••
-                    </p>
                   </TableCell>
                   <TableCell>
                     <ul className="space-y-1">
