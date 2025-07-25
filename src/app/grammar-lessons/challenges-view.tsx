@@ -115,7 +115,7 @@ const Path = ({ isUnlocked, isRight }: { isUnlocked: boolean, isRight: boolean }
   <div className={cn("absolute -bottom-8 w-20 h-20", isRight ? "-right-8" : "-left-8")}>
     <svg width="100%" height="100%" viewBox="0 0 100 100">
       <path
-        d={isRight ? "M 20 80 Q 50 50, 80 20" : "M 80 80 Q 50 50, 20 20"}
+        d={isRight ? "M 80 80 Q 50 50, 20 20" : "M 20 80 Q 50 50, 80 20"}
         stroke={isUnlocked ? "#fbbf24" : "#4b5563"}
         strokeWidth="5"
         fill="transparent"
@@ -323,7 +323,7 @@ export function ChallengesView() {
               key={stageId}
               className={cn('relative flex flex-col items-center pt-5', isOffset ? 'translate-x-20' : '-translate-x-20')}
             >
-              {!isBoss && <Path isUnlocked={status === 'completed'} isRight={!isOffset} />}
+              {!isBoss && <Path isUnlocked={status === 'completed'} isRight={isOffset} />}
               <NodeWrapper>
                 <NodeButton status={finalStatus} isBoss={isBoss} />
               </NodeWrapper>
@@ -358,7 +358,7 @@ export function ChallengesView() {
               A quick overview of the key points for this unit at the {currentChallengeLevel} level.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 max-h-[60vh] overflow-y-auto pr-6 prose prose-sm dark:prose-invert max-w-none">
+          <div className="py-4 max-h-[60vh] overflow-y-auto pr-6 prose prose-sm dark:prose-invert max-w-none prose-h1:text-primary prose-h2:border-b prose-h2:border-border prose-h2:pb-2 prose-ul:list-disc prose-ul:pl-6 prose-strong:text-primary">
             <div 
                 dangerouslySetInnerHTML={{ __html: guidebookContent ?? '' }}
             />
