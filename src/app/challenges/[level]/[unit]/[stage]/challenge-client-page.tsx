@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -349,3 +350,4 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     </div>
   );
 }
+

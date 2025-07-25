@@ -177,7 +177,7 @@ export function GrammarView() {
             </TabsContent>
             <TabsContent 
                 value="challenges" 
-                className="mt-6 relative isolate overflow-hidden bg-[#2e3856] rounded-lg before:absolute before:inset-0 before:bg-[url('/images/jpmap.png')] before:bg-cover before:bg-center before:bg-no-repeat before:opacity-20 before:grayscale before:content-['']"
+                className="mt-6 relative isolate overflow-hidden rounded-lg before:absolute before:inset-0 before:bg-[url('/images/jpmap.png')] before:bg-cover before:bg-center before:bg-no-repeat before:opacity-15 before:grayscale before:content-['']"
             >
                 <div className="relative z-10">
                     <ChallengesView />
