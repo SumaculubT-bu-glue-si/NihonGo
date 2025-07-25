@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ChallengeProgress, ChallengeData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Star, Lock, Unlock, Gem, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
@@ -50,28 +50,64 @@ const getNodeStatus = (level: Level, unitId: string, stageId: string, progress: 
   return 'locked';
 };
 
-const NodeIcon = ({
+const NodeButton = ({
   status,
   isBoss,
 }: {
   status: 'completed' | 'active' | 'locked';
   isBoss: boolean;
 }) => {
-  const iconBaseStyle = "h-20 w-20 drop-shadow-lg";
+    let Icon = Unlock;
+    let iconColor = "text-yellow-300";
+    let bgColor = "bg-green-500";
+    let shadowColor = "[box-shadow:0_8px_0_0_#22c55e,0_13px_0_0_#22c55e41]"; // Green shadow
+    let activeShadow = "active:[box-shadow:0_0px_0_0_#22c55e,0_0px_0_0_#22c55e41]";
+    let borderColor = "border-green-600";
+    let isDisabled = false;
 
-  if (isBoss) {
-    if (status === 'completed') return <Image src="/images/medal.png" alt="Medal" width={80} height={80} className={iconBaseStyle} />;
-    if (status === 'active') return <Image src="/images/unlocked.png" alt="Unlocked" width={80} height={80} className={iconBaseStyle} />;
-    return <Image src="/images/locked.png" alt="Locked" width={80} height={80} className={iconBaseStyle} />;
-  }
+    if (isBoss) {
+        Icon = Gem;
+        iconColor = "text-white";
+        bgColor = "bg-purple-600";
+        shadowColor = "[box-shadow:0_8px_0_0_#7c3aed,0_13px_0_0_#7c3aed41]"; // Purple shadow
+        activeShadow = "active:[box-shadow:0_0px_0_0_#7c3aed,0_0px_0_0_#7c3aed41]";
+        borderColor = "border-purple-700";
+    }
 
-  if (status === 'completed') {
-    return <Image src="/images/star.png" alt="Star" width={80} height={80} className={iconBaseStyle} />;
-  }
-  if (status === 'active') {
-    return <Image src="/images/unlocked.png" alt="Unlocked" width={80} height={80} className={iconBaseStyle} />;
-  }
-  return <Image src="/images/locked.png" alt="Locked" width={80} height={80} className={iconBaseStyle} />;
+    if (status === 'completed') {
+        Icon = Star;
+        iconColor = "text-yellow-300 fill-yellow-300";
+        bgColor = "bg-blue-500";
+        shadowColor = "[box-shadow:0_8px_0_0_#2563eb,0_13px_0_0_#2563eb41]"; // Blue shadow
+        activeShadow = "active:[box-shadow:0_0px_0_0_#2563eb,0_0px_0_0_#2563eb41]";
+        borderColor = "border-blue-600";
+    } else if (status === 'locked') {
+        Icon = Lock;
+        iconColor = "text-slate-500";
+        bgColor = "bg-slate-300";
+        shadowColor = "[box-shadow:0_8px_0_0_#94a3b8,0_13px_0_0_#94a3b841]"; // Gray shadow
+        activeShadow = "active:[box-shadow:0_0px_0_0_#94a3b8,0_0px_0_0_#94a3b841]";
+        borderColor = "border-slate-400";
+        isDisabled = true;
+    }
+
+  return (
+    <button
+        disabled={isDisabled}
+        className={cn(
+            'w-20 h-20 rounded-full cursor-pointer select-none active:translate-y-2 active:border-b-[0px] transition-all duration-150 border-[1px]',
+            bgColor,
+            shadowColor,
+            activeShadow,
+            borderColor,
+            isDisabled && "grayscale cursor-not-allowed opacity-60"
+        )}
+    >
+        <span className='flex flex-col justify-center items-center h-full'>
+            <Icon className={cn("h-10 w-10", iconColor)} />
+        </span>
+    </button>
+  );
 };
 
 export function ChallengesView() {
@@ -154,7 +190,7 @@ export function ChallengesView() {
   if (!units) {
     return (
       <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
-        <Image src="/images/trophy.png" alt="Trophy" width={80} height={80} className="mb-4"/>
+        <Trophy className="h-16 w-16 text-yellow-400 mb-4" />
         <h3 className="text-xl font-semibold">No Challenges Available</h3>
         <p>Check back later for new content!</p>
       </div>
@@ -164,7 +200,7 @@ export function ChallengesView() {
   if (!currentUnitId || !currentUnit) {
      return (
       <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
-        <Image src="/images/trophy.png" alt="Trophy" width={80} height={80} className="mb-4"/>
+        <Trophy className="h-16 w-16 text-yellow-400 mb-4" />
         <h3 className="text-xl font-semibold">No Challenges Found</h3>
         <p>There are no units available for this level yet.</p>
       </div>
@@ -255,19 +291,23 @@ export function ChallengesView() {
           
           const stageHref = `/challenges/${currentChallengeLevel}/${encodeURIComponent(currentUnitId)}/${stageId}`;
 
+          const NodeWrapper = ({ children }: { children: React.ReactNode }) =>
+            finalStatus === 'locked' ? (
+              <div>{children}</div>
+            ) : (
+              <Link href={stageHref} passHref aria-disabled={finalStatus === 'locked'}>
+                {children}
+              </Link>
+            );
+
           return (
             <div
               key={stageId}
               className={cn('relative flex flex-col items-center pt-5', isOffset ? 'translate-x-20' : '-translate-x-20')}
             >
-              <Link href={stageHref} passHref aria-disabled={finalStatus === 'locked'}>
-                <button
-                  disabled={finalStatus === 'locked'}
-                  className="transition-transform duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <NodeIcon status={finalStatus} isBoss={isBoss} />
-                </button>
-              </Link>
+              <NodeWrapper>
+                <NodeButton status={finalStatus} isBoss={isBoss} />
+              </NodeWrapper>
               <p className="mt-2 w-32 text-center text-sm font-semibold text-foreground">
                 {stageId.replace('stage', 'Stage ')}
               </p>
@@ -276,7 +316,7 @@ export function ChallengesView() {
         })}
         {isUnitComplete(currentChallengeLevel, currentUnitId) && (
             <div className="relative flex flex-col items-center pt-36">
-              <Image src="/images/trophy.png" alt="Trophy" width={80} height={80} />
+              <Trophy className="h-20 w-20 text-yellow-400" />
               <p className="mt-2 font-bold">{currentUnitId.split(':')[0]} Complete</p>
             </div>
         )}
