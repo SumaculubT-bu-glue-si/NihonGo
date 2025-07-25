@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ChallengeProgress, ChallengeData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Star, Lock, Unlock, Gem, Trophy } from 'lucide-react';
+import { BookOpen, Star, Lock, Unlock, Gem, Trophy, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGlobalState } from '@/hooks/use-global-state';
 import Link from 'next/link';
@@ -112,10 +112,10 @@ const NodeButton = ({
 
 
 const Path = ({ isUnlocked, isRight }: { isUnlocked: boolean, isRight: boolean }) => (
-  <div className={cn("absolute -bottom-8 w-20 h-20", isRight ? "right-1/2 translate-x-1/2" : "left-1/2 -translate-x-1/2")}>
+  <div className={cn("absolute -bottom-14 w-48 h-24", isRight ? "-right-24" : "-left-24")}>
     <svg width="100%" height="100%" viewBox="0 0 100 100">
       <path
-        d={isRight ? "M 80 80 Q 50 50, 20 20" : "M 20 80 Q 50 50, 80 20"}
+        d={isRight ? "M 20 20 Q 40 60, 80 80" : "M 80 20 Q 60 60, 20 80"}
         stroke={isUnlocked ? "#fbbf24" : "#4b5563"}
         strokeWidth="5"
         fill="transparent"
@@ -133,13 +133,11 @@ export function ChallengesView() {
   const searchParams = useSearchParams();
   const { appData, setCurrentChallengeLevel } = useGlobalState();
   const { challengeData, challengeProgress, hearts, diamonds, currentChallengeLevel } = appData;
-  const { toast } = useToast();
   
   const [currentUnitId, setCurrentUnitId] = useState('');
   const [isGuidebookOpen, setIsGuidebookOpen] = useState(false);
   const [guidebookContent, setGuidebookContent] = useState<string | null>(null);
   const guidebookAudioPlayer = useRef<HTMLAudioElement | null>(null);
-  const stageAudioPlayer = useRef<HTMLAudioElement | null>(null);
 
   function playGuidebookAudio() {
     if (guidebookAudioPlayer.current) {
@@ -204,6 +202,23 @@ export function ChallengesView() {
   const currentUnit = units?.[currentUnitId];
   const unitNames = units ? Object.keys(units) : [];
 
+  const currentUnitIndex = unitNames.indexOf(currentUnitId);
+
+  const handlePreviousUnit = () => {
+    if (currentUnitIndex > 0) {
+      const prevUnitId = unitNames[currentUnitIndex - 1];
+      router.push(`/grammar-lessons?tab=challenges&level=${currentChallengeLevel}&unit=${encodeURIComponent(prevUnitId)}`);
+    }
+  }
+
+  const handleNextUnit = () => {
+    if (currentUnitIndex < unitNames.length - 1) {
+      const nextUnitId = unitNames[currentUnitIndex + 1];
+       router.push(`/grammar-lessons?tab=challenges&level=${currentChallengeLevel}&unit=${encodeURIComponent(nextUnitId)}`);
+    }
+  }
+  
+  const isNextUnitLocked = currentUnitIndex === unitNames.length - 1 || !isUnitComplete(currentChallengeLevel, currentUnitId);
 
   if (!units) {
     return (
@@ -230,9 +245,12 @@ export function ChallengesView() {
   return (
     <>
      <audio ref={guidebookAudioPlayer} src="/sounds/open.mp3" />
-     <Card className="px-10 mb-20 w-full bg-primary text-primary-foreground">
+     <Card className="px-4 sm:px-10 mb-20 w-full bg-primary text-primary-foreground">
         <CardContent className="p-4 flex items-center justify-between">
-          <div className="flex flex-row items-center gap-2">
+           <Button variant="ghost" size="icon" onClick={handlePreviousUnit} disabled={currentUnitIndex === 0} className="hover:bg-primary/80 disabled:opacity-50">
+             <ChevronLeft className="h-8 w-8" />
+          </Button>
+          <div className="flex flex-col sm:flex-row items-center gap-2 text-center">
             <div>
               <Select value={currentChallengeLevel} onValueChange={(v) => handleLevelChange(v as Level)}>
                   <SelectTrigger className="w-full sm:w-[200px] h-9 text-lg font-bold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
@@ -254,7 +272,7 @@ export function ChallengesView() {
               </Select>
             </div>
             <div>
-              <Select value={currentUnitId} onValueChange={setCurrentUnitId}>
+              <Select value={currentUnitId} onValueChange={(unitId) => router.push(`/grammar-lessons?tab=challenges&level=${currentChallengeLevel}&unit=${encodeURIComponent(unitId)}`)}>
                   <SelectTrigger className="w-full sm:w-[350px] h-9 text-base font-semibold border-none bg-primary hover:bg-primary/90 focus:ring-0 focus:ring-offset-0">
                       <SelectValue placeholder="Select a unit" />
                   </SelectTrigger>
@@ -273,17 +291,17 @@ export function ChallengesView() {
                   </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="flex items-center gap-6">
             <button
-                  onClick={handleOpenGuidebook}
-                  className="flex flex-row gap-2 font-semibold text-primary-foreground hover:text-primary-foreground/80 duration-100"
-                  aria-label="Open Guidebook">
-                  <BookOpen className="h-6 w-6" />
-                  <h1>Guide Book</h1>
+                onClick={handleOpenGuidebook}
+                className="flex flex-row gap-2 font-semibold text-primary-foreground hover:text-primary-foreground/80 duration-100"
+                aria-label="Open Guidebook">
+                <BookOpen className="h-6 w-6" />
+                <h1>Guide Book</h1>
             </button>
           </div>
+          <Button variant="ghost" size="icon" onClick={handleNextUnit} disabled={isNextUnitLocked} className="hover:bg-primary/80 disabled:opacity-50">
+             <ChevronRight className="h-8 w-8" />
+          </Button>
         </CardContent>
       </Card>
 
@@ -358,15 +376,15 @@ export function ChallengesView() {
               A quick overview of the key points for this unit at the {currentChallengeLevel} level.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 max-h-[60vh] overflow-y-auto pr-6 prose prose-sm dark:prose-invert max-w-none prose-h1:text-primary prose-h2:border-b prose-h2:border-border prose-h2:pb-2 prose-ul:list-disc prose-ul:pl-6 prose-strong:text-primary">
-            <div 
-                dangerouslySetInnerHTML={{ __html: guidebookContent ?? '' }}
-            />
-          </div>
+          <div 
+            className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-primary prose-headings:border-b prose-headings:border-border prose-headings:pb-2 prose-ul:list-disc prose-ul:pl-6 prose-strong:text-primary max-h-[60vh] overflow-y-auto pr-6"
+            dangerouslySetInnerHTML={{ __html: guidebookContent ?? '' }}
+          />
         </DialogContent>
       </Dialog>
     </>
   );
 }
+
 
 
