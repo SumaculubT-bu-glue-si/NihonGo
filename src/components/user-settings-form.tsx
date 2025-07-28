@@ -29,14 +29,12 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Separator } from './ui/separator';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 const formSchema = z.object({
   displayName: z.string().min(1, 'Display name is required.'),
   photoURL: z.string().url('Please enter a valid URL.').or(z.literal('')).optional(),
   password: z.string().optional(),
   confirmPassword: z.string().optional(),
-  role: z.enum(['learner', 'admin']).optional(),
 }).refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
@@ -62,7 +60,6 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
       photoURL: '',
       password: '',
       confirmPassword: '',
-      role: 'learner',
     },
   });
   
@@ -75,7 +72,6 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
         photoURL: user.photoURL || '',
         password: '',
         confirmPassword: '',
-        role: user.role || 'learner',
       });
     }
   }, [user, form, isOpen]);
@@ -99,7 +95,6 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
       const updateData: Parameters<typeof updateUser>[0] = {
         displayName: data.displayName,
         photoURL: data.photoURL,
-        role: data.role,
       };
 
       if(data.password) {
@@ -217,40 +212,6 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
                 </FormItem>
               )}
             />
-
-             {user?.role === 'admin' && (
-              <>
-                <Separator />
-                <div>
-                  <h3 className="text-lg font-medium">User Role</h3>
-                </div>
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          className="flex items-center"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="learner" id="r-learner" />
-                            <Label htmlFor="r-learner">Learner</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="admin" id="r-admin" />
-                            <Label htmlFor="r-admin">Admin</Label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
             
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>

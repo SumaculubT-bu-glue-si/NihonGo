@@ -42,7 +42,6 @@ interface AuthContextType {
       displayName?: string;
       photoURL?: string;
       password?: string;
-      role?: 'learner' | 'admin';
     }
   ) => Promise<void>;
 }
@@ -71,32 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             photoURL: firebaseUser.photoURL,
             role: userData.role || 'learner',
           });
-        } else {
-          // If the doc doesn't exist, create it.
-          // This happens on the very first sign-up.
-           const usersRef = collection(db, "users");
-           const adminQuery = query(usersRef, limit(1)); // Check if any user exists
-           const existingUserSnapshot = await getDocs(adminQuery);
-           const role = existingUserSnapshot.empty ? 'admin' : 'learner';
-
-           const newUser: User = {
-                uid: firebaseUser.uid,
-                displayName: firebaseUser.displayName,
-                email: firebaseUser.email,
-                photoURL: firebaseUser.photoURL,
-                role: role
-           };
-
-           try {
-            await setDoc(userDocRef, newUser);
-            setUser(newUser);
-           } catch(e) {
-             console.error("Error creating user document:", e);
-             // Sign out if we can't create the user doc to prevent inconsistent state
-             await firebaseSignOut(auth);
-             setUser(null);
-           }
         }
+        // If doc doesn't exist, it means signUp is in progress,
+        // and it will handle creating the user doc and setting the user state.
       } else {
         setUser(null);
       }
@@ -113,11 +89,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (displayName: string, email: string, pass: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const firebaseUser = userCredential.user;
-    await updateProfile(firebaseUser, { displayName });
     
+    // Set the display name in Firebase Auth profile
+    await updateProfile(firebaseUser, { displayName });
+
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, limit(1));
+    const querySnapshot = await getDocs(q);
+    const role = querySnapshot.empty ? 'admin' : 'learner';
+    
+    const newUser: User = {
+        uid: firebaseUser.uid,
+        displayName: displayName,
+        email: email,
+        photoURL: firebaseUser.photoURL,
+        role: role,
+    };
+    
+    // Create the user document in Firestore
+    await setDoc(doc(db, "users", firebaseUser.uid), newUser);
+    
+    // Manually set the user state in the context, as onAuthStateChanged might not have the Firestore data yet
+    setUser(newUser);
+
     toast({
         title: "Account Created!",
-        description: `Your new account is ready. Welcome!`
+        description: `Welcome! Your new ${role} account is ready.`
     });
   };
 
@@ -131,12 +128,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       displayName?: string;
       photoURL?: string;
       password?: string;
-      role?: 'learner' | 'admin';
     }
   ) => {
      if (!auth.currentUser) throw new Error("Not authenticated");
 
-     const updateData: { displayName?: string; photoURL?: string, role?: string } = {};
+     const updateData: { displayName?: string; photoURL?: string } = {};
 
      if(data.displayName) {
         updateData.displayName = data.displayName;
@@ -151,10 +147,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
      const userDocRef = doc(db, 'users', auth.currentUser.uid);
      
-     if (data.role) {
-         updateData.role = data.role;
-     }
-
      if (Object.keys(updateData).length > 0) {
         await setDoc(userDocRef, updateData, { merge: true });
      }
