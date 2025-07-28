@@ -134,6 +134,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      const userDocRef = doc(db, 'users', firebaseUser.uid);
      const updateDataForAuth: { displayName?: string; photoURL?: string } = {};
      const updateDataForFirestore: { displayName?: string; photoURL?: string } = {};
+     
+     let finalPhotoURL = user?.photoURL;
 
      // Handle photo upload if a new photo data is provided
      if (data.photoURL && data.photoURL.startsWith('data:image')) {
@@ -142,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const downloadURL = await getDownloadURL(uploadResult.ref);
         updateDataForAuth.photoURL = downloadURL;
         updateDataForFirestore.photoURL = downloadURL;
+        finalPhotoURL = downloadURL;
      }
 
      if(data.displayName) {
@@ -160,8 +163,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      if (data.password) {
         await firebaseUpdatePassword(firebaseUser, data.password);
      }
-
-     setUser(prev => prev ? ({...prev, ...updateDataForAuth, displayName: data.displayName ?? prev.displayName}) : null);
+     
+     // Correctly update the local state to reflect changes instantly
+     setUser(prev => prev ? ({
+        ...prev, 
+        displayName: data.displayName ?? prev.displayName,
+        photoURL: finalPhotoURL,
+    }) : null);
   };
   
 
