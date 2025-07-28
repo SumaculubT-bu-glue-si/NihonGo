@@ -72,6 +72,12 @@ function AuthForm({
 
   const adminUser = allUsers.find(u => u.role === 'admin');
 
+  useEffect(() => {
+    if (role === 'admin' && adminUser) {
+      setEmail(adminUser.email || '');
+    }
+  }, [role, adminUser]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -91,6 +97,7 @@ function AuthForm({
   
   const buttonText = mode === 'login' ? 'Log in' : 'Sign Up';
   const loadingText = mode === 'login' ? 'Logging In...' : 'Signing Up...';
+  const isPasswordRequired = role === 'learner' || (role === 'admin' && mode === 'signup');
 
   return (
     <>
@@ -113,10 +120,11 @@ function AuthForm({
         <Input
           id={`${role}-email`}
           type="email"
-          placeholder={mode === 'login' ? 'your@email.com' : 'your@email.com'}
+          placeholder={role === 'admin' ? '' : 'your@email.com'}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          readOnly={role === 'admin'}
         />
       </div>
       <div className="space-y-2">
@@ -133,8 +141,8 @@ function AuthForm({
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          required
+          placeholder={isPasswordRequired ? "••••••••" : "No password needed"}
+          required={isPasswordRequired}
         />
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
@@ -191,7 +199,7 @@ export default function LoginPage() {
   const handleSignIn = async (email: string, pass: string, role: 'admin' | 'learner') => {
     const foundUser = allUsers.find(u => u.email === email && u.role === role);
 
-    if (foundUser && foundUser.password === pass) {
+    if (foundUser) {
       await signInAs(foundUser.uid);
     } else {
       throw new Error('Incorrect email or password');
@@ -262,7 +270,7 @@ export default function LoginPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle>Login as Admin</CardTitle>
-                        <CardDescription>Enter admin credentials to continue.</CardDescription>
+                        <CardDescription>Press Log In to continue.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <AuthForm mode="login" role="admin" onSignIn={handleSignIn} onSignUp={handleSignUp} />
