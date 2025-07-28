@@ -112,14 +112,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role: role,
       photoURL: '',
     });
-
-    // Sign out the new user immediately so they have to log in.
-    // This simplifies state management and ensures they go through the proper login flow.
-    await firebaseSignOut(auth);
     
+    // The user is now signed up and logged in. 
+    // The onAuthStateChanged listener will handle setting the user state and navigation.
     toast({
         title: "Account Created!",
-        description: `Your ${role} account is ready. Please log in.`
+        description: `Your new ${role} account is ready.`
     });
   };
 
