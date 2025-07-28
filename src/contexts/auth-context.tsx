@@ -19,7 +19,7 @@ import {
   type User as FirebaseUser,
   updatePassword as firebaseUpdatePassword,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, getFirestore, collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { doc, setDoc, getDoc, getFirestore, collection, getDocs, query, limit } from 'firebase/firestore';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const q = query(usersRef, limit(1));
     const querySnapshot = await getDocs(q);
     
-    const isFirstUser = querySnapshot.docs.length === 0 || (querySnapshot.docs.length === 1 && querySnapshot.docs[0].id === firebaseUser.uid);
+    const isFirstUser = querySnapshot.docs.length === 0;
     const role = isFirstUser ? 'admin' : 'learner';
     
     const newUser: User = {
@@ -139,13 +139,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatesForFirestore.displayName = data.displayName;
      }
 
-     if (data.photoURL) {
+     if (data.photoURL !== undefined) {
         updatesForAuth.photoURL = data.photoURL;
         updatesForFirestore.photoURL = data.photoURL;
      }
 
-     if(data.password) {
-        await firebaseUpdatePassword(firebaseUser, data.password);
+     try {
+        if(data.password) {
+            await firebaseUpdatePassword(firebaseUser, data.password);
+        }
+     } catch(error: any) {
+        if (error.code === 'auth/requires-recent-login') {
+            toast({
+                title: "Login Required",
+                description: "To change your password, please sign out and sign back in first.",
+                variant: 'destructive',
+            });
+        } else {
+            toast({
+                title: "Error",
+                description: "Failed to update password. Please try again.",
+                variant: 'destructive',
+            });
+        }
+        // Stop execution if password update fails
+        throw error;
      }
      
      if(Object.keys(updatesForAuth).length > 0) {
