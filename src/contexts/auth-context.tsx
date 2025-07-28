@@ -42,6 +42,7 @@ interface AuthContextType {
       displayName?: string;
       photoURL?: string;
       password?: string;
+      role?: 'learner' | 'admin';
     }
   ) => Promise<void>;
 }
@@ -71,11 +72,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: userData.role || 'learner',
           });
         } else {
-          // This case might happen if user doc creation failed
-          // or if you have users in Auth but not Firestore.
-          // For now, we sign them out to maintain consistency.
-          await firebaseSignOut(auth);
-          setUser(null);
+          // If the doc doesn't exist, create it.
+          // This happens on the very first sign-up.
+           const usersRef = collection(db, "users");
+           const adminQuery = query(usersRef, limit(1)); // Check if any user exists
+           const existingUserSnapshot = await getDocs(adminQuery);
+           const role = existingUserSnapshot.empty ? 'admin' : 'learner';
+
+           const newUser: User = {
+                uid: firebaseUser.uid,
+                displayName: firebaseUser.displayName,
+                email: firebaseUser.email,
+                photoURL: firebaseUser.photoURL,
+                role: role
+           };
+
+           try {
+            await setDoc(userDocRef, newUser);
+            setUser(newUser);
+           } catch(e) {
+             console.error("Error creating user document:", e);
+             // Sign out if we can't create the user doc to prevent inconsistent state
+             await firebaseSignOut(auth);
+             setUser(null);
+           }
         }
       } else {
         setUser(null);
@@ -91,33 +111,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (displayName: string, email: string, pass: string) => {
-    const db = getFirestore();
-    // Check if an admin already exists. The first user becomes the admin.
-    const usersRef = collection(db, "users");
-    const adminQuery = query(usersRef, where("role", "==", "admin"), limit(1));
-    const adminSnapshot = await getDocs(adminQuery);
-    const isAdminExisting = !adminSnapshot.empty;
-    const role = isAdminExisting ? 'learner' : 'admin';
-
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const firebaseUser = userCredential.user;
-
     await updateProfile(firebaseUser, { displayName });
     
-    // Create user document in Firestore
-    await setDoc(doc(db, 'users', firebaseUser.uid), {
-      uid: firebaseUser.uid,
-      displayName,
-      email,
-      role: role,
-      photoURL: '',
-    });
-    
-    // The user is now signed up and logged in. 
-    // The onAuthStateChanged listener will handle setting the user state and navigation.
     toast({
         title: "Account Created!",
-        description: `Your new ${role} account is ready.`
+        description: `Your new account is ready. Welcome!`
     });
   };
 
@@ -131,16 +131,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       displayName?: string;
       photoURL?: string;
       password?: string;
+      role?: 'learner' | 'admin';
     }
   ) => {
      if (!auth.currentUser) throw new Error("Not authenticated");
 
+     const updateData: { displayName?: string; photoURL?: string, role?: string } = {};
+
+     if(data.displayName) {
+        updateData.displayName = data.displayName;
+     }
+     if(data.photoURL) {
+        updateData.photoURL = data.photoURL;
+     }
+
      if(data.displayName || data.photoURL) {
-        await updateProfile(auth.currentUser, { displayName: data.displayName, photoURL: data.photoURL });
+        await updateProfile(auth.currentUser, updateData);
      }
     
      const userDocRef = doc(db, 'users', auth.currentUser.uid);
-     await setDoc(userDocRef, { displayName: data.displayName, photoURL: data.photoURL }, { merge: true });
+     
+     if (data.role) {
+         updateData.role = data.role;
+     }
+
+     if (Object.keys(updateData).length > 0) {
+        await setDoc(userDocRef, updateData, { merge: true });
+     }
 
      if (data.password) {
         await firebaseUpdatePassword(auth.currentUser, data.password);

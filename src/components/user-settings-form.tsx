@@ -4,7 +4,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth, type User } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect, useRef } from 'react';
 
@@ -29,11 +29,17 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Separator } from './ui/separator';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
-// This schema can be simpler now as we are not updating passwords here.
 const formSchema = z.object({
   displayName: z.string().min(1, 'Display name is required.'),
   photoURL: z.string().url('Please enter a valid URL.').or(z.literal('')).optional(),
+  password: z.string().optional(),
+  confirmPassword: z.string().optional(),
+  role: z.enum(['learner', 'admin']).optional(),
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
 });
 
 type UserSettingsFormData = z.infer<typeof formSchema>;
@@ -54,6 +60,9 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
     defaultValues: {
       displayName: '',
       photoURL: '',
+      password: '',
+      confirmPassword: '',
+      role: 'learner',
     },
   });
   
@@ -64,6 +73,9 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
       form.reset({
         displayName: user.displayName || '',
         photoURL: user.photoURL || '',
+        password: '',
+        confirmPassword: '',
+        role: user.role || 'learner',
       });
     }
   }, [user, form, isOpen]);
@@ -84,10 +96,17 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
 
     setIsSaving(true);
     try {
-      await updateUser({
+      const updateData: Parameters<typeof updateUser>[0] = {
         displayName: data.displayName,
         photoURL: data.photoURL,
-      });
+        role: data.role,
+      };
+
+      if(data.password) {
+        updateData.password = data.password;
+      }
+
+      await updateUser(updateData);
 
       toast({
         title: 'Settings Saved',
@@ -111,7 +130,7 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
         <DialogHeader>
           <DialogTitle>Profile Settings</DialogTitle>
           <DialogDescription>
-            Update your display name and profile picture.
+            Update your profile information and password.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -163,6 +182,75 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
                     </FormItem>
                 )}
             />
+            
+            <Separator />
+
+             <div>
+                <h3 className="text-lg font-medium">Change Password</h3>
+                <p className="text-sm text-muted-foreground">
+                    Leave fields blank to keep your current password.
+                </p>
+            </div>
+             <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm New Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+             {user?.role === 'admin' && (
+              <>
+                <Separator />
+                <div>
+                  <h3 className="text-lg font-medium">User Role</h3>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          className="flex items-center"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="learner" id="r-learner" />
+                            <Label htmlFor="r-learner">Learner</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="admin" id="r-admin" />
+                            <Label htmlFor="r-admin">Admin</Label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
             
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
