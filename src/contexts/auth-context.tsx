@@ -20,9 +20,8 @@ import {
   updatePassword as firebaseUpdatePassword,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, getFirestore, collection, getDocs, query, where, limit } from 'firebase/firestore';
-import { auth, storage } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 
 export interface User {
   uid: string;
@@ -41,7 +40,7 @@ interface AuthContextType {
   updateUser: (
     data: {
       displayName?: string;
-      photoURL?: string; // This can now be a data URI for new uploads
+      photoURL?: string;
       password?: string;
     }
   ) => Promise<void>;
@@ -95,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const q = query(usersRef, limit(1));
     const querySnapshot = await getDocs(q);
     
-    const isFirstUser = querySnapshot.docs.length <= 1;
+    const isFirstUser = querySnapshot.docs.length === 0 || (querySnapshot.docs.length === 1 && querySnapshot.docs[0].id === firebaseUser.uid);
     const role = isFirstUser ? 'admin' : 'learner';
     
     const newUser: User = {
@@ -123,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUser = async (
     data: {
       displayName?: string;
-      photoURL?: string; // Can be a data URI or a regular URL
+      photoURL?: string;
       password?: string;
     }
   ) => {
@@ -140,12 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatesForFirestore.displayName = data.displayName;
      }
 
-     if (data.photoURL && data.photoURL.startsWith('data:image')) {
-        const storageRef = ref(storage, `profile-pictures/${firebaseUser.uid}`);
-        const uploadResult = await uploadString(storageRef, data.photoURL, 'data_url');
-        const downloadURL = await getDownloadURL(uploadResult.ref);
-        updatesForAuth.photoURL = downloadURL;
-        updatesForFirestore.photoURL = downloadURL;
+     if (data.photoURL) {
+        updatesForAuth.photoURL = data.photoURL;
+        updatesForFirestore.photoURL = data.photoURL;
      }
 
      if(data.password) {
