@@ -17,6 +17,7 @@ import {
   signOut as firebaseSignOut,
   updateProfile,
   type User as FirebaseUser,
+  updatePassword as firebaseUpdatePassword,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, getFirestore, collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { auth } from '@/lib/firebase';
@@ -96,13 +97,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const adminQuery = query(usersRef, where("role", "==", "admin"), limit(1));
     const adminSnapshot = await getDocs(adminQuery);
     const isAdminExisting = !adminSnapshot.empty;
+    const role = isAdminExisting ? 'learner' : 'admin';
 
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const firebaseUser = userCredential.user;
 
     await updateProfile(firebaseUser, { displayName });
-
-    const role = isAdminExisting ? 'learner' : 'admin';
     
     // Create user document in Firestore
     await setDoc(doc(db, 'users', firebaseUser.uid), {
@@ -113,12 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       photoURL: '',
     });
 
+    // Sign out the new user immediately so they have to log in.
+    // This simplifies state management and ensures they go through the proper login flow.
+    await firebaseSignOut(auth);
+    
     toast({
         title: "Account Created!",
         description: `Your ${role} account is ready. Please log in.`
     });
-    // Sign out the new user immediately so they have to log in
-    await firebaseSignOut(auth);
   };
 
   const signOut = async () => {
@@ -142,9 +144,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      const userDocRef = doc(db, 'users', auth.currentUser.uid);
      await setDoc(userDocRef, { displayName: data.displayName, photoURL: data.photoURL }, { merge: true });
 
-     // Password updates are handled separately via Firebase's built-in methods
-     // For this app, we're not implementing a "change password" flow yet.
-     // If we were, we'd use `updatePassword(auth.currentUser, data.password)`.
+     if (data.password) {
+        await firebaseUpdatePassword(auth.currentUser, data.password);
+     }
       setUser(prev => prev ? ({...prev, ...data}) : null);
   };
   
