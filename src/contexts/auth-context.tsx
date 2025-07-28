@@ -30,7 +30,7 @@ interface AuthContextType {
   user: User | null;
   allUsers: User[];
   loading: boolean;
-  signInAs: (userId: string) => Promise<void>;
+  signInAs: (email: string, pass: string, role: 'admin' | 'learner') => Promise<void>;
   signOut: () => Promise<void>;
   updateUser: (
     userId: string,
@@ -86,14 +86,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [allUsers, loading]);
 
   const signInAs = useCallback(
-    async (userId: string) => {
+    async (email: string, pass: string, role: 'admin' | 'learner') => {
       setLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API call
-      const selectedUser = allUsers.find((u) => u.uid === userId);
-      if (selectedUser) {
-        setUser(selectedUser);
-        localStorage.setItem(LOGGED_IN_USER_ID_KEY, selectedUser.uid);
+      const foundUser = allUsers.find((u) => u.email === email && u.role === role);
+
+      if (!foundUser) {
+        setLoading(false);
+        throw new Error('Incorrect email or password');
       }
+
+      // Special logic for admin
+      if (foundUser.role === 'admin') {
+        // If admin has no password set, log in directly.
+        // Otherwise, check the password.
+        if (!foundUser.password || foundUser.password === '') {
+          // No password needed
+        } else if (foundUser.password !== pass) {
+          setLoading(false);
+          throw new Error('Incorrect email or password');
+        }
+      } else {
+        // Standard password check for learners
+        if (foundUser.password !== pass) {
+            setLoading(false);
+            throw new Error('Incorrect email or password');
+        }
+      }
+
+      setUser(foundUser);
+      localStorage.setItem(LOGGED_IN_USER_ID_KEY, foundUser.uid);
       setLoading(false);
     },
     [allUsers]
@@ -114,12 +136,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { displayName?: string; photoURL?: string; email?: string, password?: string; }
     ) => {
       setAllUsers((currentUsers) =>
-        currentUsers.map((u) => (u.uid === userId ? { ...u, ...data } : u))
+        currentUsers.map((u) => {
+            if (u.uid === userId) {
+                // Create a new user object with the updated data.
+                const updatedUser = { ...u, ...data };
+                // If the password field is an empty string in the update data, it means we don't want to change it.
+                // However, our logic now uses an empty string to mean "no password set".
+                // So, we only update the password if a non-empty password is provided.
+                if (data.password === '') {
+                    delete updatedUser.password;
+                }
+                return updatedUser;
+            }
+            return u;
+        })
       );
       if (user?.uid === userId) {
-        setUser((currentUser) =>
-          currentUser ? { ...currentUser, ...data } : null
-        );
+         setUser((currentUser) => {
+            if (!currentUser) return null;
+            const updatedUser = { ...currentUser, ...data };
+             if (data.password === '') {
+                delete updatedUser.password;
+             }
+            return updatedUser;
+        });
       }
     },
     [user]

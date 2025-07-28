@@ -8,7 +8,7 @@ export const allUsers: User[] = [
     email: 'kenji.tanaka@example.com',
     photoURL: 'https://placehold.co/100x100/E2D0B8/443322?text=KT',
     role: 'admin',
-    password: '123'
+    password: ''
   },
   {
     uid: 'learner-001',

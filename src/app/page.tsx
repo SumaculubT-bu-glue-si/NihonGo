@@ -141,7 +141,7 @@ function AuthForm({
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder={isPasswordRequired ? "••••••••" : "No password needed"}
+          placeholder="********"
           required={isPasswordRequired}
         />
       </div>
@@ -197,13 +197,7 @@ export default function LoginPage() {
   }, [user, router]);
 
   const handleSignIn = async (email: string, pass: string, role: 'admin' | 'learner') => {
-    const foundUser = allUsers.find(u => u.email === email && u.role === role);
-
-    if (foundUser) {
-      await signInAs(foundUser.uid);
-    } else {
-      throw new Error('Incorrect email or password');
-    }
+    await signInAs(email, pass, role);
   };
 
   const handleSignUp = async (displayName: string, email: string, pass: string) => {
