@@ -51,7 +51,6 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const form = useForm<UserSettingsFormData>({
     resolver: zodResolver(formSchema),
@@ -75,17 +74,6 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
       });
     }
   }, [user, form, isOpen]);
-  
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        form.setValue('photoURL', reader.result as string, { shouldDirty: true });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const onSubmit = async (data: UserSettingsFormData) => {
     if (!user) return;
@@ -135,20 +123,6 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
                     <AvatarImage src={photoUrlValue || ''} alt={form.getValues('displayName') || ''} data-ai-hint="person" />
                     <AvatarFallback>{form.getValues('displayName')?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    Upload Photo
-                </Button>
-                <Input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                />
             </div>
 
             <FormField
@@ -168,12 +142,12 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
                 control={form.control}
                 name="photoURL"
                 render={({ field }) => (
-                    <FormItem className="hidden">
-                    <FormLabel>Photo URL</FormLabel>
-                    <FormControl>
-                        <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
+                    <FormItem>
+                        <FormLabel>Photo URL</FormLabel>
+                        <FormControl>
+                            <Input placeholder="https://your-image-url.com/photo.png" {...field} />
+                        </FormControl>
+                        <FormMessage />
                     </FormItem>
                 )}
             />
