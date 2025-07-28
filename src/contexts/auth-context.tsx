@@ -90,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (displayName: string, email: string, pass: string) => {
+    const db = getFirestore();
     // Check if an admin already exists. The first user becomes the admin.
     const usersRef = collection(db, "users");
     const adminQuery = query(usersRef, where("role", "==", "admin"), limit(1));
