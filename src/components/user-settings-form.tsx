@@ -30,20 +30,10 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { Separator } from './ui/separator';
 
+// This schema can be simpler now as we are not updating passwords here.
 const formSchema = z.object({
   displayName: z.string().min(1, 'Display name is required.'),
-  email: z.string().email('Please enter a valid email.'),
   photoURL: z.string().url('Please enter a valid URL.').or(z.literal('')).optional(),
-  password: z.string().min(6, 'Password must be at least 6 characters.').optional().or(z.literal('')),
-  confirmPassword: z.string().optional(),
-}).refine(data => {
-    if (data.password && data.password.length > 0) {
-        return data.password === data.confirmPassword;
-    }
-    return true;
-}, {
-    message: "Passwords do not match.",
-    path: ["confirmPassword"],
 });
 
 type UserSettingsFormData = z.infer<typeof formSchema>;
@@ -63,10 +53,7 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
     resolver: zodResolver(formSchema),
     defaultValues: {
       displayName: '',
-      email: '',
       photoURL: '',
-      password: '',
-      confirmPassword: '',
     },
   });
   
@@ -76,10 +63,7 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
     if (user && isOpen) {
       form.reset({
         displayName: user.displayName || '',
-        email: user.email || '',
         photoURL: user.photoURL || '',
-        password: '',
-        confirmPassword: '',
       });
     }
   }, [user, form, isOpen]);
@@ -100,22 +84,10 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
 
     setIsSaving(true);
     try {
-      const updateData: {
-        displayName: string;
-        email: string;
-        photoURL?: string;
-        password?: string;
-      } = {
+      await updateUser({
         displayName: data.displayName,
-        email: data.email,
         photoURL: data.photoURL,
-      };
-
-      if (data.password) {
-        updateData.password = data.password;
-      }
-
-      await updateUser(user.uid, updateData);
+      });
 
       toast({
         title: 'Settings Saved',
@@ -135,11 +107,11 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Profile Settings</DialogTitle>
           <DialogDescription>
-            Update your profile information and password.
+            Update your display name and profile picture.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -179,19 +151,6 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
               )}
             />
              <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
                 control={form.control}
                 name="photoURL"
                 render={({ field }) => (
@@ -204,42 +163,7 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
                     </FormItem>
                 )}
             />
-
-            <Separator className="my-6" />
-
-            <div>
-                <h3 className="text-md font-semibold mb-2">Change Password</h3>
-                <p className="text-sm text-muted-foreground mb-4">Leave fields blank to keep your current password.</p>
-                <div className="space-y-4">
-                     <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>New Password</FormLabel>
-                            <FormControl>
-                                <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Confirm New Password</FormLabel>
-                            <FormControl>
-                                <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-            </div>
-
+            
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
                 Cancel

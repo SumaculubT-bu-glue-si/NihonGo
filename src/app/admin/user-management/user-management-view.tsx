@@ -133,10 +133,12 @@ export function UserManagementView({
         });
       } else {
         // Add new user
-        await onAddUser({ ...data, role: 'learner' });
+        // Note: Real user creation with password is now handled by signUp flow.
+        // This form is now for editing or inviting (which needs more implementation).
+        // For now, we'll keep the toast but the action might be limited.
         toast({
-          title: 'User Added',
-          description: 'A new learner has been successfully added.',
+          title: 'Action Not Implemented',
+          description: 'User creation is handled via the main sign-up page.',
         });
       }
       setIsFormOpen(false);

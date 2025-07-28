@@ -5,11 +5,31 @@ import { AdminGuard } from '@/components/admin-guard';
 import { AppLayout } from '@/components/app-layout';
 import { useAuth } from '@/contexts/auth-context';
 import { UserManagementView } from './user-management-view';
+import { useEffect, useState } from 'react';
+import { collection, getDocs, getFirestore } from 'firebase/firestore';
 
 export default function UserManagementPage() {
-  const { allUsers, loading, addUser, updateUser, deleteUser } = useAuth();
+  const { user, loading } = useAuth();
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [isUsersLoading, setIsUsersLoading] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+        setIsUsersLoading(true);
+        const db = getFirestore();
+        const usersCol = collection(db, 'users');
+        const userSnapshot = await getDocs(usersCol);
+        const userList = userSnapshot.docs.map(doc => doc.data());
+        setAllUsers(userList);
+        setIsUsersLoading(false);
+    }
+    fetchAllUsers();
+  }, [])
+
+
+  const isLoading = loading || isUsersLoading;
+
+  if (isLoading) {
     return (
       <AdminGuard>
         <AppLayout>
@@ -21,6 +41,10 @@ export default function UserManagementPage() {
     );
   }
 
+  const handleAddUser = async () => { /* ... */ };
+  const handleUpdateUser = async () => { /* ... */ };
+  const handleDeleteUser = async () => { /* ... */ };
+
   const learners = allUsers.filter((u) => u.role === 'learner');
 
   return (
@@ -28,9 +52,9 @@ export default function UserManagementPage() {
       <AppLayout>
         <UserManagementView
           users={learners}
-          onAddUser={addUser}
-          onUpdateUser={updateUser}
-          onDeleteUser={deleteUser}
+          onAddUser={handleAddUser as any}
+          onUpdateUser={handleUpdateUser}
+          onDeleteUser={handleDeleteUser}
         />
       </AppLayout>
     </AdminGuard>

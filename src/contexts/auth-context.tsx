@@ -10,191 +10,151 @@ import {
   useCallback,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { allUsers as initialAllUsers } from '@/lib/user-data';
+import {
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  updateProfile,
+  type User as FirebaseUser,
+} from 'firebase/auth';
+import { doc, setDoc, getDoc, getFirestore, collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { auth } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
-const USER_DATA_STORAGE_KEY = 'nihongo-all-users-data';
-const LOGGED_IN_USER_ID_KEY = 'loggedInUserId';
-
-// Mock User type
 export interface User {
   uid: string;
   displayName: string | null;
   email: string | null;
   photoURL: string | null;
   role: 'learner' | 'admin';
-  password?: string;
 }
 
-// Mock Auth context type
 interface AuthContextType {
   user: User | null;
-  allUsers: User[];
   loading: boolean;
-  signInAs: (email: string, pass: string, role: 'admin' | 'learner') => Promise<void>;
+  signIn: (email: string, pass: string) => Promise<void>;
+  signUp: (displayName: string, email: string, pass: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateUser: (
-    userId: string,
     data: {
       displayName?: string;
       photoURL?: string;
-      email?: string;
       password?: string;
     }
   ) => Promise<void>;
-  addUser: (
-    data: Omit<User, 'uid' | 'role'> & { role?: 'learner' | 'admin' }
-  ) => Promise<User>;
-  deleteUser: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [allUsers, setAllUsers] = useState<User[]>(initialAllUsers);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { toast } = useToast();
+  const db = getFirestore();
 
   useEffect(() => {
-    // Load all user data from localStorage
-    try {
-      const storedUsers = localStorage.getItem(USER_DATA_STORAGE_KEY);
-      const users = storedUsers ? JSON.parse(storedUsers) : initialAllUsers;
-      setAllUsers(users);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
 
-      const loggedInUserId = localStorage.getItem(LOGGED_IN_USER_ID_KEY);
-      if (loggedInUserId) {
-        const foundUser = users.find((u: User) => u.uid === loggedInUserId);
-        setUser(foundUser || null);
-      }
-    } catch (e) {
-      // If parsing fails, start fresh
-      setAllUsers(initialAllUsers);
-    }
-    setLoading(false);
-  }, []);
-
-  // Persist all user data to localStorage whenever it changes
-  useEffect(() => {
-    if (!loading) {
-      try {
-        localStorage.setItem(USER_DATA_STORAGE_KEY, JSON.stringify(allUsers));
-      } catch (error) {
-        console.error("Failed to save user data to localStorage. Quota may be exceeded.", error);
-      }
-    }
-  }, [allUsers, loading]);
-
-  const signInAs = useCallback(
-    async (email: string, pass: string, role: 'admin' | 'learner') => {
-      setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API call
-      const foundUser = allUsers.find((u) => u.email === email && u.role === role);
-
-      if (!foundUser) {
-        setLoading(false);
-        throw new Error('Incorrect email or password');
-      }
-
-      // Special logic for admin
-      if (foundUser.role === 'admin') {
-        // If admin has no password set, log in directly.
-        // Otherwise, check the password.
-        if (!foundUser.password || foundUser.password === '') {
-          // No password needed
-        } else if (foundUser.password !== pass) {
-          setLoading(false);
-          throw new Error('Incorrect email or password');
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUser({
+            uid: firebaseUser.uid,
+            displayName: firebaseUser.displayName,
+            email: firebaseUser.email,
+            photoURL: firebaseUser.photoURL,
+            role: userData.role || 'learner',
+          });
+        } else {
+          // This case might happen if user doc creation failed
+          // or if you have users in Auth but not Firestore.
+          // For now, we sign them out to maintain consistency.
+          await firebaseSignOut(auth);
+          setUser(null);
         }
       } else {
-        // Standard password check for learners
-        if (foundUser.password !== pass) {
-            setLoading(false);
-            throw new Error('Incorrect email or password');
-        }
+        setUser(null);
       }
-
-      setUser(foundUser);
-      localStorage.setItem(LOGGED_IN_USER_ID_KEY, foundUser.uid);
       setLoading(false);
-    },
-    [allUsers]
-  );
+    });
 
-  const signOut = useCallback(async () => {
-    setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setUser(null);
-    localStorage.removeItem(LOGGED_IN_USER_ID_KEY);
-    setLoading(false);
+    return () => unsubscribe();
+  }, [db]);
+
+  const signIn = async (email: string, pass: string) => {
+    await signInWithEmailAndPassword(auth, email, pass);
+  };
+
+  const signUp = async (displayName: string, email: string, pass: string) => {
+    // Check if an admin already exists. The first user becomes the admin.
+    const usersRef = collection(db, "users");
+    const adminQuery = query(usersRef, where("role", "==", "admin"), limit(1));
+    const adminSnapshot = await getDocs(adminQuery);
+    const isAdminExisting = !adminSnapshot.empty;
+
+    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+    const firebaseUser = userCredential.user;
+
+    await updateProfile(firebaseUser, { displayName });
+
+    const role = isAdminExisting ? 'learner' : 'admin';
+    
+    // Create user document in Firestore
+    await setDoc(doc(db, 'users', firebaseUser.uid), {
+      uid: firebaseUser.uid,
+      displayName,
+      email,
+      role: role,
+      photoURL: '',
+    });
+
+    toast({
+        title: "Account Created!",
+        description: `Your ${role} account is ready. Please log in.`
+    });
+    // Sign out the new user immediately so they have to log in
+    await firebaseSignOut(auth);
+  };
+
+  const signOut = async () => {
+    await firebaseSignOut(auth);
     router.push('/');
-  }, [router]);
+  };
 
-  const updateUser = useCallback(
-    async (
-      userId: string,
-      data: { displayName?: string; photoURL?: string; email?: string, password?: string; }
-    ) => {
-      setAllUsers((currentUsers) =>
-        currentUsers.map((u) => {
-            if (u.uid === userId) {
-                // Create a new user object with the updated data.
-                const updatedUser = { ...u, ...data };
-                // If the password field is an empty string in the update data, it means we don't want to change it.
-                // However, our logic now uses an empty string to mean "no password set".
-                // So, we only update the password if a non-empty password is provided.
-                if (data.password === '') {
-                    delete updatedUser.password;
-                }
-                return updatedUser;
-            }
-            return u;
-        })
-      );
-      if (user?.uid === userId) {
-         setUser((currentUser) => {
-            if (!currentUser) return null;
-            const updatedUser = { ...currentUser, ...data };
-             if (data.password === '') {
-                delete updatedUser.password;
-             }
-            return updatedUser;
-        });
-      }
-    },
-    [user]
-  );
+  const updateUser = async (
+    data: {
+      displayName?: string;
+      photoURL?: string;
+      password?: string;
+    }
+  ) => {
+     if (!auth.currentUser) throw new Error("Not authenticated");
 
-  const addUser = useCallback(
-    async (
-      data: Omit<User, 'uid' | 'role'> & { role?: 'learner' | 'admin' }
-    ): Promise<User> => {
-      const newUser: User = {
-        uid: `user-${Date.now()}`,
-        role: data.role || 'learner',
-        ...data,
-      };
-      setAllUsers((currentUsers) => [...currentUsers, newUser]);
-      return newUser;
-    },
-    []
-  );
+     if(data.displayName || data.photoURL) {
+        await updateProfile(auth.currentUser, { displayName: data.displayName, photoURL: data.photoURL });
+     }
+    
+     const userDocRef = doc(db, 'users', auth.currentUser.uid);
+     await setDoc(userDocRef, { displayName: data.displayName, photoURL: data.photoURL }, { merge: true });
 
-  const deleteUser = useCallback(async (userId: string) => {
-    setAllUsers((currentUsers) =>
-      currentUsers.filter((u) => u.uid !== userId)
-    );
-  }, []);
+     // Password updates are handled separately via Firebase's built-in methods
+     // For this app, we're not implementing a "change password" flow yet.
+     // If we were, we'd use `updatePassword(auth.currentUser, data.password)`.
+      setUser(prev => prev ? ({...prev, ...data}) : null);
+  };
+  
 
   const value = {
     user,
-    allUsers,
     loading,
-    signInAs,
+    signIn,
     signOut,
+    signUp,
     updateUser,
-    addUser,
-    deleteUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

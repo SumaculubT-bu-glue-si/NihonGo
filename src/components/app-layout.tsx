@@ -74,7 +74,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start">
                                 <DropdownMenuItem asChild>
-                                    <Link href="/admin">Learning Status Management</Link>
+                                    <Link href="/admin">Learning Status</Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
                                     <Link href="/admin/usage-analysis">Usage Analysis</Link>

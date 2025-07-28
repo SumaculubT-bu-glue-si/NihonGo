@@ -12,20 +12,31 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 
 function ForgotPasswordForm({ onOpenChange }: { onOpenChange: (open: boolean) => void }) {
   const [email, setEmail] = useState('');
   const { toast } = useToast();
+  const auth = getAuth();
 
-  const handleForgotPassword = (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you would call a backend service here.
-    // For this mock, we just show a confirmation.
-    toast({
-      title: "Password Reset Sent",
-      description: `If an account exists for ${email}, a password reset link has been sent.`,
-    });
-    onOpenChange(false);
+    if (!email) return;
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: "Password Reset Sent",
+        description: `A password reset link has been sent to ${email}.`,
+      });
+      onOpenChange(false);
+    } catch (error: any) {
+       toast({
+        title: "Error",
+        description: "Failed to send password reset email. Please check the address.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -51,18 +62,15 @@ function ForgotPasswordForm({ onOpenChange }: { onOpenChange: (open: boolean) =>
 
 function AuthForm({
   mode,
-  role,
   onSignIn,
   onSignUp,
   onSwitchMode,
 }: {
   mode: 'login' | 'signup';
-  role: 'admin' | 'learner';
-  onSignIn: (email: string, pass: string, role: 'admin' | 'learner') => Promise<void>;
+  onSignIn: (email: string, pass: string) => Promise<void>;
   onSignUp: (displayName: string, email: string, pass: string) => Promise<void>;
   onSwitchMode?: () => void;
 }) {
-  const { allUsers } = useAuth();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -70,26 +78,29 @@ function AuthForm({
   const [isLoading, setIsLoading] = useState(false);
   const [isForgotPassOpen, setIsForgotPassOpen] = useState(false);
 
-  const adminUser = allUsers.find(u => u.role === 'admin');
-
-  useEffect(() => {
-    if (role === 'admin' && adminUser) {
-      setEmail(adminUser.email || '');
-    }
-  }, [role, adminUser]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
       if (mode === 'login') {
-        await onSignIn(email, password, role);
+        await onSignIn(email, password);
       } else {
         await onSignUp(displayName, email, password);
       }
     } catch (err: any) {
-      setError(err.message);
+        switch (err.code) {
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+                setError('Invalid email or password.');
+                break;
+            case 'auth/email-already-in-use':
+                setError('An account with this email already exists.');
+                break;
+            default:
+                setError('An unexpected error occurred. Please try again.');
+                break;
+        }
     } finally {
       setIsLoading(false);
     }
@@ -97,16 +108,15 @@ function AuthForm({
   
   const buttonText = mode === 'login' ? 'Log in' : 'Sign Up';
   const loadingText = mode === 'login' ? 'Logging In...' : 'Signing Up...';
-  const isPasswordRequired = role === 'learner' || (role === 'admin' && mode === 'signup');
 
   return (
     <>
     <form onSubmit={handleSubmit} className="space-y-4">
       {mode === 'signup' && (
         <div className="space-y-2">
-            <Label htmlFor={`${role}-displayName`}>Name</Label>
+            <Label htmlFor='displayName'>Name</Label>
             <Input
-            id={`${role}-displayName`}
+            id='displayName'
             type="text"
             placeholder="e.g. Yuki Sato"
             value={displayName}
@@ -116,20 +126,19 @@ function AuthForm({
         </div>
       )}
       <div className="space-y-2">
-        <Label htmlFor={`${role}-email`}>Email</Label>
+        <Label htmlFor='email'>Email</Label>
         <Input
-          id={`${role}-email`}
+          id='email'
           type="email"
-          placeholder={role === 'admin' ? '' : 'your@email.com'}
+          placeholder='your@email.com'
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          readOnly={role === 'admin'}
         />
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-            <Label htmlFor={`${role}-password`}>Password</Label>
+            <Label htmlFor='password'>Password</Label>
             {mode === 'login' && (
                 <button type="button" onClick={() => setIsForgotPassOpen(true)} className="text-xs text-primary hover:underline">
                     Forgot Password?
@@ -137,12 +146,12 @@ function AuthForm({
             )}
         </div>
         <Input
-          id={`${role}-password`}
+          id='password'
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="********"
-          required={isPasswordRequired}
+          required
         />
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
@@ -181,10 +190,9 @@ function AuthForm({
 
 
 export default function LoginPage() {
-  const { user, allUsers, loading, signInAs, addUser } = useAuth();
+  const { user, loading, signIn, signUp } = useAuth();
   const router = useRouter();
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -196,23 +204,6 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
-  const handleSignIn = async (email: string, pass: string, role: 'admin' | 'learner') => {
-    await signInAs(email, pass, role);
-  };
-
-  const handleSignUp = async (displayName: string, email: string, pass: string) => {
-    const existingUser = allUsers.find(u => u.email === email);
-    if (existingUser) {
-        throw new Error('An account with this email already exists.');
-    }
-    await addUser({ displayName, email, photoURL: '', password: pass });
-    toast({
-        title: "Account Created",
-        description: "You can now log in with your new credentials.",
-    });
-    setAuthMode('login');
-  }
-  
   const switchAuthMode = () => {
     setAuthMode(prev => (prev === 'login' ? 'signup' : 'login'));
   };
@@ -233,45 +224,25 @@ export default function LoginPage() {
           Welcome to Nihon GO
         </h1>
         <p className="mb-8 text-center text-muted-foreground">
-          An AI-powered Japanese learning app.
+          An AI-powered Japanese learning app. The first user to sign up becomes the admin.
         </p>
         
-        <Tabs defaultValue="learner" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="learner">Learner</TabsTrigger>
-                <TabsTrigger value="admin">Admin</TabsTrigger>
-            </TabsList>
-            <TabsContent value="learner">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>{authMode === 'login' ? 'Login as Learner' : 'Create an Account'}</CardTitle>
-                        <CardDescription>
-                            {authMode === 'login' ? "Enter your credentials to continue." : 'Sign up to start your learning journey.'}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                       <AuthForm
-                          mode={authMode}
-                          role="learner"
-                          onSignIn={handleSignIn}
-                          onSignUp={handleSignUp}
-                          onSwitchMode={switchAuthMode}
-                        />
-                    </CardContent>
-                </Card>
-            </TabsContent>
-            <TabsContent value="admin">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Login as Admin</CardTitle>
-                        <CardDescription>Press Log In to continue.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <AuthForm mode="login" role="admin" onSignIn={handleSignIn} onSignUp={handleSignUp} />
-                    </CardContent>
-                </Card>
-            </TabsContent>
-        </Tabs>
+        <Card>
+            <CardHeader>
+                <CardTitle>{authMode === 'login' ? 'Login' : 'Create an Account'}</CardTitle>
+                <CardDescription>
+                    {authMode === 'login' ? "Enter your credentials to continue." : 'Sign up to start your learning journey.'}
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <AuthForm
+                mode={authMode}
+                onSignIn={signIn}
+                onSignUp={signUp}
+                onSwitchMode={switchAuthMode}
+                />
+            </CardContent>
+        </Card>
       </div>
     </main>
   );
