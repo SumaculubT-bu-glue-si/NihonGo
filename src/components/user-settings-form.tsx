@@ -32,7 +32,7 @@ import { Separator } from './ui/separator';
 
 const formSchema = z.object({
   displayName: z.string().min(1, 'Display name is required.'),
-  photoURL: z.string().url('Please enter a valid URL.').or(z.literal('')).optional(),
+  photoURL: z.string().optional(), // This can be a data URI now
   password: z.string().optional(),
   confirmPassword: z.string().optional(),
 }).refine(data => data.password === data.confirmPassword, {
@@ -51,6 +51,7 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const form = useForm<UserSettingsFormData>({
     resolver: zodResolver(formSchema),
@@ -75,6 +76,17 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
     }
   }, [user, form, isOpen]);
 
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue('photoURL', reader.result as string, { shouldDirty: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onSubmit = async (data: UserSettingsFormData) => {
     if (!user) return;
 
@@ -82,9 +94,13 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
     try {
       const updateData: Parameters<typeof updateUser>[0] = {
         displayName: data.displayName,
-        photoURL: data.photoURL,
       };
 
+      // Only include photoURL if it's a new data URI
+      if (data.photoURL && data.photoURL.startsWith('data:image')) {
+        updateData.photoURL = data.photoURL;
+      }
+      
       if(data.password) {
         updateData.password = data.password;
       }
@@ -97,6 +113,7 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
       });
       onOpenChange(false);
     } catch (error) {
+      console.error(error);
       toast({
         title: 'Error',
         description: 'Failed to save settings.',
@@ -123,6 +140,20 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
                     <AvatarImage src={photoUrlValue || ''} alt={form.getValues('displayName') || ''} data-ai-hint="person" />
                     <AvatarFallback>{form.getValues('displayName')?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    Upload Photo
+                </Button>
+                <Input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                />
             </div>
 
             <FormField
@@ -138,18 +169,11 @@ export function UserSettingsForm({ isOpen, onOpenChange }: UserSettingsFormProps
                 </FormItem>
               )}
             />
-             <FormField
+            {/* Hidden field to hold the photoURL data URI */}
+            <FormField
                 control={form.control}
                 name="photoURL"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Photo URL</FormLabel>
-                        <FormControl>
-                            <Input placeholder="https://your-image-url.com/photo.png" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}
+                render={({ field }) => ( <FormItem className="hidden"><FormControl><Input {...field} /></FormControl></FormItem> )}
             />
             
             <Separator />
