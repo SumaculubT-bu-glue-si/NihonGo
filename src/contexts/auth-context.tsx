@@ -94,6 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const q = query(usersRef, limit(1));
     const querySnapshot = await getDocs(q);
     
+    // Check if any user document exists at all.
+    // We check for 1 or more to determine if this is the first user.
     const isFirstUser = querySnapshot.docs.length === 0;
     const role = isFirstUser ? 'admin' : 'learner';
     
@@ -162,8 +164,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 variant: 'destructive',
             });
         }
-        // Stop execution if password update fails
-        throw error;
+        // Do not proceed with other updates if password change fails.
+        return;
      }
      
      if(Object.keys(updatesForAuth).length > 0) {
