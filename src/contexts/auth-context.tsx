@@ -18,9 +18,10 @@ import {
   updateProfile,
   type User as FirebaseUser,
   updatePassword as firebaseUpdatePassword,
+  getAuth
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, getFirestore, collection, getDocs, query, limit } from 'firebase/firestore';
-import { auth } from '@/lib/firebase';
+import { doc, setDoc, getDoc, getFirestore, collection, getDocs, query, limit, deleteDoc } from 'firebase/firestore';
+import { auth, storage } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 export interface User {
@@ -44,6 +45,8 @@ interface AuthContextType {
       password?: string;
     }
   ) => Promise<void>;
+  updateUserByAdmin: (userId: string, data: { displayName?: string; email?: string; photoURL?: string }) => Promise<void>;
+  deleteUserByAdmin: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -96,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Check if any user document exists at all.
     // We check for 1 or more to determine if this is the first user.
-    const isFirstUser = querySnapshot.docs.length === 0;
+    const isFirstUser = querySnapshot.empty;
     const role = isFirstUser ? 'admin' : 'learner';
     
     const newUser: User = {
@@ -164,7 +167,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 variant: 'destructive',
             });
         }
-        // Do not proceed with other updates if password change fails.
         return;
      }
      
@@ -183,6 +185,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }) : null);
   };
   
+   // Admin-specific actions. In a real app, these should be secured Cloud Functions.
+  const updateUserByAdmin = async (userId: string, data: { displayName?: string; email?: string; photoURL?: string }) => {
+    // This is a placeholder. Real implementation needs secure backend logic.
+    const userDocRef = doc(db, 'users', userId);
+    await setDoc(userDocRef, data, { merge: true });
+    // Note: This won't update Firebase Auth user details (email, displayName).
+    // That requires an Admin SDK on a backend.
+    toast({
+      title: 'User Updated (Firestore)',
+      description: 'User data in the database has been updated. Auth data is unchanged.',
+    });
+  };
+
+  const deleteUserByAdmin = async (userId: string) => {
+    // This is a placeholder. Real implementation needs secure backend logic.
+    const userDocRef = doc(db, 'users', userId);
+    await deleteDoc(userDocRef);
+    // Note: This does NOT delete the user from Firebase Authentication.
+    // That requires an Admin SDK on a backend.
+    toast({
+      title: 'User Deleted (Firestore)',
+      description: 'User data has been removed from the database. The auth account still exists.',
+    });
+  };
 
   const value = {
     user,
@@ -191,6 +217,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     signUp,
     updateUser,
+    updateUserByAdmin,
+    deleteUserByAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

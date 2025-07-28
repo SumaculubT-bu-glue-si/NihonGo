@@ -40,35 +40,25 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { UserForm, type UserFormData } from './user-form';
+import { useRouter } from 'next/navigation';
 
 const ITEMS_PER_PAGE = 10;
 
-const mockLoginHistory = [
-  { type: 'Login', timestamp: '2024-07-28 09:15:23' },
-  { type: 'Logout', timestamp: '2024-07-28 11:30:05' },
-  { type: 'Login', timestamp: '2024-07-27 14:05:11' },
-  { type: 'Logout', timestamp: '2024-07-27 15:00:45' },
-];
-
 interface UserManagementViewProps {
   users: User[];
-  onAddUser: (
-    data: Omit<User, 'uid' | 'role'> & { role?: 'learner' | 'admin' }
-  ) => Promise<User>;
-  onUpdateUser: (
-    userId: string,
-    data: { displayName?: string; photoURL?: string; email?: string }
-  ) => Promise<void>;
+  onSignOut: () => void;
+  onUpdateUser: (userId: string, data: UserFormData) => Promise<void>;
   onDeleteUser: (userId: string) => Promise<void>;
 }
 
 export function UserManagementView({
   users,
-  onAddUser,
+  onSignOut,
   onUpdateUser,
   onDeleteUser,
 }: UserManagementViewProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -89,9 +79,15 @@ export function UserManagementView({
   };
 
 
-  const handleAddNew = () => {
-    setEditingUser(null);
-    setIsFormOpen(true);
+  const handleAddNew = async () => {
+    // The most secure way to add a user is to sign out the admin
+    // and use the standard sign-up page.
+    toast({
+        title: "Adding New User...",
+        description: "You will be signed out to create a new account.",
+    });
+    await onSignOut();
+    router.push('/');
   };
 
   const handleEdit = (user: User) => {
@@ -105,50 +101,15 @@ export function UserManagementView({
 
   const handleDeleteConfirm = async () => {
     if (!userToDelete) return;
-    try {
-      await onDeleteUser(userToDelete.uid);
-      toast({
-        title: 'User Deleted',
-        description: `${userToDelete.displayName} has been removed.`,
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete user.',
-        variant: 'destructive',
-      });
-    } finally {
-      setUserToDelete(null);
-    }
+    await onDeleteUser(userToDelete.uid);
+    setUserToDelete(null);
   };
 
   const handleSaveUser = async (data: UserFormData) => {
-    try {
-      if (editingUser) {
-        // Update user
-        await onUpdateUser(editingUser.uid, data);
-        toast({
-          title: 'User Updated',
-          description: 'User details have been successfully updated.',
-        });
-      } else {
-        // Add new user
-        // Note: Real user creation with password is now handled by signUp flow.
-        // This form is now for editing or inviting (which needs more implementation).
-        // For now, we'll keep the toast but the action might be limited.
-        toast({
-          title: 'Action Not Implemented',
-          description: 'User creation is handled via the main sign-up page.',
-        });
-      }
-      setIsFormOpen(false);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to save user details.',
-        variant: 'destructive',
-      });
+    if (editingUser) {
+      await onUpdateUser(editingUser.uid, data);
     }
+    setIsFormOpen(false);
   };
 
   return (
@@ -178,7 +139,7 @@ export function UserManagementView({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[300px]">User</TableHead>
-                <TableHead>Login History (Mock)</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead className="w-24 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -205,22 +166,7 @@ export function UserManagementView({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <ul className="space-y-1">
-                      {mockLoginHistory.slice(0, 2).map((item, index) => (
-                        <li key={index} className="text-xs text-muted-foreground">
-                          <span
-                            className={
-                              item.type === 'Login'
-                                ? 'text-green-500'
-                                : 'text-red-500'
-                            }
-                          >
-                            {item.type}
-                          </span>
-                          : {new Date(item.timestamp).toLocaleString()}
-                        </li>
-                      ))}
-                    </ul>
+                    <span className="text-sm capitalize text-muted-foreground">{user.role}</span>
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -288,7 +234,7 @@ export function UserManagementView({
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
-              account for "{userToDelete?.displayName}".
+              account for "{userToDelete?.displayName}" from Firestore. Note: The authentication entry will remain.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
