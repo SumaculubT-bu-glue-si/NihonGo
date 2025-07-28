@@ -95,8 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const q = query(usersRef, limit(1));
     const querySnapshot = await getDocs(q);
     
-    // The very first document to be created is the admin
-    const isFirstUser = querySnapshot.empty;
+    const isFirstUser = querySnapshot.docs.length <= 1;
     const role = isFirstUser ? 'admin' : 'learner';
     
     const newUser: User = {
@@ -132,43 +131,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
      const firebaseUser = auth.currentUser;
      const userDocRef = doc(db, 'users', firebaseUser.uid);
-     const updateDataForAuth: { displayName?: string; photoURL?: string } = {};
-     const updateDataForFirestore: { displayName?: string; photoURL?: string } = {};
-     
-     let finalPhotoURL = user?.photoURL;
 
-     // Handle photo upload if a new photo data is provided
+     const updatesForAuth: { displayName?: string; photoURL?: string } = {};
+     const updatesForFirestore: { displayName?: string; photoURL?: string } = {};
+     
+     if (data.displayName) {
+        updatesForAuth.displayName = data.displayName;
+        updatesForFirestore.displayName = data.displayName;
+     }
+
      if (data.photoURL && data.photoURL.startsWith('data:image')) {
         const storageRef = ref(storage, `profile-pictures/${firebaseUser.uid}`);
         const uploadResult = await uploadString(storageRef, data.photoURL, 'data_url');
         const downloadURL = await getDownloadURL(uploadResult.ref);
-        updateDataForAuth.photoURL = downloadURL;
-        updateDataForFirestore.photoURL = downloadURL;
-        finalPhotoURL = downloadURL;
+        updatesForAuth.photoURL = downloadURL;
+        updatesForFirestore.photoURL = downloadURL;
      }
 
-     if(data.displayName) {
-        updateDataForAuth.displayName = data.displayName;
-        updateDataForFirestore.displayName = data.displayName;
-     }
-
-     if(Object.keys(updateDataForAuth).length > 0) {
-        await updateProfile(firebaseUser, updateDataForAuth);
-     }
-    
-     if (Object.keys(updateDataForFirestore).length > 0) {
-        await setDoc(userDocRef, updateDataForFirestore, { merge: true });
-     }
-
-     if (data.password) {
+     if(data.password) {
         await firebaseUpdatePassword(firebaseUser, data.password);
      }
      
-     // Correctly update the local state to reflect changes instantly
+     if(Object.keys(updatesForAuth).length > 0) {
+        await updateProfile(firebaseUser, updatesForAuth);
+     }
+
+     if (Object.keys(updatesForFirestore).length > 0) {
+        await setDoc(userDocRef, updatesForFirestore, { merge: true });
+     }
+     
      setUser(prev => prev ? ({
         ...prev, 
-        displayName: data.displayName ?? prev.displayName,
-        photoURL: finalPhotoURL,
+        displayName: updatesForAuth.displayName ?? prev.displayName,
+        photoURL: updatesForAuth.photoURL ?? prev.photoURL,
     }) : null);
   };
   
