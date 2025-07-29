@@ -6,26 +6,38 @@ import { useGlobalState } from "@/hooks/use-global-state";
 import { AdminView } from "./admin-view";
 import { useAuth } from "@/contexts/auth-context-sqlite";
 import { useEffect, useState } from "react";
+import { apiService } from "@/lib/api";
+import type { User } from "@/contexts/auth-context-sqlite";
 
 export default function AdminPage() {
   const { allUsersData, isLoading: isGlobalStateLoading } = useGlobalState();
   const { loading: isAuthLoading } = useAuth();
-  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
 
   useEffect(() => {
-    // TODO: Implement admin user fetching from SQLite backend
     const fetchUsers = async () => {
-      // This will be implemented with the SQLite API
-      console.log(
-        "Admin user fetching will be implemented with SQLite backend"
-      );
+      try {
+        setIsLoadingUsers(true);
+        const response = await apiService.getAllUsers();
+        if (response.data) {
+          setAllUsers(response.data.users);
+        } else {
+          console.error("Failed to fetch users:", response.error);
+        }
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setIsLoadingUsers(false);
+      }
     };
-    if (!isGlobalStateLoading) {
+
+    if (!isGlobalStateLoading && !isAuthLoading) {
       fetchUsers();
     }
-  }, [allUsersData, isGlobalStateLoading]);
+  }, [isGlobalStateLoading, isAuthLoading]);
 
-  const isLoading = isGlobalStateLoading || isAuthLoading;
+  const isLoading = isGlobalStateLoading || isAuthLoading || isLoadingUsers;
 
   if (isLoading) {
     return (
