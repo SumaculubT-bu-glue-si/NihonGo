@@ -1,10 +1,6 @@
-/// <reference lib="dom" />
 // API service to replace Firebase operations with SQLite backend
 
-import { User } from "@/contexts/auth-context-sqlite";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 interface ApiResponse<T> {
   data?: T;
@@ -17,22 +13,22 @@ class ApiService {
 
   setToken(token: string) {
     this.token = token;
-    if (typeof window !== "undefined") {
-      localStorage.setItem("auth_token", token);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_token', token);
     }
   }
 
   getToken(): string | null {
-    if (!this.token && typeof window !== "undefined") {
-      this.token = localStorage.getItem("auth_token");
+    if (!this.token && typeof window !== 'undefined') {
+      this.token = localStorage.getItem('auth_token');
     }
     return this.token;
   }
 
   clearToken() {
     this.token = null;
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("auth_token");
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
     }
   }
 
@@ -45,7 +41,7 @@ class ApiService {
 
     const config: RequestInit = {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
         ...options.headers,
       },
@@ -57,18 +53,13 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
-        return {
-          error:
-            typeof data === "object" && data !== null && "error" in data
-              ? (data as { error?: string }).error || "Request failed"
-              : "Request failed",
-        };
+        return { error: data.error || 'Request failed' };
       }
 
-      return { data: data as T };
+      return { data };
     } catch (error) {
-      console.error("API request failed:", error);
-      return { error: "Network error" };
+      console.error('API request failed:', error);
+      return { error: 'Network error' };
     }
   }
 
@@ -85,11 +76,11 @@ class ApiService {
         email: string;
         display_name: string;
         photo_url: string | null;
-        role: "learner" | "admin";
+        role: 'learner' | 'admin';
       };
       token: string;
-    }>("/auth/register", {
-      method: "POST",
+    }>('/auth/register', {
+      method: 'POST',
       body: JSON.stringify(userData),
     });
 
@@ -107,11 +98,11 @@ class ApiService {
         email: string;
         display_name: string;
         photo_url: string | null;
-        role: "learner" | "admin";
+        role: 'learner' | 'admin';
       };
       token: string;
-    }>("/auth/login", {
-      method: "POST",
+    }>('/auth/login', {
+      method: 'POST',
       body: JSON.stringify(credentials),
     });
 
@@ -129,9 +120,9 @@ class ApiService {
         email: string;
         display_name: string;
         photo_url: string | null;
-        role: "learner" | "admin";
+        role: 'learner' | 'admin';
       };
-    }>("/auth/profile");
+    }>('/auth/profile');
   }
 
   async updateProfile(updateData: {
@@ -145,21 +136,21 @@ class ApiService {
         email: string;
         display_name: string;
         photo_url: string | null;
-        role: "learner" | "admin";
+        role: 'learner' | 'admin';
       };
-    }>("/auth/profile", {
-      method: "PUT",
+    }>('/auth/profile', {
+      method: 'PUT',
       body: JSON.stringify(updateData),
     });
   }
 
   async getUserStats() {
-    return this.request<{ stats: any[] }>("/auth/stats");
+    return this.request<{ stats: any[] }>('/auth/stats');
   }
 
   // Deck methods
   async getDecks() {
-    return this.request<{ decks: any[] }>("/decks");
+    return this.request<{ decks: any[] }>('/decks');
   }
 
   async getDeck(deckId: string) {
@@ -169,84 +160,76 @@ class ApiService {
   async createDeck(deckData: {
     title: string;
     description?: string;
-    category: "Vocabulary" | "Grammar" | "Phrases" | "Kanji";
-    level: "Beginner" | "Intermediate" | "Advanced";
+    category: 'Vocabulary' | 'Grammar' | 'Phrases' | 'Kanji';
+    level: 'Beginner' | 'Intermediate' | 'Advanced';
   }) {
-    return this.request<{ deck: any }>("/decks", {
-      method: "POST",
+    return this.request<{ deck: any }>('/decks', {
+      method: 'POST',
       body: JSON.stringify(deckData),
     });
   }
 
-  async updateDeck(
-    deckId: string,
-    updateData: Partial<{
-      title: string;
-      description: string;
-      category: "Vocabulary" | "Grammar" | "Phrases" | "Kanji";
-      level: "Beginner" | "Intermediate" | "Advanced";
-    }>
-  ) {
+  async updateDeck(deckId: string, updateData: Partial<{
+    title: string;
+    description: string;
+    category: 'Vocabulary' | 'Grammar' | 'Phrases' | 'Kanji';
+    level: 'Beginner' | 'Intermediate' | 'Advanced';
+  }>) {
     return this.request<{ deck: any }>(`/decks/${deckId}`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(updateData),
     });
   }
 
   async deleteDeck(deckId: string) {
     return this.request(`/decks/${deckId}`, {
-      method: "DELETE",
+      method: 'DELETE',
     });
   }
 
   // Flashcard methods
-  async addFlashcard(
-    deckId: string,
-    cardData: {
-      type: "vocabulary" | "grammar" | "kanji";
-      front: string;
-      back: string;
-      reading?: string;
-      level: "N5" | "N4" | "N3" | "N2" | "N1";
-    }
-  ) {
+  async addFlashcard(deckId: string, cardData: {
+    type: 'vocabulary' | 'grammar' | 'kanji';
+    front: string;
+    back: string;
+    reading?: string;
+    level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+  }) {
     return this.request<{ card: any }>(`/decks/${deckId}/cards`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(cardData),
     });
   }
 
-  async updateFlashcard(
-    deckId: string,
-    cardId: string,
-    updateData: Partial<{
-      type: "vocabulary" | "grammar" | "kanji";
-      front: string;
-      back: string;
-      reading: string;
-      level: "N5" | "N4" | "N3" | "N2" | "N1";
-    }>
-  ) {
+  async updateFlashcard(deckId: string, cardId: string, updateData: Partial<{
+    type: 'vocabulary' | 'grammar' | 'kanji';
+    front: string;
+    back: string;
+    reading: string;
+    level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+  }>) {
     return this.request<{ card: any }>(`/decks/${deckId}/cards/${cardId}`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(updateData),
     });
   }
 
   async deleteFlashcard(deckId: string, cardId: string) {
     return this.request(`/decks/${deckId}/cards/${cardId}`, {
-      method: "DELETE",
+      method: 'DELETE',
     });
   }
 
   // Admin methods
   async getAllUsers() {
-    return this.request<{ users: User[] }>("/auth/users");
+    return this.request<{ users: any[] }>('/auth/users');
   }
 
-  async getUserLearningData(userId: string) {
-    return this.request<any>(`/api/users/${userId}/learning-data`);
+  async deleteUser(userId: string) {
+    return this.request(`/auth/users/${userId}`, {
+      method: 'DELETE',
+    });
   }
 }
 
-export const apiService = new ApiService();
+export const apiService = new ApiService(); 

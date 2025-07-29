@@ -1,13 +1,11 @@
+"use client";
 
-'use client';
-
-import { AdminGuard } from '@/components/admin-guard';
-import { AppLayout } from '@/components/app-layout';
-import { useGlobalState } from '@/hooks/use-global-state';
-import { AdminView } from './admin-view';
-import { useAuth } from '@/contexts/auth-context';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { AdminGuard } from "@/components/admin-guard";
+import { AppLayout } from "@/components/app-layout";
+import { useGlobalState } from "@/hooks/use-global-state";
+import { AdminView } from "./admin-view";
+import { useAuth } from "@/contexts/auth-context-sqlite";
+import { useEffect, useState } from "react";
 
 export default function AdminPage() {
   const { allUsersData, isLoading: isGlobalStateLoading } = useGlobalState();
@@ -15,19 +13,17 @@ export default function AdminPage() {
   const [allUsers, setAllUsers] = useState<any[]>([]);
 
   useEffect(() => {
-    // This is a placeholder for fetching all users.
-    // In a real app, this would be a secure admin-only API call.
+    // TODO: Implement admin user fetching from SQLite backend
     const fetchUsers = async () => {
-        const db = getFirestore();
-        // This is simplified. A real app would need pagination and better indexing.
-        const userDocs = await Promise.all(Object.keys(allUsersData).map(uid => getDoc(doc(db, 'users', uid))));
-        const users = userDocs.filter(doc => doc.exists()).map(doc => doc.data());
-        setAllUsers(users);
+      // This will be implemented with the SQLite API
+      console.log(
+        "Admin user fetching will be implemented with SQLite backend"
+      );
+    };
+    if (!isGlobalStateLoading) {
+      fetchUsers();
     }
-    if(!isGlobalStateLoading) {
-        fetchUsers();
-    }
-  }, [allUsersData, isGlobalStateLoading])
+  }, [allUsersData, isGlobalStateLoading]);
 
   const isLoading = isGlobalStateLoading || isAuthLoading;
 

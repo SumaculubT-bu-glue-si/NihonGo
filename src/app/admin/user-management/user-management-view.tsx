@@ -1,8 +1,7 @@
+"use client";
 
-'use client';
-
-import { useState } from 'react';
-import type { User } from '@/contexts/auth-context';
+import { useState } from "react";
+import type { User } from "@/contexts/auth-context-sqlite";
 import {
   Table,
   TableBody,
@@ -10,8 +9,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+} from "@/components/ui/table";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Card,
   CardHeader,
@@ -19,16 +18,22 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  MoreHorizontal,
+  PlusCircle,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,9 +43,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { UserForm, type UserFormData } from './user-form';
-import { useRouter } from 'next/navigation';
+} from "@/components/ui/alert-dialog";
+import { UserForm, type UserFormData } from "./user-form";
+import { useRouter } from "next/navigation";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -78,16 +83,15 @@ export function UserManagementView({
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-
   const handleAddNew = async () => {
     // The most secure way to add a user is to sign out the admin
     // and use the standard sign-up page.
     toast({
-        title: "Adding New User...",
-        description: "You will be signed out to create a new account.",
+      title: "Adding New User...",
+      description: "You will be signed out to create a new account.",
     });
     await onSignOut();
-    router.push('/');
+    router.push("/");
   };
 
   const handleEdit = (user: User) => {
@@ -101,13 +105,13 @@ export function UserManagementView({
 
   const handleDeleteConfirm = async () => {
     if (!userToDelete) return;
-    await onDeleteUser(userToDelete.uid);
+    await onDeleteUser(userToDelete.id);
     setUserToDelete(null);
   };
 
   const handleSaveUser = async (data: UserFormData) => {
     if (editingUser) {
-      await onUpdateUser(editingUser.uid, data);
+      await onUpdateUser(editingUser.id, data);
     }
     setIsFormOpen(false);
   };
@@ -116,16 +120,18 @@ export function UserManagementView({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
         <div>
-            <h1 className="mb-2 text-3xl font-bold font-headline">User Management</h1>
-            <p className="text-muted-foreground">
-                View and manage all learner accounts in the system.
-            </p>
+          <h1 className="mb-2 text-3xl font-bold font-headline">
+            User Management
+          </h1>
+          <p className="text-muted-foreground">
+            View and manage all learner accounts in the system.
+          </p>
         </div>
         <div className="flex items-center gap-2 mt-4 sm:mt-0">
-             <Button onClick={handleAddNew}>
-                <PlusCircle className="mr-2" />
-                Add New Learner
-            </Button>
+          <Button onClick={handleAddNew}>
+            <PlusCircle className="mr-2" />
+            Add New Learner
+          </Button>
         </div>
       </div>
 
@@ -145,20 +151,20 @@ export function UserManagementView({
             </TableHeader>
             <TableBody>
               {paginatedUsers.map((user) => (
-                <TableRow key={user.uid}>
+                <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage
-                          src={user.photoURL ?? ''}
-                          alt={user.displayName ?? ''}
+                          src={user.photo_url ?? ""}
+                          alt={user.display_name ?? ""}
                         />
                         <AvatarFallback>
-                          {user.displayName?.charAt(0)}
+                          {user.display_name?.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">{user.displayName}</p>
+                        <p className="font-medium">{user.display_name}</p>
                         <p className="text-xs text-muted-foreground">
                           {user.email}
                         </p>
@@ -166,7 +172,9 @@ export function UserManagementView({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm capitalize text-muted-foreground">{user.role}</span>
+                    <span className="text-sm capitalize text-muted-foreground">
+                      {user.role}
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -195,27 +203,27 @@ export function UserManagementView({
           </Table>
         </CardContent>
         <CardFooter className="flex items-center justify-end space-x-2 py-4 border-t">
-            <span className="text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages}
-            </span>
-            <Button
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
             variant="outline"
             size="sm"
             onClick={handlePreviousPage}
             disabled={currentPage === 1}
-            >
+          >
             <ChevronLeft className="h-4 w-4" />
             Previous
-            </Button>
-            <Button
+          </Button>
+          <Button
             variant="outline"
             size="sm"
             onClick={handleNextPage}
             disabled={currentPage === totalPages}
-            >
+          >
             Next
             <ChevronRight className="h-4 w-4" />
-            </Button>
+          </Button>
         </CardFooter>
       </Card>
       <UserForm
@@ -234,7 +242,8 @@ export function UserManagementView({
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
-              account for "{userToDelete?.displayName}" from Firestore. Note: The authentication entry will remain.
+              account for "{userToDelete?.display_name}" from Firestore. Note:
+              The authentication entry will remain.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

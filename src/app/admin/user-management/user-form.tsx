@@ -1,14 +1,13 @@
+"use client";
 
-'use client';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { useAuth, type User } from "@/contexts/auth-context-sqlite";
+import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect, useRef } from "react";
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { useAuth, type User } from '@/contexts/auth-context';
-import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect, useRef } from 'react';
-
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +15,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -24,15 +23,19 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Loader2 } from 'lucide-react';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
-  displayName: z.string().min(1, 'Display name is required.'),
-  email: z.string().email('Please enter a valid email.'),
-  photoURL: z.string().url('Please enter a valid URL.').or(z.literal('')).optional(),
+  displayName: z.string().min(1, "Display name is required."),
+  email: z.string().email("Please enter a valid email."),
+  photoURL: z
+    .string()
+    .url("Please enter a valid URL.")
+    .or(z.literal(""))
+    .optional(),
 });
 
 export type UserFormData = z.infer<typeof formSchema>;
@@ -44,7 +47,12 @@ interface UserFormProps {
   user: User | null;
 }
 
-export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) {
+export function UserForm({
+  isOpen,
+  onOpenChange,
+  onSave,
+  user,
+}: UserFormProps) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,27 +60,27 @@ export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) 
   const form = useForm<UserFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      displayName: '',
-      email: '',
-      photoURL: '',
+      displayName: "",
+      email: "",
+      photoURL: "",
     },
   });
-  
-  const photoUrlValue = form.watch('photoURL');
+
+  const photoUrlValue = form.watch("photoURL");
 
   useEffect(() => {
     if (user && isOpen) {
       form.reset({
-        displayName: user.displayName || '',
-        email: user.email || '',
-        photoURL: user.photoURL || '',
+        displayName: user.display_name || "",
+        email: user.email || "",
+        photoURL: user.photo_url || "",
       });
     } else if (!user && isOpen) {
-        form.reset({
-            displayName: '',
-            email: '',
-            photoURL: '',
-        });
+      form.reset({
+        displayName: "",
+        email: "",
+        photoURL: "",
+      });
     }
   }, [user, form, isOpen]);
 
@@ -81,7 +89,7 @@ export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) 
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        form.setValue('photoURL', reader.result as string);
+        form.setValue("photoURL", reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -93,10 +101,10 @@ export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) 
       await onSave(data);
       onOpenChange(false);
     } catch (error) {
-       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred.',
-        variant: 'destructive',
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
@@ -107,11 +115,11 @@ export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) 
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{user ? 'Edit User' : 'Add New User'}</DialogTitle>
+          <DialogTitle>{user ? "Edit User" : "Add New User"}</DialogTitle>
           <DialogDescription>
             {user
               ? "Update the learner's details."
-              : 'Fill in the details for the new learner.'}
+              : "Fill in the details for the new learner."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -121,12 +129,16 @@ export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) 
           >
             <div className="flex flex-col items-center gap-4">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={photoUrlValue || ''} alt={form.getValues('displayName') || ''} data-ai-hint="person" />
+                <AvatarImage
+                  src={photoUrlValue || ""}
+                  alt={form.getValues("displayName") || ""}
+                  data-ai-hint="person"
+                />
                 <AvatarFallback>
-                  {form.getValues('displayName')?.charAt(0).toUpperCase()}
+                  {form.getValues("displayName")?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-               <Button
+              <Button
                 type="button"
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
@@ -141,7 +153,7 @@ export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) 
                 onChange={handlePhotoUpload}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="displayName"
@@ -168,18 +180,21 @@ export function UserForm({ isOpen, onOpenChange, onSave, user }: UserFormProps) 
                 </FormItem>
               )}
             />
-             <FormField
-                control={form.control}
-                name="photoURL"
-                render={({ field }) => (
-                    <FormItem className="hidden">
-                    <FormLabel>Photo URL</FormLabel>
-                    <FormControl>
-                        <Input placeholder="https://placehold.co/100x100" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
+            <FormField
+              control={form.control}
+              name="photoURL"
+              render={({ field }) => (
+                <FormItem className="hidden">
+                  <FormLabel>Photo URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://placehold.co/100x100"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
             <DialogFooter>
               <Button
