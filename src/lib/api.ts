@@ -1,4 +1,5 @@
 // API service to replace Firebase operations with SQLite backend
+import { User } from "@/contexts/auth-context-sqlite";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -222,7 +223,7 @@ class ApiService {
 
   // Admin methods
   async getAllUsers() {
-    return this.request<{ users: any[] }>('/auth/users');
+    return this.request<{ users: User[] }>('/auth/users');
   }
 
   async deleteUser(userId: string) {
@@ -232,4 +233,4 @@ class ApiService {
   }
 }
 
-export const apiService = new ApiService(); 
+export const apiService = new ApiService();

@@ -1,14 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AdminGuard } from "@/components/admin-guard";
 import { AppLayout } from "@/components/app-layout";
 import { useAuth } from "@/contexts/auth-context-sqlite";
 import { UserManagementView } from "./user-management-view";
-import { useEffect, useState } from "react";
-// Removed Firebase imports - using SQLite backend instead
+import { useToast } from "@/hooks/use-toast";
+import { apiService } from "@/lib/api";
 import type { User } from "@/contexts/auth-context-sqlite";
 import type { UserFormData } from "./user-form";
-import { useToast } from "@/hooks/use-toast";
 
 export default function UserManagementPage() {
   const { user, signOut, updateUserByAdmin, deleteUserByAdmin } = useAuth();
@@ -17,14 +17,24 @@ export default function UserManagementPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // TODO: Implement user fetching from SQLite backend
     const fetchUsers = async () => {
-      // This will be implemented with the SQLite API
-      console.log("User fetching will be implemented with SQLite backend");
-      setIsUsersLoading(false);
+      try {
+        const response = await apiService.getAllUsers();
+        if (response.data) {
+          setAllUsers(response.data.users);
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch users",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUsersLoading(false);
+      }
     };
     fetchUsers();
-  }, []);
+  }, [toast]);
 
   const isLoading = isUsersLoading;
 
