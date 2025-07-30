@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 // Import routes
 import authRoutes from "./routes/auth";
 import deckRoutes from "./routes/decks";
+import uploadRoutes from "./routes/uploads";
 
 // Load environment variables
 dotenv.config();
@@ -36,6 +37,7 @@ app.get("/health", (req, res) => {
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/decks", deckRoutes);
+app.use("/api/uploads", uploadRoutes);
 
 // Error handling middleware
 app.use(
@@ -61,6 +63,7 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
   console.log(`📚 Deck endpoints: http://localhost:${PORT}/api/decks`);
+  console.log(`📚 Upload endpoints: http://localhost:${PORT}/api/uploads`);
   console.log(`🌐 Network access: http://192.168.1.3:${PORT}`);
   console.log(
     `📱 Others can access: http://192.168.1.3:${PORT}/api/auth/register`
