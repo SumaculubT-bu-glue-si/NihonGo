@@ -31,8 +31,8 @@ import { Separator } from "./ui/separator";
 
 const formSchema = z
   .object({
-    displayName: z.string().min(1, "Display name is required."),
-    photoURL: z
+    display_name: z.string().min(1, "Display name is required."),
+    photo_url: z
       .string()
       .url("Please enter a valid URL.")
       .or(z.literal(""))
@@ -63,20 +63,20 @@ export function UserSettingsForm({
   const form = useForm<UserSettingsFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      displayName: "",
-      photoURL: "",
+      display_name: "",
+      photo_url: "",
       password: "",
       confirmPassword: "",
     },
   });
 
-  const photoUrlValue = form.watch("photoURL");
+  const photoUrlValue = form.watch("photo_url");
 
   useEffect(() => {
     if (user && isOpen) {
       form.reset({
-        displayName: user.display_name || "",
-        photoURL: user.photo_url || "",
+        display_name: user.display_name || "",
+        photo_url: user.photo_url || "",
         password: "",
         confirmPassword: "",
       });
@@ -89,8 +89,8 @@ export function UserSettingsForm({
     setIsSaving(true);
     try {
       const updateData: Parameters<typeof updateUser>[0] = {
-        displayName: data.displayName,
-        photoURL: data.photoURL,
+        display_name: data.display_name,
+        photo_url: data.photo_url,
       };
 
       if (data.password) {
@@ -130,48 +130,115 @@ export function UserSettingsForm({
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-6"
           >
-            <div className="flex flex-col items-center gap-4">
-              <Avatar className="h-24 w-24">
-                <AvatarImage
-                  src={photoUrlValue || ""}
-                  alt={form.getValues("displayName") || ""}
-                  data-ai-hint="person"
-                />
-                <AvatarFallback>
-                  {form.getValues("displayName")?.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </div>
+            <div className="grid grid-cols-[120px_1fr] items-center gap-6">
+              <div className="flex flex-col items-center gap-2">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage
+                    src={photoUrlValue || "/images/default-avatar.png"}
+                    alt={form.getValues("display_name") || "User avatar"}
+                    className="object-cover"
+                    data-ai-hint="person"
+                  />
+                  <AvatarFallback>
+                    {form.getValues("display_name")?.charAt(0).toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <p className="text-xs text-muted-foreground text-center">
+                  Recommended size: 240x240px
+                </p>
+              </div>
 
-            <FormField
-              control={form.control}
-              name="displayName"
-              render={({ field }) => (
+              <div className="space-y-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  id="avatarUpload"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      
+                      try {
+                        const response = await fetch('/api/upload', {
+                          method: 'POST',
+                          body: formData
+                        });
+                        
+                        if (response.ok) {
+                          const { url } = await response.json();
+                          form.setValue('photo_url', url);
+                        } else {
+                          toast({
+                            title: 'Upload Failed',
+                            description: 'Could not upload image',
+                            variant: 'destructive'
+                          });
+                        }
+                      } catch (error) {
+                        console.error('Upload error:', error);
+                        toast({
+                          title: 'Upload Error',
+                          description: 'Failed to upload image',
+                          variant: 'destructive'
+                        });
+                      }
+                    }
+                  }}
+                />
                 <FormItem>
-                  <FormLabel>Display Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
+                  <FormLabel>Profile Picture</FormLabel>
+                  <div className="flex items-center gap-4">
+                    <label
+                      htmlFor="avatarUpload"
+                      className="cursor-pointer relative"
+                    >
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage
+                          src={photoUrlValue || "/images/default-avatar.png"}
+                          alt="Profile preview"
+                          className="object-cover"
+                        />
+                        <AvatarFallback>
+                          {form.getValues("display_name")?.charAt(0).toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full opacity-0 hover:opacity-100 transition-opacity">
+                        <span className="text-white text-sm">Upload</span>
+                      </div>
+                    </label>
+                    {photoUrlValue && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => form.setValue('photo_url', '')}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
                   <FormMessage />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Supports JPG, PNG, WEBP formats (max 2MB)
+                  </p>
                 </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="photoURL"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Photo URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://placehold.co/100x100.png"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="display_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Display Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
             <Separator />
 
