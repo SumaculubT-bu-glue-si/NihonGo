@@ -54,8 +54,10 @@ interface LearnerStats {
   name: string;
   email: string;
   photoURL: string;
-  is_active: boolean;
-  last_active: string;
+  is_active: boolean; // Keep if used elsewhere
+  last_active: string; // Keep if used elsewhere
+  last_active_at?: string; // Add the new field
+  isOnline?: boolean; // Add the new field
   studyTime: string;
   decksCompleted: number;
   totalDecks: number;
@@ -508,6 +510,11 @@ export function AdminView({
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{stats.is_active? "Active" : "Inactive"}</div>
+                      {!stats.isOnline && stats.last_active_at && (
+                        <div className="text-xs text-muted-foreground">
+                          Last active: {new Date(stats.last_active_at).toLocaleString()}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">

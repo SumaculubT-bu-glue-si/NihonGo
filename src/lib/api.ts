@@ -72,15 +72,7 @@ class ApiService {
     photo_url?: string;
   }) {
     const response = await this.request<{
-      user: {
-        id: string;
-        email: string;
-        display_name: string;
-        photo_url: string | null;
-        role: 'learner' | 'admin';
-        is_active?: boolean;
-        last_active?: string;
-      };
+      user: User; // Use the updated User type
       token: string;
     }>('/auth/register', {
       method: 'POST',
@@ -96,15 +88,7 @@ class ApiService {
 
   async login(credentials: { email: string; password: string }) {
     const response = await this.request<{
-      user: {
-        id: string;
-        email: string;
-        display_name: string;
-        photo_url: string | null;
-        role: 'learner' | 'admin';
-        is_active?: boolean;
-        last_active?: string;
-      };
+      user: User; // Use the updated User type
       token: string;
     }>('/auth/login', {
       method: 'POST',
@@ -120,15 +104,7 @@ class ApiService {
 
   async getProfile() {
     return this.request<{
-      user: {
-        last_active: string;
-        is_active: boolean;
-        id: string;
-        email: string;
-        display_name: string;
-        photo_url: string | null;
-        role: 'learner' | 'admin';
-      };
+      user: User; // Use the updated User type
     }>('/auth/profile');
   }
 
@@ -138,15 +114,7 @@ class ApiService {
     password?: string;
   }) {
     return this.request<{
-      user: {
-        id: string;
-        email: string;
-        display_name: string;
-        photo_url: string | null;
-        role: 'learner' | 'admin';
-        is_active?: boolean;
-        last_active?: string;
-      };
+      user: User; // Use the updated User type
     }>('/auth/profile', {
       method: 'PUT',
       body: JSON.stringify(updateData),
@@ -231,12 +199,20 @@ class ApiService {
 
   // Admin methods
   async getAllUsers() {
-    return this.request<{ users: User[] }>('/auth/users');
+    return this.request<{ users: User[] }>('/auth/users'); // Use the updated User type
   }
 
   async deleteUser(userId: string) {
     return this.request(`/auth/users/${userId}`, {
       method: 'DELETE',
+    });
+  }
+
+  // New function to send heartbeat
+  async sendHeartbeat() {
+    return this.request('/auth/heartbeat', {
+      method: 'POST',
+      // No body needed for a simple heartbeat
     });
   }
 }

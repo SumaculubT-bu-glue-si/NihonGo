@@ -12,14 +12,18 @@ import { useRouter } from 'next/navigation';
 import { apiService } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
+const HEARTBEAT_INTERVAL_MS = 3 * 60 * 1000;
+
 export interface User {
   id: string;
   email: string;
   display_name: string;
   photo_url: string | null;
   role: 'learner' | 'admin';
-  is_active?: boolean;
-  last_active?: string;
+  is_active?: boolean; // Keep this if it's used for something else
+  last_active?: string; // Keep this if it's used for something else
+  last_active_at?: string; // Add the new field
+  isOnline?: boolean; // Add the new field
 }
 
 interface AuthContextType {
@@ -44,6 +48,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | undefined;
+
+    if (user) {
+      intervalId = setInterval(() => {
+        apiService.sendHeartbeat().catch(error => {
+          console.error('Heartbeat failed:', error);
+          // Handle error, maybe log out the user if the error is persistent
+        });
+      }, HEARTBEAT_INTERVAL_MS);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [user]); // Re-run effect when user changes
 
   // Check for existing token and validate it
   useEffect(() => {

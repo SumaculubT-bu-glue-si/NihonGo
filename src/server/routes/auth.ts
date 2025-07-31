@@ -6,6 +6,26 @@ import { authenticateToken } from '../middleware/auth';
 const router = Router();
 const userService = new UserService();
 
+// Heartbeat endpoint to update last_active_at
+router.post('/auth/heartbeat', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    // Check if req.user is defined and has userId
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = req.user.userId; 
+
+    // Use the updateLastActive function from UserService
+    await userService.updateLastActive(userId);
+
+    res.status(200).json({ message: 'Heartbeat received' });
+  } catch (error) {
+    console.error('Error updating last_active_at:', error);
+    res.status(500).json({ error: 'Failed to update last active timestamp' });
+  }
+});
+
 // Register new user
 router.post('/register', async (req: Request, res: Response) => {
   try {

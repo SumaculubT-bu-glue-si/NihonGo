@@ -4,6 +4,8 @@ import { database } from '../database/connection';
 import { User, CreateUserRequest, LoginRequest, UpdateUserRequest } from '../types';
 import { generateToken } from '../middleware/auth';
 
+const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+
 export class UserService {
   async createUser(userData: CreateUserRequest): Promise<{ user: User; token: string }> {
     const { email, display_name, password, photo_url } = userData;
@@ -36,11 +38,12 @@ export class UserService {
       role,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      last_active_at: new Date().toISOString(), // Initialize last_active_at
     };
 
     await database.run(
-      'INSERT INTO users (id, email, display_name, photo_url, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)',
-      [user.id, user.email, user.display_name, user.photo_url, user.password_hash, user.role]
+      'INSERT INTO users (id, email, display_name, photo_url, password_hash, role, last_active_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [user.id, user.email, user.display_name, user.photo_url, user.password_hash, user.role, user.last_active_at]
     );
 
     // Initialize user game stats
@@ -75,22 +78,39 @@ export class UserService {
       throw new Error('Invalid email or password');
     }
 
+    // Update last_active_at on successful login
+    await database.run(
+      'UPDATE users SET last_active_at = ? WHERE id = ?',
+      [new Date().toISOString(), user.id]
+    );
+
     const token = generateToken({
       userId: user.id,
       email: user.email,
       role: user.role,
     });
 
-    return { user, token };
+    // Fetch the updated user object to return
+    const updatedUser = await this.getUserById(user.id);
+
+    return { user: updatedUser!, token }; // Use updatedUser
   }
 
   async getUserById(userId: string): Promise<User | null> {
     const user = await database.get(
-      'SELECT * FROM users WHERE id = ?',
+      // Include last_active_at in the select query
+      'SELECT id, email, display_name, photo_url, role, created_at, updated_at, last_active_at FROM users WHERE id = ?',
       [userId]
     );
 
-    return user || null;
+    // Add isOnline property
+    if (user) {
+      const lastActiveTime = user.last_active_at ? new Date(user.last_active_at).getTime() : 0;
+      const isOnline = (Date.now() - lastActiveTime) <= ONLINE_THRESHOLD_MS;
+      return { ...user, isOnline } as User;
+    }
+
+    return null;
   }
 
   async updateUser(userId: string, updateData: UpdateUserRequest): Promise<User> {
@@ -124,6 +144,11 @@ export class UserService {
       throw new Error('No fields to update');
     }
 
+    // Update updated_at timestamp
+    updateFields.push('updated_at = ?');
+    updateValues.push(new Date().toISOString());
+
+
     updateValues.push(userId);
 
     await database.run(
@@ -140,8 +165,22 @@ export class UserService {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await database.all('SELECT * FROM users ORDER BY created_at DESC');
+    // Modify the SELECT query to include last_active_at
+    const users = await database.all('SELECT id, email, display_name, photo_url, role, created_at, updated_at, last_active_at FROM users ORDER BY created_at DESC');
+
+    // Add isOnline property to each user
+    const usersWithOnlineStatus = users.map(user => {
+      const lastActiveTime = user.last_active_at ? new Date(user.last_active_at).getTime() : 0;
+      const isOnline = (Date.now() - lastActiveTime) <= ONLINE_THRESHOLD_MS;
+      return {
+        ...user,
+        isOnline,
+      };
+    });
+
+    return usersWithOnlineStatus as User[];
   }
+
 
   async deleteUser(userId: string): Promise<void> {
     const result = await database.run(
@@ -165,9 +204,22 @@ export class UserService {
 
   async updateUserStats(userId: string, topic: string, progress: number, total: number): Promise<void> {
     await database.run(
-      `INSERT OR REPLACE INTO user_stats (user_id, topic, progress, total) 
+      `INSERT OR REPLACE INTO user_stats (user_id, topic, progress, total)
        VALUES (?, ?, ?, ?)`,
       [userId, topic, progress, total]
     );
   }
-} 
+
+  // New function to update last_active_at (for heartbeat)
+  async updateLastActive(userId: string): Promise<void> {
+    try {
+      await database.run(
+        'UPDATE users SET last_active_at = ? WHERE id = ?',
+        [new Date().toISOString(), userId]
+      );
+    } catch (error) {
+      console.error('Error updating last_active_at:', error);
+      throw error;
+    }
+  }
+}

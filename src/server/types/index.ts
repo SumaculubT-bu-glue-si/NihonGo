@@ -8,6 +8,7 @@ export interface User {
   role: 'learner' | 'admin';
   created_at: string;
   updated_at: string;
+  last_active_at?: string;
 }
 
 export interface Deck {
