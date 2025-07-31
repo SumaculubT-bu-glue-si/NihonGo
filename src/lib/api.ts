@@ -78,6 +78,8 @@ class ApiService {
         display_name: string;
         photo_url: string | null;
         role: 'learner' | 'admin';
+        is_active?: boolean;
+        last_active?: string;
       };
       token: string;
     }>('/auth/register', {
@@ -100,6 +102,8 @@ class ApiService {
         display_name: string;
         photo_url: string | null;
         role: 'learner' | 'admin';
+        is_active?: boolean;
+        last_active?: string;
       };
       token: string;
     }>('/auth/login', {
@@ -117,6 +121,8 @@ class ApiService {
   async getProfile() {
     return this.request<{
       user: {
+        last_active: string;
+        is_active: boolean;
         id: string;
         email: string;
         display_name: string;
@@ -138,6 +144,8 @@ class ApiService {
         display_name: string;
         photo_url: string | null;
         role: 'learner' | 'admin';
+        is_active?: boolean;
+        last_active?: string;
       };
     }>('/auth/profile', {
       method: 'PUT',

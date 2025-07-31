@@ -14,10 +14,12 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface User {
   id: string;
-  display_name: string | null;
   email: string;
+  display_name: string;
   photo_url: string | null;
   role: 'learner' | 'admin';
+  is_active?: boolean;
+  last_active?: string;
 }
 
 interface AuthContextType {
@@ -51,7 +53,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (token) {
           const response = await apiService.getProfile();
           if (response.data) {
-            setUser(response.data.user);
+            setUser({
+              ...response.data.user,
+              is_active: response.data.user.is_active ?? true,
+              last_active: response.data.user.last_active ?? new Date().toISOString()
+            } as User);
           } else {
             // Token is invalid, clear it
             apiService.clearToken();
@@ -77,7 +83,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (response.data) {
-        setUser(response.data.user);
+        setUser({
+          ...response.data.user,
+          is_active: response.data.user.is_active ?? true,
+          last_active: response.data.user.last_active ?? new Date().toISOString()
+        });
         toast({
           title: "Login Successful!",
           description: `Welcome back, ${response.data.user.display_name}!`
@@ -101,13 +111,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(response.error);
       }
 
-      if (response.data) {
-        setUser(response.data.user);
-        toast({
-          title: "Account Created!",
-          description: `Welcome! Your new ${response.data.user.role} account is ready.`
-        });
-      }
+        if (response.data) {
+          setUser({
+            ...response.data.user,
+            is_active: response.data.user.is_active?? true,
+            last_active: response.data.user.last_active ?? new Date().toISOString()
+          });
+          toast({
+            title: "Account Created!",
+            description: `Welcome! Your new ${response.data.user.role} account is ready.`
+          });
+        }
     } catch (error: any) {
       console.error('Registration error:', error);
       throw error;
@@ -141,7 +155,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (response.data) {
-        setUser(response.data.user);
+        setUser({
+          ...response.data.user,
+          is_active: response.data.user.is_active ?? true,
+          last_active: response.data.user.last_active ?? new Date().toISOString()
+        });
         toast({
           title: "Profile Updated",
           description: "Your profile has been successfully updated."
@@ -227,4 +245,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}

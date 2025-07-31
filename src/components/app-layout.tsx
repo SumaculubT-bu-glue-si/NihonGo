@@ -29,7 +29,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { UserSettingsForm } from "./user-settings-form";
+import UserSettingsForm from "./user-settings-form";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
@@ -166,8 +166,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 container mx-auto p-4 sm:p-6">{children}</main>
       </div>
       <UserSettingsForm
-        isOpen={isSettingsOpen}
+        open={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
+        user={user}
       />
     </>
   );

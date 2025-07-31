@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import {
   Users,
-  Clock,
+  Trophy,
   Target,
   BarChart as BarChartIcon,
   Download,
@@ -54,6 +54,8 @@ interface LearnerStats {
   name: string;
   email: string;
   photoURL: string;
+  is_active: boolean;
+  last_active: string;
   studyTime: string;
   decksCompleted: number;
   totalDecks: number;
@@ -100,21 +102,23 @@ export function AdminView({
       const stats: LearnerStats[] = learners.map((user, index) => {
         const data = allUsersData[user.id];
         if (!data) {
-          return {
-            uid: user.id,
-            name: user.display_name || "Unknown",
-            email: user.email || "No email",
-            photoURL: user.photo_url || "",
-            studyTime: "0m",
-            decksCompleted: 0,
-            totalDecks: 0,
-            deckCompletionPercent: 0,
-            grammarRead: 0,
-            totalGrammar: 0,
-            grammarCompletionPercent: 0,
-            avgQuizScore: 0,
-            quizzesTaken: 0,
-          };
+      return {
+        uid: user.id,
+        name: user.display_name || "Unknown",
+        email: user.email || "No email",
+        photoURL: user.photo_url || "",
+        is_active: user.is_active || false,
+        last_active: user.last_active || "Never",
+        studyTime: "0m",
+        decksCompleted: 0,
+        totalDecks: 0,
+        deckCompletionPercent: 0,
+        grammarRead: 0,
+        totalGrammar: 0,
+        grammarCompletionPercent: 0,
+        avgQuizScore: 0,
+        quizzesTaken: 0,
+      };
         }
 
         const totalDecks = data.decks.length;
@@ -144,6 +148,8 @@ export function AdminView({
           name: user.display_name || "Unknown",
           email: user.email || "No email",
           photoURL: user.photo_url || "",
+          is_active: user.is_active || false,
+          last_active: user.last_active || "Never",
           studyTime: mockTimes[index % mockTimes.length],
           decksCompleted,
           totalDecks,
@@ -415,15 +421,22 @@ export function AdminView({
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Avg. Study Time (N5)
+                Top Learner
               </CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Trophy className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1h 6m</div>
-              <p className="text-xs text-muted-foreground">
-                per user (mock data)
-              </p>
+              <div className="text-2xl font-bold">
+                {learnerStats[0]?.name.split(' ')[0] || 'N/A'}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                  Score: {Math.max(...learnerStats.map(s => s.avgQuizScore))}%
+                </span>
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  {learnerStats[0]?.decksCompleted} decks
+                </span>
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -494,7 +507,7 @@ export function AdminView({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{stats.studyTime}</div>
+                      <div className="font-medium">{stats.is_active? "Tite" : "Bulbol"}</div>
                       <div className="text-xs text-muted-foreground">
                         (mock data)
                       </div>
