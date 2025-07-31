@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { grammarLessons } from '../../lib/grammar-lessons-data';
 import { allQuizzes } from '../../lib/quiz-data';
 import { staticChallengeItems } from '../../lib/challenge-items-data';
+import { decks as initialDecks } from '../../lib/initial-data';
 
 interface GrammarLesson {
   id: string;
@@ -172,6 +173,37 @@ async function migrateChallengeItems() {
   console.log(`📊 Total challenge items migrated: ${itemCount}`);
 }
 
+async function migrateDecksAndFlashcards() {
+  console.log('🗂️  Migrating decks and flashcards...');
+  let deckCount = 0;
+  let cardCount = 0;
+  const SYSTEM_USER_ID = 'system';
+
+  for (const deck of initialDecks) {
+    try {
+      // Insert deck
+      await database.run(
+        'INSERT OR REPLACE INTO decks (id, user_id, title, description, category, level) VALUES (?, ?, ?, ?, ?, ?)',
+        [deck.id, SYSTEM_USER_ID, deck.title, deck.description, deck.category, deck.level]
+      );
+      deckCount++;
+      // Insert flashcards
+      for (const card of deck.cards) {
+        await database.run(
+          'INSERT OR REPLACE INTO flashcards (id, deck_id, type, front, back, reading, level) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [card.id, deck.id, card.type, card.front, card.back, card.reading || null, card.level]
+        );
+        cardCount++;
+      }
+      console.log(`✓ Migrated deck: ${deck.title} (${deck.cards.length} cards)`);
+    } catch (error) {
+      console.error(`✗ Failed to migrate deck: ${deck.title}`, error);
+    }
+  }
+  console.log(`📊 Total decks migrated: ${deckCount}`);
+  console.log(`📊 Total flashcards migrated: ${cardCount}`);
+}
+
 async function createInitialChallengeProgress() {
   console.log('🔄 Creating initial challenge progress structure...');
   
@@ -214,6 +246,9 @@ async function migrateContent() {
     await createInitialChallengeProgress();
     console.log('');
     
+    await migrateDecksAndFlashcards();
+    console.log('');
+    
     // Summary
     console.log('✅ Content migration completed successfully!');
     console.log('');
@@ -225,11 +260,15 @@ async function migrateContent() {
     const quizCount = await database.get('SELECT COUNT(*) as count FROM quizzes');
     const questionCount = await database.get('SELECT COUNT(*) as count FROM quiz_questions');
     const challengeCount = await database.get('SELECT COUNT(*) as count FROM challenge_items');
+    const deckCount = await database.get('SELECT COUNT(*) as count FROM decks');
+    const flashcardCount = await database.get('SELECT COUNT(*) as count FROM flashcards');
     
     console.log(`📚 Grammar Lessons: ${grammarCount?.count || 0}`);
     console.log(`📝 Quizzes: ${quizCount?.count || 0}`);
     console.log(`❓ Quiz Questions: ${questionCount?.count || 0}`);
     console.log(`🎯 Challenge Items: ${challengeCount?.count || 0}`);
+    console.log(`🗂️  Decks: ${deckCount?.count || 0}`);
+    console.log(`🃏 Flashcards: ${flashcardCount?.count || 0}`);
     console.log('');
     console.log('🎉 All your hardcoded content has been successfully migrated to the database!');
     console.log('');

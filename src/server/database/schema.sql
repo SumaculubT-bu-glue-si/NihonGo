@@ -172,6 +172,19 @@ CREATE TABLE IF NOT EXISTS grammar_check_history (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- User Flashcard Progress table
+CREATE TABLE IF NOT EXISTS user_flashcard_progress (
+    user_id TEXT NOT NULL,
+    deck_id TEXT NOT NULL,
+    card_id TEXT NOT NULL,
+    status TEXT NOT NULL, -- e.g., 'mastered', 'learning', etc.
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, deck_id, card_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (deck_id) REFERENCES decks(id) ON DELETE CASCADE,
+    FOREIGN KEY (card_id) REFERENCES flashcards(id) ON DELETE CASCADE
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_decks_user_id ON decks(user_id);
 CREATE INDEX IF NOT EXISTS idx_flashcards_deck_id ON flashcards(deck_id);

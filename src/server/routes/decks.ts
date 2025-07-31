@@ -6,11 +6,12 @@ import { CreateDeckRequest, CreateFlashcardRequest } from '../types';
 
 const router = Router();
 
-// Get all decks for the authenticated user
+// Get all decks for the authenticated user (including system decks)
 router.get('/', authenticateToken, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
-    
+    const SYSTEM_USER_ID = 'system';
+
     const decks = await database.all(
       `SELECT d.*, 
               COUNT(f.id) as card_count,
@@ -18,11 +19,11 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
               COALESCE(us.total, 0) as total
        FROM decks d
        LEFT JOIN flashcards f ON d.id = f.deck_id
-       LEFT JOIN user_stats us ON d.title = us.topic AND us.user_id = d.user_id
-       WHERE d.user_id = ?
+       LEFT JOIN user_stats us ON d.title = us.topic AND us.user_id = ?
+       WHERE d.user_id = ? OR d.user_id = ?
        GROUP BY d.id
        ORDER BY d.created_at DESC`,
-      [userId]
+      [userId, userId, SYSTEM_USER_ID]
     );
 
     res.json({ decks });
@@ -32,15 +33,16 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
   }
 });
 
-// Get a specific deck with its flashcards
+// Get a specific deck with its flashcards (allow system decks)
 router.get('/:deckId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
     const { deckId } = req.params;
+    const SYSTEM_USER_ID = 'system';
 
     const deck = await database.get(
-      'SELECT * FROM decks WHERE id = ? AND user_id = ?',
-      [deckId, userId]
+      'SELECT * FROM decks WHERE id = ? AND (user_id = ? OR user_id = ?)',
+      [deckId, userId, SYSTEM_USER_ID]
     );
 
     if (!deck) {
@@ -52,6 +54,7 @@ router.get('/:deckId', authenticateToken, async (req: Request, res: Response) =>
       [deckId]
     );
 
+    // Optionally, fetch user stats for this deck
     const stats = await database.get(
       'SELECT * FROM user_stats WHERE user_id = ? AND topic = ?',
       [userId, deck.title]
@@ -406,6 +409,60 @@ router.delete('/:deckId/cards/:cardId', authenticateToken, async (req: Request, 
     res.json({ message: 'Flashcard deleted successfully' });
   } catch (error) {
     console.error('Delete flashcard error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get user's flashcard progress for a deck
+router.get('/:deckId/progress', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const { deckId } = req.params;
+    const progress = await database.all(
+      'SELECT card_id, status FROM user_flashcard_progress WHERE user_id = ? AND deck_id = ?',
+      [userId, deckId]
+    );
+    res.json({ progress });
+  } catch (error) {
+    console.error('Get flashcard progress error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update progress for a card (mark as mastered/learning)
+router.post('/:deckId/progress', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const { deckId } = req.params;
+    const { cardId, status } = req.body;
+    if (!cardId || !status) {
+      return res.status(400).json({ error: 'cardId and status are required' });
+    }
+    await database.run(
+      `INSERT INTO user_flashcard_progress (user_id, deck_id, card_id, status, updated_at)
+       VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+       ON CONFLICT(user_id, deck_id, card_id) DO UPDATE SET status = excluded.status, updated_at = CURRENT_TIMESTAMP`,
+      [userId, deckId, cardId, status]
+    );
+    res.json({ message: 'Progress updated' });
+  } catch (error) {
+    console.error('Update flashcard progress error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Reset all progress for a deck
+router.post('/:deckId/progress/reset', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const { deckId } = req.params;
+    await database.run(
+      'DELETE FROM user_flashcard_progress WHERE user_id = ? AND deck_id = ?',
+      [userId, deckId]
+    );
+    res.json({ message: 'Progress reset' });
+  } catch (error) {
+    console.error('Reset flashcard progress error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

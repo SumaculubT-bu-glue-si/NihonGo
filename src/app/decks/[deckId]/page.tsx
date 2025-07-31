@@ -3,7 +3,7 @@
 
 import { AuthGuard } from '@/components/auth-guard';
 import { AppLayout } from '@/components/app-layout';
-import { FlashcardClientPage } from './flashcard-client-page';
+import FlashcardClientPage from './flashcard-client-page';
 import { notFound, useParams } from 'next/navigation';
 import { useGlobalState } from '@/hooks/use-global-state';
 
@@ -33,7 +33,7 @@ export default function DeckPage() {
   return (
     <AuthGuard>
       <AppLayout>
-        <FlashcardClientPage deck={deck} />
+        <FlashcardClientPage />
       </AppLayout>
     </AuthGuard>
   );

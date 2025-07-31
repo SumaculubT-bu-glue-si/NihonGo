@@ -143,7 +143,7 @@ function DeckCard({
       </div>
       <CardFooter className="mt-auto flex justify-between pt-4">
         <span className="text-sm text-muted-foreground">
-          {deck.cards.length} cards
+          {(deck.cards?.length || 0)} cards
         </span>
         <Link href={`/decks/${deck.id}`} passHref>
           <Button>Start Learning</Button>

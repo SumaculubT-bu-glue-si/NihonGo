@@ -277,6 +277,24 @@ class ApiService {
   async getAllUsersProgress() {
     return this.request<{ users: any[] }>('/content/admin/users-progress');
   }
+
+  // Deck Flashcard Progress
+  async getDeckProgress(deckId: string) {
+    return this.request<{ progress: { card_id: string; status: string }[] }>(`/decks/${deckId}/progress`);
+  }
+
+  async updateDeckProgress(deckId: string, cardId: string, status: string) {
+    return this.request<{ message: string }>(`/decks/${deckId}/progress`, {
+      method: 'POST',
+      body: JSON.stringify({ cardId, status }),
+    });
+  }
+
+  async resetDeckProgress(deckId: string) {
+    return this.request<{ message: string }>(`/decks/${deckId}/progress/reset`, {
+      method: 'POST',
+    });
+  }
 }
 
 export const apiService = new ApiService();
