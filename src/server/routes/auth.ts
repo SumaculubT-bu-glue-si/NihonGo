@@ -7,7 +7,7 @@ const router = Router();
 const userService = new UserService();
 
 // Heartbeat endpoint to update last_active_at
-router.post('/auth/heartbeat', authenticateToken, async (req: Request, res: Response) => {
+router.post('/heartbeat', authenticateToken, async (req: Request, res: Response) => {
   try {
     // Check if req.user is defined and has userId
     if (!req.user || !req.user.userId) {
