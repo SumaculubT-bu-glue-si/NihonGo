@@ -102,10 +102,13 @@ class ApiService {
     return response;
   }
 
+  async logout() {
+    this.clearToken();
+    return { message: 'Logged out successfully' };
+  }
+
   async getProfile() {
-    return this.request<{
-      user: User; // Use the updated User type
-    }>('/auth/profile');
+    return this.request<User>('/auth/profile');
   }
 
   async updateProfile(updateData: {
@@ -113,16 +116,15 @@ class ApiService {
     photo_url?: string;
     password?: string;
   }) {
-    return this.request<{
-      user: User; // Use the updated User type
-    }>('/auth/profile', {
+    return this.request<User>('/auth/profile', {
       method: 'PUT',
       body: JSON.stringify(updateData),
     });
   }
 
+  // User Stats methods
   async getUserStats() {
-    return this.request<{ stats: any[] }>('/auth/stats');
+    return this.request<{ stats: any[] }>('/decks/stats');
   }
 
   // Deck methods
@@ -159,12 +161,11 @@ class ApiService {
   }
 
   async deleteDeck(deckId: string) {
-    return this.request(`/decks/${deckId}`, {
+    return this.request<{ message: string }>(`/decks/${deckId}`, {
       method: 'DELETE',
     });
   }
 
-  // Flashcard methods
   async addFlashcard(deckId: string, cardData: {
     type: 'vocabulary' | 'grammar' | 'kanji';
     front: string;
@@ -172,7 +173,7 @@ class ApiService {
     reading?: string;
     level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
   }) {
-    return this.request<{ card: any }>(`/decks/${deckId}/cards`, {
+    return this.request<{ flashcard: any }>(`/decks/${deckId}/flashcards`, {
       method: 'POST',
       body: JSON.stringify(cardData),
     });
@@ -185,35 +186,96 @@ class ApiService {
     reading: string;
     level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
   }>) {
-    return this.request<{ card: any }>(`/decks/${deckId}/cards/${cardId}`, {
+    return this.request<{ flashcard: any }>(`/decks/${deckId}/flashcards/${cardId}`, {
       method: 'PUT',
       body: JSON.stringify(updateData),
     });
   }
 
   async deleteFlashcard(deckId: string, cardId: string) {
-    return this.request(`/decks/${deckId}/cards/${cardId}`, {
+    return this.request<{ message: string }>(`/decks/${deckId}/flashcards/${cardId}`, {
       method: 'DELETE',
     });
   }
 
   // Admin methods
   async getAllUsers() {
-    return this.request<{ users: User[] }>('/auth/users'); // Use the updated User type
+    return this.request<{ users: User[] }>('/auth/users');
   }
 
   async deleteUser(userId: string) {
-    return this.request(`/auth/users/${userId}`, {
+    return this.request<{ message: string }>(`/auth/users/${userId}`, {
       method: 'DELETE',
     });
   }
 
-  // New function to send heartbeat
   async sendHeartbeat() {
-    return this.request('/auth/heartbeat', {
+    return this.request<{ message: string }>('/auth/heartbeat', {
       method: 'POST',
-      // No body needed for a simple heartbeat
     });
+  }
+
+  // ===== CONTENT METHODS =====
+
+  // Grammar Lessons
+  async getGrammarLessons() {
+    return this.request<{ lessons: any[] }>('/content/grammar-lessons');
+  }
+
+  async getGrammarLesson(lessonId: string) {
+    return this.request<{ lesson: any }>(`/content/grammar-lessons/${lessonId}`);
+  }
+
+  async markGrammarLessonAsRead(lessonId: string) {
+    return this.request<{ message: string }>(`/content/grammar-lessons/${lessonId}/read`, {
+      method: 'POST',
+    });
+  }
+
+  // Quizzes
+  async getQuizzes() {
+    return this.request<{ quizzes: any[] }>('/content/quizzes');
+  }
+
+  async getQuiz(quizId: string) {
+    return this.request<{ quiz: any }>(`/content/quizzes/${quizId}`);
+  }
+
+  async submitQuizScore(quizId: string, score: number) {
+    return this.request<{ message: string }>(`/content/quizzes/${quizId}/score`, {
+      method: 'POST',
+      body: JSON.stringify({ score }),
+    });
+  }
+
+  // Challenges
+  async getChallengeProgress() {
+    return this.request<{ progress: any }>('/content/challenges/progress');
+  }
+
+  async updateChallengeProgress(level: string, unitId: string, stageId: string, status: 'completed' | 'active' | 'locked') {
+    return this.request<{ message: string }>('/content/challenges/progress', {
+      method: 'POST',
+      body: JSON.stringify({ level, unitId, stageId, status }),
+    });
+  }
+
+  async getChallengeItems(level: string, unitId: string, stageId: string) {
+    return this.request<{ items: any[] }>(`/content/challenges/${level}/${unitId}/${stageId}`);
+  }
+
+  // Admin Content Methods
+  async getUserProgress(userId: string) {
+    return this.request<{
+      grammarProgress: any[];
+      quizScores: any[];
+      challengeProgress: any[];
+      gameStats: any;
+    }>(`/content/admin/user-progress/${userId}`);
+  }
+
+  async getAllUsersProgress() {
+    return this.request<{ users: any[] }>('/content/admin/users-progress');
   }
 }
 

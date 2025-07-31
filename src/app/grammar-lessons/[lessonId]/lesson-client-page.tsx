@@ -3,9 +3,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { GrammarLesson, Quiz as QuizType } from '@/lib/data';
+import { useContentApi, type GrammarLesson } from '@/hooks/use-content-api';
 import Link from 'next/link';
-import { useGlobalState } from '@/hooks/use-global-state';
 import { generateQuiz } from '@/ai/flows/generate-quiz-flow';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -14,9 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Lightbulb, CheckCircle2, BookOpen, Loader2, Wand2, Repeat, ChevronLeft } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { QuizClientPage } from '@/app/quizzes/[quizId]/quiz-client-page';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 import { PronunciationButton } from '@/components/pronunciation-button';
 import { shuffle } from '@/lib/utils';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 function LessonContent({ lesson }: { lesson: GrammarLesson }) {
   const parseExample = (example: string) => {
@@ -62,23 +62,86 @@ function LessonContent({ lesson }: { lesson: GrammarLesson }) {
   );
 }
 
-export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
-  const { toggleGrammarLessonRead, completeChallengeNode } = useGlobalState();
+export function LessonClientPage() {
+  const { getGrammarLesson, markGrammarLessonAsRead } = useContentApi();
   const { toast } = useToast();
-  const [miniQuiz, setMiniQuiz] = useState<QuizType | null>(null);
+  const [lesson, setLesson] = useState<GrammarLesson | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [miniQuiz, setMiniQuiz] = useState<any | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [view, setView] = useState<'lesson' | 'quiz'>('lesson');
+  const [isMarkingAsRead, setIsMarkingAsRead] = useState(false);
+  
   const searchParams = useSearchParams();
+  const params = useParams();
+  const lessonId = params.lessonId as string;
   const challengeNodeId = searchParams.get('challengeNodeId');
+
+  // Load lesson data
+  useEffect(() => {
+    const loadLesson = async () => {
+      try {
+        setLoading(true);
+        const lessonData = await getGrammarLesson(lessonId);
+        if (lessonData) {
+          setLesson(lessonData);
+        } else {
+          setError('Lesson not found');
+        }
+      } catch (err) {
+        setError('Failed to load lesson');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (lessonId) {
+      loadLesson();
+    }
+  }, [lessonId, getGrammarLesson]);
+
+  const handleMarkAsRead = async () => {
+    if (!lesson) return;
+    
+    setIsMarkingAsRead(true);
+    try {
+      const success = await markGrammarLessonAsRead(lesson.id);
+      if (success) {
+        setLesson(prev => prev ? { ...prev, user_read: true, completed_at: new Date().toISOString() } : null);
+        toast({ 
+          title: "Lesson Completed!", 
+          description: "Great job! This lesson has been marked as completed." 
+        });
+      } else {
+        toast({ 
+          title: "Error", 
+          description: "Failed to mark lesson as completed. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (err) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to mark lesson as completed. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsMarkingAsRead(false);
+    }
+  };
 
   const handleCompleteQuiz = () => {
     toast({ title: "Lesson Completed!", description: "Great job on the quiz." });
     if (challengeNodeId) {
-        completeChallengeNode(challengeNodeId);
+      // TODO: Update challenge progress when challenge system is implemented
+      console.log('Challenge node completed:', challengeNodeId);
     }
   }
 
   const handleGenerateQuiz = async () => {
+    if (!lesson) return;
+    
     setIsGenerating(true);
     setMiniQuiz(null); // Clear previous quiz
     try {
@@ -98,93 +161,130 @@ export function LessonClientPage({ lesson }: { lesson: GrammarLesson }) {
 
       const quizWithIdsAndShuffledOptions = {
         ...result,
-        id: `temp-quiz-${lesson.id}`,
         questions: shuffledQuestions,
-      }
-      
-      setMiniQuiz(quizWithIdsAndShuffledOptions);
-      toggleGrammarLessonRead(lesson.id, true);
-      setView('quiz'); // Switch view to the quiz
+        id: `temp-quiz-${Math.random()}`
+      };
 
+      setMiniQuiz(quizWithIdsAndShuffledOptions);
+      setView('quiz');
     } catch (error) {
-      console.error('Failed to generate mini-quiz:', error);
-      toast({
-        title: 'Quiz Generation Failed',
-        description: 'Could not create a quiz for this lesson. Please try again.',
-        variant: 'destructive',
+      toast({ 
+        title: "Error", 
+        description: "Failed to generate quiz. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
     }
   };
-  
+
   const handleReturnToLesson = () => {
     setView('lesson');
+    setMiniQuiz(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+          <p>Loading lesson...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !lesson) {
+    return (
+      <Alert>
+        <AlertDescription>
+          {error || 'Lesson not found'}
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   if (view === 'quiz' && miniQuiz) {
     return (
-        <div className="container mx-auto">
-            <h1 className="text-2xl font-bold mb-4">{`Mini-Quiz: ${lesson.title}`}</h1>
-            <QuizClientPage 
-                quiz={miniQuiz} 
-                onComplete={handleCompleteQuiz}
-                backLink={{ href: `/grammar-lessons/${lesson.id}`, label: 'Back to Lesson' }}
-                onBack={handleReturnToLesson}
-            />
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={handleReturnToLesson}>
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Lesson
+          </Button>
         </div>
-    )
+        <QuizClientPage quiz={miniQuiz} onComplete={handleCompleteQuiz} />
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto max-w-4xl space-y-8">
-      <div>
-        <Link href="/grammar-lessons" className="text-sm text-primary hover:underline">
-          &larr; Back to Grammar Library
-        </Link>
-        <div className="flex items-center justify-between mt-2">
-            <h1 className="text-3xl font-bold font-headline">{lesson.title}</h1>
-            <Badge variant="secondary">{lesson.level}</Badge>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Link href="/grammar-lessons">
+            <Button variant="ghost" size="sm">
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back to Lessons
+            </Button>
+          </Link>
         </div>
-        <p className="flex items-center gap-2 text-muted-foreground mt-2">
-            Status: 
-            {lesson.read ? (
-                <span className="flex items-center gap-1 text-green-600 font-medium">
-                    <CheckCircle2 className="h-4 w-4" /> Completed
-                </span>
-            ) : (
-                <span className="flex items-center gap-1 font-medium">
-                    <BookOpen className="h-4 w-4" /> Not Completed
-                </span>
-            )}
-        </p>
+        <div className="flex items-center gap-2">
+          {lesson.user_read && (
+            <div className="flex items-center gap-1 text-sm text-green-600">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Completed</span>
+            </div>
+          )}
+          <Badge variant="secondary">{lesson.level}</Badge>
+        </div>
       </div>
-      
-      <LessonContent lesson={lesson} />
 
-      <Separator />
-
-      <Card className="bg-secondary/50">
+      {/* Lesson Content */}
+      <Card>
         <CardHeader>
-          <CardTitle>Check Your Understanding</CardTitle>
-           <CardDescription>
-            {lesson.read 
-              ? "You've completed this lesson, but you can take the test again to sharpen your memory!"
-              : "Complete this lesson by taking a short test!"
-            }
+          <CardTitle className="text-2xl">{lesson.title}</CardTitle>
+          <CardDescription>
+            {lesson.user_read ? 'You have completed this lesson' : 'Study this grammar point'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={handleGenerateQuiz} disabled={isGenerating}>
-            {isGenerating ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-               <Wand2 className="mr-2 h-4 w-4" />
-            )}
-            {isGenerating ? 'Generating Test...' : (lesson.read ? 'Retake Test' : 'Take Short Test')}
-          </Button>
+          <LessonContent lesson={lesson} />
         </CardContent>
       </Card>
+
+      {/* Actions */}
+      <div className="flex gap-4">
+        {!lesson.user_read && (
+          <Button 
+            onClick={handleMarkAsRead} 
+            disabled={isMarkingAsRead}
+            className="flex items-center gap-2"
+          >
+            {isMarkingAsRead ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
+            Mark as Completed
+          </Button>
+        )}
+        
+        <Button 
+          variant="outline" 
+          onClick={handleGenerateQuiz}
+          disabled={isGenerating}
+          className="flex items-center gap-2"
+        >
+          {isGenerating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Wand2 className="h-4 w-4" />
+          )}
+          Generate Quiz
+        </Button>
+      </div>
     </div>
   );
 }

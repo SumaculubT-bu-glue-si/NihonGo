@@ -54,43 +54,44 @@ CREATE TABLE IF NOT EXISTS user_stats (
     UNIQUE(user_id, topic)
 );
 
--- Grammar Lessons table
+-- ===== SYSTEM-LEVEL CONTENT TABLES =====
+
+-- System Grammar Lessons table (shared content for all users)
 CREATE TABLE IF NOT EXISTS grammar_lessons (
     id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
     title TEXT NOT NULL,
     level TEXT NOT NULL CHECK (level IN ('N5', 'N4', 'N3', 'N2', 'N1')),
     explanation TEXT NOT NULL,
     examples TEXT NOT NULL, -- JSON array of strings
-    read BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Favorite Grammar Lessons table (many-to-many relationship)
-CREATE TABLE IF NOT EXISTS favorite_grammar_lessons (
+-- User Grammar Lesson Progress table
+CREATE TABLE IF NOT EXISTS user_grammar_lessons (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT NOT NULL,
     lesson_id TEXT NOT NULL,
+    read BOOLEAN DEFAULT FALSE,
+    completed_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, lesson_id),
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (lesson_id) REFERENCES grammar_lessons(id) ON DELETE CASCADE
+    FOREIGN KEY (lesson_id) REFERENCES grammar_lessons(id) ON DELETE CASCADE,
+    UNIQUE(user_id, lesson_id)
 );
 
--- Quizzes table
+-- System Quizzes table (shared content for all users)
 CREATE TABLE IF NOT EXISTS quizzes (
     id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
     title TEXT NOT NULL,
     category TEXT NOT NULL CHECK (category IN ('vocabulary', 'grammar')),
     level TEXT NOT NULL CHECK (level IN ('N5', 'N4', 'N3', 'N2', 'N1')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Quiz Questions table
+-- System Quiz Questions table
 CREATE TABLE IF NOT EXISTS quiz_questions (
     id TEXT PRIMARY KEY,
     quiz_id TEXT NOT NULL,
@@ -104,17 +105,34 @@ CREATE TABLE IF NOT EXISTS quiz_questions (
     FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
 );
 
--- Quiz Scores table
-CREATE TABLE IF NOT EXISTS quiz_scores (
+-- User Quiz Scores table
+CREATE TABLE IF NOT EXISTS user_quiz_scores (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT NOT NULL,
     quiz_id TEXT NOT NULL,
     highest_score INTEGER NOT NULL CHECK (highest_score >= 0 AND highest_score <= 100),
+    attempts INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
     UNIQUE(user_id, quiz_id)
+);
+
+-- System Challenge Items table
+CREATE TABLE IF NOT EXISTS challenge_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    level TEXT NOT NULL CHECK (level IN ('N5', 'N4', 'N3', 'N2', 'N1')),
+    unit_id TEXT NOT NULL,
+    stage_id TEXT NOT NULL,
+    item_order INTEGER NOT NULL,
+    grammar_point TEXT NOT NULL,
+    english_sentence TEXT NOT NULL,
+    correct_japanese TEXT NOT NULL,
+    word_bank TEXT NOT NULL, -- JSON array of strings
+    hint TEXT,
+    distractors TEXT NOT NULL, -- JSON array of strings
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Challenge Progress table
@@ -158,10 +176,14 @@ CREATE TABLE IF NOT EXISTS grammar_check_history (
 CREATE INDEX IF NOT EXISTS idx_decks_user_id ON decks(user_id);
 CREATE INDEX IF NOT EXISTS idx_flashcards_deck_id ON flashcards(deck_id);
 CREATE INDEX IF NOT EXISTS idx_user_stats_user_id ON user_stats(user_id);
-CREATE INDEX IF NOT EXISTS idx_grammar_lessons_user_id ON grammar_lessons(user_id);
-CREATE INDEX IF NOT EXISTS idx_quizzes_user_id ON quizzes(user_id);
+CREATE INDEX IF NOT EXISTS idx_grammar_lessons_level ON grammar_lessons(level);
+CREATE INDEX IF NOT EXISTS idx_user_grammar_lessons_user_id ON user_grammar_lessons(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_grammar_lessons_lesson_id ON user_grammar_lessons(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_quizzes_level ON quizzes(level);
 CREATE INDEX IF NOT EXISTS idx_quiz_questions_quiz_id ON quiz_questions(quiz_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_scores_user_id ON quiz_scores(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_quiz_scores_user_id ON user_quiz_scores(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_quiz_scores_quiz_id ON user_quiz_scores(quiz_id);
+CREATE INDEX IF NOT EXISTS idx_challenge_items_level_unit_stage ON challenge_items(level, unit_id, stage_id);
 CREATE INDEX IF NOT EXISTS idx_challenge_progress_user_id ON challenge_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_grammar_check_history_user_id ON grammar_check_history(user_id);
 
@@ -196,6 +218,12 @@ CREATE TRIGGER IF NOT EXISTS update_grammar_lessons_updated_at
         UPDATE grammar_lessons SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
     END;
 
+CREATE TRIGGER IF NOT EXISTS update_user_grammar_lessons_updated_at 
+    AFTER UPDATE ON user_grammar_lessons
+    BEGIN
+        UPDATE user_grammar_lessons SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END;
+
 CREATE TRIGGER IF NOT EXISTS update_quizzes_updated_at 
     AFTER UPDATE ON quizzes
     BEGIN
@@ -208,10 +236,10 @@ CREATE TRIGGER IF NOT EXISTS update_quiz_questions_updated_at
         UPDATE quiz_questions SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
     END;
 
-CREATE TRIGGER IF NOT EXISTS update_quiz_scores_updated_at 
-    AFTER UPDATE ON quiz_scores
+CREATE TRIGGER IF NOT EXISTS update_user_quiz_scores_updated_at 
+    AFTER UPDATE ON user_quiz_scores
     BEGIN
-        UPDATE quiz_scores SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        UPDATE user_quiz_scores SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
     END;
 
 CREATE TRIGGER IF NOT EXISTS update_challenge_progress_updated_at 

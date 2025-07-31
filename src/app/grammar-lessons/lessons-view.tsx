@@ -2,18 +2,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { GrammarLesson } from '@/lib/data';
-import { useGlobalState } from '@/hooks/use-global-state';
+import { useContentApi, type GrammarLesson } from '@/hooks/use-content-api';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, BookOpen, ArrowRight, Star } from 'lucide-react';
+import { CheckCircle2, BookOpen, ArrowRight, Star, Loader2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 
 type LevelFilter = 'All' | 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 type StatusFilter = 'all' | 'completed' | 'incomplete';
@@ -31,7 +31,7 @@ const LessonItem = ({ lesson, isFavorite, onToggleFavorite }: { lesson: GrammarL
   <div className="flex items-center justify-between p-3 border-b last:border-b-0 hover:bg-muted/50 cursor-pointer group">
       <Link href={`/grammar-lessons/${lesson.id}`} passHref className="flex-grow">
         <div className="flex items-center gap-4">
-          {lesson.read ? (
+          {lesson.user_read ? (
               <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
           ) : (
               <BookOpen className="h-5 w-5 text-muted-foreground shrink-0" />
@@ -92,7 +92,7 @@ const LessonCard = ({ lesson, isFavorite, onToggleFavorite }: { lesson: GrammarL
                             }`}
                         />
                     </Button>
-                  {lesson.read ? (
+                  {lesson.user_read ? (
                       <div className="flex items-center gap-1 text-xs text-green-600">
                           <CheckCircle2 className="h-4 w-4" />
                           <span>Completed</span>
@@ -100,22 +100,23 @@ const LessonCard = ({ lesson, isFavorite, onToggleFavorite }: { lesson: GrammarL
                    ) : (
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <BookOpen className="h-4 w-4" />
-                          <span>Not Completed</span>
+                          <span>Not started</span>
                       </div>
                    )}
                 </div>
             </div>
-            <CardTitle className="pt-2">{lesson.title}</CardTitle>
+            <CardTitle className="text-lg">{lesson.title}</CardTitle>
         </CardHeader>
-         <CardContent className="flex-grow">
-          <p className="text-sm text-muted-foreground line-clamp-3">
-            {lesson.explanation}
-          </p>
+        <CardContent className="flex-grow">
+            <p className="text-sm text-muted-foreground line-clamp-3">
+                {lesson.explanation}
+            </p>
         </CardContent>
         <CardFooter>
-            <Link href={`/grammar-lessons/${lesson.id}`} passHref className="w-full">
-                <Button className="w-full">
-                    Study Lesson
+            <Link href={`/grammar-lessons/${lesson.id}`} className="w-full">
+                <Button className="w-full" variant="outline">
+                    Start Lesson
+                    <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             </Link>
         </CardFooter>
@@ -123,97 +124,200 @@ const LessonCard = ({ lesson, isFavorite, onToggleFavorite }: { lesson: GrammarL
 );
 
 export function GrammarLessonsView() {
-  const { appData, isLoading, toggleGrammarLessonFavorite } = useGlobalState();
-
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
+  const { grammarLessons, loading, error } = useContentApi();
+  const [levelFilter, setLevelFilter] = useState<LevelFilter>('All');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  
-  if (isLoading || !appData) {
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  // Load favorites from localStorage
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('grammar-lessons-favorites');
+    if (savedFavorites) {
+      setFavorites(JSON.parse(savedFavorites));
+    }
+  }, []);
+
+  const toggleFavorite = (lessonId: string) => {
+    setFavorites(prev => {
+      const newFavorites = prev.includes(lessonId)
+        ? prev.filter(id => id !== lessonId)
+        : [...prev, lessonId];
+      localStorage.setItem('grammar-lessons-favorites', JSON.stringify(newFavorites));
+      return newFavorites;
+    });
+  };
+
+  const filteredLessons = grammarLessons.filter(lesson => {
+    // Level filter
+    if (levelFilter !== 'All' && lesson.level !== levelFilter) return false;
+    
+    // Status filter
+    if (statusFilter === 'completed' && !lesson.user_read) return false;
+    if (statusFilter === 'incomplete' && lesson.user_read) return false;
+    
+    // Category filter (favorites)
+    if (categoryFilter === 'Favorites' && !favorites.includes(lesson.id)) return false;
+    
+    return true;
+  });
+
+  const completedLessons = grammarLessons.filter(lesson => lesson.user_read).length;
+  const totalLessons = grammarLessons.length;
+  const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+  if (loading) {
     return (
-        <div className="flex h-64 w-full items-center justify-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+          <p>Loading grammar lessons...</p>
         </div>
+      </div>
     );
   }
-  
-  const activeVariant = appData.activeVariants.grammar;
 
-  const filteredLessons = appData.grammarLessons
-    .filter(lesson => {
-      if (categoryFilter === 'All') return true;
-      if (categoryFilter === 'Favorites') return appData.favoriteGrammarLessons.includes(lesson.id);
-      return lesson.level === categoryFilter;
-    })
-    .filter(lesson => {
-      if (statusFilter === 'all') return true;
-      if (statusFilter === 'completed') return lesson.read;
-      if (statusFilter === 'incomplete') return !lesson.read;
-      return true;
-    });
-
-  const categories: CategoryFilter[] = ['All', 'N5', 'N4', 'N3', 'N2', 'N1', 'Favorites'];
+  if (error) {
+    return (
+      <Alert>
+        <AlertDescription>
+          Error loading grammar lessons: {error}
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4 justify-between">
-              <Tabs value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as CategoryFilter)}>
-                  <TabsList>
-                      {categories.map(level => (
-                          <TabsTrigger key={level} value={level}>{level}</TabsTrigger>
-                      ))}
-                  </TabsList>
-              </Tabs>
-              <RadioGroup value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} className="flex items-center">
-                  <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="all" id="r1" />
-                      <Label htmlFor="r1">All</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="completed" id="r2" />
-                      <Label htmlFor="r2">Completed</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="incomplete" id="r3" />
-                      <Label htmlFor="r3">Incomplete</Label>
-                  </div>
-              </RadioGroup>
+    <div className="space-y-6">
+      {/* Progress Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5" />
+            Progress Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Overall Progress</span>
+              <span className="text-sm text-muted-foreground">
+                {completedLessons} of {totalLessons} lessons completed
+              </span>
             </div>
+            <Progress value={progressPercentage} className="w-full" />
+            <div className="text-center text-sm text-muted-foreground">
+              {progressPercentage}% Complete
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-            <div className={cn(
-              "pt-4",
-              activeVariant === 'A' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-0"
-            )}>
-               {filteredLessons.length > 0 ? (
-                  activeVariant === 'A' ? (
-                      filteredLessons.map(lesson => (
-                          <LessonCard 
-                              key={lesson.id} 
-                              lesson={lesson} 
-                              isFavorite={appData.favoriteGrammarLessons.includes(lesson.id)}
-                              onToggleFavorite={toggleGrammarLessonFavorite}
-                          />
-                      ))
-                  ) : (
-                      <Card><CardContent className="p-0">
-                          {filteredLessons.map(lesson => (
-                              <LessonItem 
-                                  key={lesson.id} 
-                                  lesson={lesson} 
-                                  isFavorite={appData.favoriteGrammarLessons.includes(lesson.id)}
-                                  onToggleFavorite={toggleGrammarLessonFavorite}
-                              />
-                          ))}
-                      </CardContent></Card>
-                  )
-               ) : (
-                  <div className="col-span-full text-center text-muted-foreground py-10">
-                      <p>No lessons match the current filters.</p>
-                  </div>
-               )}
-            </div>
+      {/* Filters */}
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          <Tabs value={levelFilter} onValueChange={(value) => setLevelFilter(value as LevelFilter)}>
+            <TabsList>
+              <TabsTrigger value="All">All Levels</TabsTrigger>
+              <TabsTrigger value="N5">N5</TabsTrigger>
+              <TabsTrigger value="N4">N4</TabsTrigger>
+              <TabsTrigger value="N3">N3</TabsTrigger>
+              <TabsTrigger value="N2">N2</TabsTrigger>
+              <TabsTrigger value="N1">N1</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
+
+        <div className="flex flex-wrap gap-2">
+          <RadioGroup value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)} className="flex gap-4">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="all" id="all" />
+              <Label htmlFor="all">All</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="completed" id="completed" />
+              <Label htmlFor="completed">Completed</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="incomplete" id="incomplete" />
+              <Label htmlFor="incomplete">Not Started</Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <RadioGroup value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as CategoryFilter)} className="flex gap-4">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="All" id="all-cat" />
+              <Label htmlFor="all-cat">All</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Favorites" id="favorites" />
+              <Label htmlFor="favorites">Favorites</Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+          >
+            List View
+          </Button>
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('grid')}
+          >
+            Grid View
+          </Button>
+        </div>
+      </div>
+
+      {/* Lessons */}
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">
+            {filteredLessons.length} {filteredLessons.length === 1 ? 'Lesson' : 'Lessons'}
+          </h3>
+        </div>
+
+        {viewMode === 'list' ? (
+          <Card>
+            <div className="divide-y">
+              {filteredLessons.map((lesson) => (
+                <LessonItem
+                  key={lesson.id}
+                  lesson={lesson}
+                  isFavorite={favorites.includes(lesson.id)}
+                  onToggleFavorite={toggleFavorite}
+                />
+              ))}
+            </div>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredLessons.map((lesson) => (
+              <LessonCard
+                key={lesson.id}
+                lesson={lesson}
+                isFavorite={favorites.includes(lesson.id)}
+                onToggleFavorite={toggleFavorite}
+              />
+            ))}
+          </div>
+        )}
+
+        {filteredLessons.length === 0 && (
+          <Card>
+            <CardContent className="flex items-center justify-center h-32">
+              <p className="text-muted-foreground">No lessons found matching your filters.</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
