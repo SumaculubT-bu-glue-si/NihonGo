@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     role TEXT DEFAULT 'learner' CHECK (role IN ('learner', 'admin')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_active_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Decks table
@@ -161,7 +162,6 @@ CREATE INDEX IF NOT EXISTS idx_grammar_lessons_user_id ON grammar_lessons(user_i
 CREATE INDEX IF NOT EXISTS idx_quizzes_user_id ON quizzes(user_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_questions_quiz_id ON quiz_questions(quiz_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_scores_user_id ON quiz_scores(user_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_scores_quiz_id ON quiz_scores(quiz_id);
 CREATE INDEX IF NOT EXISTS idx_challenge_progress_user_id ON challenge_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_grammar_check_history_user_id ON grammar_check_history(user_id);
 
@@ -224,4 +224,4 @@ CREATE TRIGGER IF NOT EXISTS update_user_game_stats_updated_at
     AFTER UPDATE ON user_game_stats
     BEGIN
         UPDATE user_game_stats SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-    END; 
+    END;

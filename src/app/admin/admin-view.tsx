@@ -481,7 +481,7 @@ export function AdminView({
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[250px]">Learner</TableHead>
-                  <TableHead>Study Time</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Deck Completion</TableHead>
                   <TableHead>Grammar Progress</TableHead>
                   <TableHead>Average Quiz Score</TableHead>
@@ -507,10 +507,7 @@ export function AdminView({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{stats.is_active? "Tite" : "Bulbol"}</div>
-                      <div className="text-xs text-muted-foreground">
-                        (mock data)
-                      </div>
+                      <div className="font-medium">{stats.is_active? "Active" : "Inactive"}</div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
