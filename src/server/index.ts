@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 // Import routes
 import authRoutes from "./routes/auth";
 import deckRoutes from "./routes/decks";
+import decksProgressRoutes from "./routes/decks-progress";
 import uploadRoutes from "./routes/uploads";
 import contentRoutes from "./routes/content";
 
@@ -38,6 +39,7 @@ app.get("/health", (req, res) => {
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/decks", deckRoutes);
+app.use("/api/decks-progress", decksProgressRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/content", contentRoutes);
 

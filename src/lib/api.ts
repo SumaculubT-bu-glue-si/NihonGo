@@ -283,6 +283,10 @@ class ApiService {
     return this.request<{ progress: { card_id: string; status: string }[] }>(`/decks/${deckId}/progress`);
   }
 
+  async getDeckProgressSummary(deckId: string) {
+    return this.request<{ progress: number; masteredCount: number; totalCards: number }>(`/decks-progress?deck_id=${deckId}`);
+  }
+
   async updateDeckProgress(deckId: string, cardId: string, status: string) {
     return this.request<{ message: string }>(`/decks/${deckId}/progress`, {
       method: 'POST',

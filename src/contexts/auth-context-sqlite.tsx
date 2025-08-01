@@ -75,11 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const token = apiService.getToken();
         if (token) {
           const response = await apiService.getProfile();
-          if (response.data) {
+          if (response.data && response.data.user) {
             setUser({
-              ...response.data,
-              is_active: response.data.is_active ?? true,
-              last_active: response.data.last_active ?? new Date().toISOString()
+              ...response.data.user,
+              is_active: response.data.user.is_active ?? true,
+              last_active: response.data.user.last_active ?? new Date().toISOString()
             } as User);
           } else {
             // Token is invalid, clear it
