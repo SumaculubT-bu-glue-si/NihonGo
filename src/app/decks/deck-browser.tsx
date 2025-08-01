@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -32,6 +31,7 @@ import { Progress } from '@/components/ui/progress';
 import { GenerateDeckForm, type GenerateDeckData } from './generate-deck-form';
 import { useToast } from '@/hooks/use-toast';
 import { useGlobalState } from '@/hooks/use-global-state';
+import { useAuth } from '@/contexts/auth-context-sqlite';
 
 function DeckCard({
   deck,
@@ -40,6 +40,8 @@ function DeckCard({
   onEdit,
   onDelete,
   progress,
+  studied,
+  total
 }: {
   deck: Deck;
   isFavorite: boolean;
@@ -47,6 +49,8 @@ function DeckCard({
   onEdit: (deck: Deck) => void;
   onDelete: (id: string) => void;
   progress: number;
+  studied: number;
+  total: number;
 }) {
   return (
     <Card className="flex h-full transform flex-col transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl">
@@ -139,11 +143,13 @@ function DeckCard({
       </CardHeader>
       <div className="px-6 pb-2">
         <Progress value={progress} className="h-2" />
-        <p className="mt-1 text-xs text-muted-foreground">{Math.round(progress)}% completed</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {studied} of {total} cards mastered ({Math.round(progress)}%)
+        </p>
       </div>
       <CardFooter className="mt-auto flex justify-between pt-4">
         <span className="text-sm text-muted-foreground">
-          {(deck.cards?.length || 0)} cards
+          {total} cards total
         </span>
         <Link href={`/decks/${deck.id}`} passHref>
           <Button>Start Learning</Button>
@@ -160,6 +166,8 @@ function DeckListItem({
   onEdit,
   onDelete,
   progress,
+  studied,
+  total
 }: {
   deck: Deck;
   isFavorite: boolean;
@@ -167,6 +175,8 @@ function DeckListItem({
   onEdit: (deck: Deck) => void;
   onDelete: (id: string) => void;
   progress: number;
+  studied: number;
+  total: number;
 }) {
   return (
      <Card className="hover:bg-muted/50 transition-colors">
@@ -181,7 +191,9 @@ function DeckListItem({
                 <p className="text-sm text-muted-foreground mb-3">{deck.description}</p>
                  <div className="flex items-center gap-2">
                     <Progress value={progress} className="h-2 w-32" />
-                    <span className="text-xs text-muted-foreground">{Math.round(progress)}%</span>
+                    <span className="text-xs text-muted-foreground">
+                      {studied} of {total} cards mastered
+                    </span>
                 </div>
             </div>
 
@@ -250,20 +262,21 @@ function DeckListItem({
 
 interface DeckBrowserProps {
   decks: Deck[];
-  userStats: StatsData[];
   onSave: (deckData: Omit<Deck, 'id' | 'cards' | 'progress' | 'total'>, editingDeck: Deck | null) => void;
   onDelete: (id: string) => void;
   onGenerate: (deckData: GenerateDeckData) => void;
 }
 
 
-export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: DeckBrowserProps) {
+export function DeckBrowser({ decks, onSave, onDelete, onGenerate }: DeckBrowserProps) {
   const { appData } = useGlobalState();
+  const { user } = useAuth();
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState('All');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false);
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
+  const [deckProgress, setDeckProgress] = useState<Record<string, { progress: number, studied: number, total: number }>>({});
   const { toast } = useToast();
   
   const activeVariant = appData.activeVariants.home;
@@ -274,6 +287,40 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: 
       setFavorites(new Set(JSON.parse(saved)));
     }
   }, []);
+
+  // Fetch progress for each deck
+  useEffect(() => {
+    if (!user || !user.id || decks.length === 0) return;
+
+    const fetchProgress = async () => {
+      const progressMap: Record<string, { progress: number, studied: number, total: number }> = {};
+      
+      for (const deck of decks) {
+        try {
+          const response = await fetch(`/api/decks-progress?user_id=${user.id}&deck_id=${deck.id}`);
+          if (!response.ok) throw new Error('Failed to fetch progress');
+          const data = await response.json();
+          
+          progressMap[deck.id] = {
+            progress: data.progress,
+            studied: data.masteredCount,
+            total: data.totalCards
+          };
+        } catch (error) {
+          console.error(`Failed to fetch progress for deck ${deck.id}:`, error);
+          progressMap[deck.id] = {
+            progress: 0,
+            studied: 0,
+            total: deck.cards?.length || 0
+          };
+        }
+      }
+      
+      setDeckProgress(progressMap);
+    };
+
+    fetchProgress();
+  }, [user, decks]);
 
   const toggleFavorite = (id: string) => {
     setFavorites((prev) => {
@@ -355,8 +402,7 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: 
       {activeVariant === 'A' ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredDecks.map((deck) => {
-            const stat = userStats.find(s => s.topic === deck.title);
-            const progress = stat && stat.total > 0 ? (stat.progress / stat.total) * 100 : 0;
+            const progressData = deckProgress[deck.id] || { progress: 0, studied: 0, total: deck.cards?.length || 0 };
             return (
                 <DeckCard
                 key={deck.id}
@@ -365,7 +411,9 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: 
                 onToggleFavorite={toggleFavorite}
                 onEdit={handleEdit}
                 onDelete={onDelete}
-                progress={progress}
+                progress={progressData.progress}
+                studied={progressData.studied}
+                total={progressData.total}
                 />
             )
             })}
@@ -373,8 +421,7 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: 
       ) : (
          <div className="space-y-4">
             {filteredDecks.map((deck) => {
-            const stat = userStats.find(s => s.topic === deck.title);
-            const progress = stat && stat.total > 0 ? (stat.progress / stat.total) * 100 : 0;
+            const progressData = deckProgress[deck.id] || { progress: 0, studied: 0, total: deck.cards?.length || 0 };
             return (
                 <DeckListItem
                 key={deck.id}
@@ -383,7 +430,9 @@ export function DeckBrowser({ decks, userStats, onSave, onDelete, onGenerate }: 
                 onToggleFavorite={toggleFavorite}
                 onEdit={handleEdit}
                 onDelete={onDelete}
-                progress={progress}
+                progress={progressData.progress}
+                studied={progressData.studied}
+                total={progressData.total}
                 />
             )
             })}

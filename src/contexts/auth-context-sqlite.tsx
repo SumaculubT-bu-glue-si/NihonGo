@@ -77,9 +77,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const response = await apiService.getProfile();
           if (response.data) {
             setUser({
-              ...response.data.user,
-              is_active: response.data.user.is_active ?? true,
-              last_active: response.data.user.last_active ?? new Date().toISOString()
+              ...response.data,
+              is_active: response.data.is_active ?? true,
+              last_active: response.data.last_active ?? new Date().toISOString()
             } as User);
           } else {
             // Token is invalid, clear it
@@ -179,9 +179,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.data) {
         setUser({
-          ...response.data.user,
-          is_active: response.data.user.is_active ?? true,
-          last_active: response.data.user.last_active ?? new Date().toISOString()
+          ...response.data,
+          is_active: response.data.is_active ?? true,
+          last_active: response.data.last_active ?? new Date().toISOString()
         });
         toast({
           title: "Profile Updated",
