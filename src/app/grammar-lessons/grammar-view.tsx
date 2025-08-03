@@ -15,6 +15,7 @@ import { GrammarLessonsView } from './lessons-view';
 import { ShopDialog } from './shop-dialog';
 import { Button } from '@/components/ui/button';
 import { Howl } from 'howler';
+import { useContentApi } from '@/hooks/use-content-api';
 
 const CooldownTimer = () => {
   const { appData } = useGlobalState();
@@ -58,6 +59,7 @@ export function GrammarView() {
   const { appData } = useGlobalState();
   const { hearts, diamonds } = appData;
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const { grammarLessons, loading: lessonsLoading } = useContentApi();
 
   const shopSoundRef = useRef<Howl | null>(null);
 
@@ -69,8 +71,9 @@ export function GrammarView() {
   }, []);
   
   const grammarStats = useMemo(() => {
-    const lessonsCompleted = appData.grammarLessons.filter(l => l.read).length;
-    const totalLessons = appData.grammarLessons.length;
+    // Use dynamic grammar lessons data from database
+    const lessonsCompleted = grammarLessons.filter(l => l.user_read).length;
+    const totalLessons = grammarLessons.length;
     const { challengeData, challengeProgress, currentChallengeLevel } = appData;
     const allLevels: ('N5'|'N4'|'N3'|'N2'|'N1')[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
     
@@ -78,15 +81,20 @@ export function GrammarView() {
     let totalAvailableStages = 0;
 
     allLevels.forEach(level => {
-        const unitsInLevel = Object.keys(challengeData[level] || {});
+        const levelData = (challengeData as any)[level];
+        const unitsInLevel = Object.keys(levelData || {});
         unitsInLevel.forEach(unitId => {
-            const stages = Object.keys(challengeData[level][unitId]);
-            totalAvailableStages += stages.length;
-            stages.forEach(stageId => {
-                if (challengeProgress[level]?.[unitId]?.[stageId] === 'completed') {
-                    totalCompletedStages++;
-                }
-            });
+            const unitData = levelData?.[unitId];
+            if (unitData) {
+                const stages = Object.keys(unitData);
+                totalAvailableStages += stages.length;
+                stages.forEach(stageId => {
+                    const progressData = (challengeProgress as any)[level];
+                    if (progressData?.[unitId]?.[stageId] === 'completed') {
+                        totalCompletedStages++;
+                    }
+                });
+            }
         });
     });
 
@@ -102,7 +110,7 @@ export function GrammarView() {
         totalChallengesPassed: totalCompletedStages,
     };
 
-  }, [appData]);
+  }, [appData, grammarLessons]);
     
   const handleOpenShop = () => {
     shopSoundRef.current?.play();

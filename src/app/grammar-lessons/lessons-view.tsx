@@ -190,90 +190,67 @@ export function GrammarLessonsView() {
 
   return (
     <div className="space-y-6">
-      {/* Progress Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            Progress Overview
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Overall Progress</span>
-              <span className="text-sm text-muted-foreground">
-                {completedLessons} of {totalLessons} lessons completed
-              </span>
-            </div>
-            <Progress value={progressPercentage} className="w-full" />
-            <div className="text-center text-sm text-muted-foreground">
-              {progressPercentage}% Complete
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Filters */}
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          <Tabs value={levelFilter} onValueChange={(value) => setLevelFilter(value as LevelFilter)}>
-            <TabsList>
-              <TabsTrigger value="All">All Levels</TabsTrigger>
-              <TabsTrigger value="N5">N5</TabsTrigger>
-              <TabsTrigger value="N4">N4</TabsTrigger>
-              <TabsTrigger value="N3">N3</TabsTrigger>
-              <TabsTrigger value="N2">N2</TabsTrigger>
-              <TabsTrigger value="N1">N1</TabsTrigger>
-            </TabsList>
-          </Tabs>
+      <div className="flex flex-row space-y-4 justify-between">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
+            <Tabs value={levelFilter} onValueChange={(value) => setLevelFilter(value as LevelFilter)}>
+              <TabsList>
+                <TabsTrigger value="All">All Levels</TabsTrigger>
+                <TabsTrigger value="N5">N5</TabsTrigger>
+                <TabsTrigger value="N4">N4</TabsTrigger>
+                <TabsTrigger value="N3">N3</TabsTrigger>
+                <TabsTrigger value="N2">N2</TabsTrigger>
+                <TabsTrigger value="N1">N1</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <RadioGroup value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)} className="flex gap-4">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="all" id="all" />
+                <Label htmlFor="all">All</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="completed" id="completed" />
+                <Label htmlFor="completed">Completed</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="incomplete" id="incomplete" />
+                <Label htmlFor="incomplete">Not Started</Label>
+              </div>
+            </RadioGroup>
+          </div>
         </div>
-
-        <div className="flex flex-wrap gap-2">
-          <RadioGroup value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)} className="flex gap-4">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="all" id="all" />
-              <Label htmlFor="all">All</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="completed" id="completed" />
-              <Label htmlFor="completed">Completed</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="incomplete" id="incomplete" />
-              <Label htmlFor="incomplete">Not Started</Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <RadioGroup value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as CategoryFilter)} className="flex gap-4">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="All" id="all-cat" />
-              <Label htmlFor="all-cat">All</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Favorites" id="favorites" />
-              <Label htmlFor="favorites">Favorites</Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        <div className="flex gap-2">
-          <Button
-            variant={viewMode === 'list' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('list')}
-          >
-            List View
-          </Button>
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('grid')}
-          >
-            Grid View
-          </Button>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
+            <RadioGroup value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as CategoryFilter)} className="flex gap-4">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="All" id="all-cat" />
+                <Label htmlFor="all-cat">All</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Favorites" id="favorites" />
+                <Label htmlFor="favorites">Favorites</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              List View
+            </Button>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+            >
+              Grid View
+            </Button>
+          </div>
         </div>
       </div>
 

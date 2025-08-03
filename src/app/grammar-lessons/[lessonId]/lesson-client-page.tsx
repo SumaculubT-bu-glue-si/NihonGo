@@ -99,7 +99,7 @@ export function LessonClientPage() {
     if (lessonId) {
       loadLesson();
     }
-  }, [lessonId, getGrammarLesson]);
+  }, [lessonId]);
 
   const handleMarkAsRead = async () => {
     if (!lesson) return;
