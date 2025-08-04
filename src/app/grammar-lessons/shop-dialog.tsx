@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Heart, Gem } from 'lucide-react';
 import { useGlobalState } from '@/hooks/use-global-state';
+import { useUserStats } from '@/hooks/use-user-stats';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Howl } from 'howler';
@@ -20,6 +21,8 @@ import { Howl } from 'howler';
 interface ShopDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onHeartsChange?: (hearts: number) => void;
+  onDiamondsChange?: (diamonds: number) => void;
 }
 
 const shopItems = [
@@ -30,10 +33,21 @@ const shopItems = [
   { hearts: 5, cost: 400 },
 ];
 
-export function ShopDialog({ isOpen, onOpenChange }: ShopDialogProps) {
-  const { appData, purchaseHearts } = useGlobalState();
+export function ShopDialog({ isOpen, onOpenChange, onHeartsChange, onDiamondsChange }: ShopDialogProps) {
+  const { purchaseHearts } = useGlobalState();
+  const { diamonds, hearts, loading: statsLoading } = useUserStats();
   const { toast } = useToast();
-  const { diamonds, hearts } = appData;
+
+  // Local state for immediate UI updates
+  const [localDiamonds, setLocalDiamonds] = useState(diamonds);
+  const [localHearts, setLocalHearts] = useState(hearts);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+
+  // Sync local state with database values
+  useEffect(() => {
+    setLocalDiamonds(diamonds);
+    setLocalHearts(hearts);
+  }, [diamonds, hearts]);
 
   const buySoundRef = useRef<Howl | null>(null);
 
@@ -44,21 +58,86 @@ export function ShopDialog({ isOpen, onOpenChange }: ShopDialogProps) {
     }
   }, []);
 
-  const handlePurchase = (heartsToBuy: number, cost: number) => {
-    const success = purchaseHearts(heartsToBuy, cost);
-    if (success) {
-      buySoundRef.current?.play();
+  const handlePurchase = async (heartsToBuy: number, cost: number) => {
+    if (statsLoading || isPurchasing) {
       toast({
-        title: 'Purchase Successful!',
-        description: `You bought ${heartsToBuy} heart(s) for ${cost} diamonds.`,
-      });
-      onOpenChange(false);
-    } else {
-      toast({
-        title: 'Purchase Failed',
-        description: "You don't have enough diamonds.",
+        title: 'Please wait',
+        description: 'Loading user stats or purchase in progress...',
         variant: 'destructive',
       });
+      return;
+    }
+
+    // Check if user can afford and hearts aren't full
+    if (localDiamonds < cost) {
+      toast({
+        title: 'Insufficient Diamonds',
+        description: `You need ${cost} diamonds but only have ${localDiamonds}.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (localHearts >= 5) {
+      toast({
+        title: 'Hearts Already Full',
+        description: 'Your hearts are already at maximum capacity.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsPurchasing(true);
+
+    try {
+      // Immediately update UI for smooth experience
+      const newHearts = Math.min(5, localHearts + heartsToBuy);
+      const newDiamonds = localDiamonds - cost;
+
+      setLocalHearts(newHearts);
+      setLocalDiamonds(newDiamonds);
+
+      // Update parent component's local state immediately
+      onHeartsChange?.(newHearts);
+      onDiamondsChange?.(newDiamonds);
+
+      // Play sound immediately
+      buySoundRef.current?.play();
+
+      // Update database
+      const success = await purchaseHearts(heartsToBuy, cost);
+
+      if (success) {
+        toast({
+          title: 'Purchase Successful!',
+          description: `You bought ${heartsToBuy} heart(s) for ${cost} diamonds.`,
+        });
+        onOpenChange(false);
+      } else {
+        // Revert UI if database update failed
+        setLocalHearts(hearts);
+        setLocalDiamonds(diamonds);
+        onHeartsChange?.(hearts);
+        onDiamondsChange?.(diamonds);
+        toast({
+          title: 'Purchase Failed',
+          description: 'Failed to update database. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      // Revert UI on error
+      setLocalHearts(hearts);
+      setLocalDiamonds(diamonds);
+      onHeartsChange?.(hearts);
+      onDiamondsChange?.(diamonds);
+      toast({
+        title: 'Purchase Failed',
+        description: 'An error occurred. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsPurchasing(false);
     }
   };
 
@@ -69,14 +148,14 @@ export function ShopDialog({ isOpen, onOpenChange }: ShopDialogProps) {
           <DialogTitle>Heart Shop</DialogTitle>
           <DialogDescription>
             Out of lives? Refill your hearts with diamonds to keep learning!
-            You currently have {diamonds} diamonds.
+            You currently have {statsLoading ? '...' : localDiamonds} diamonds.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-3">
           {shopItems.map((item) => {
-            const canAfford = diamonds >= item.cost;
-            const isFull = hearts >= 5;
-            const isDisabled = !canAfford || isFull;
+            const canAfford = localDiamonds >= item.cost;
+            const isFull = localHearts >= 5;
+            const isDisabled = !canAfford || isFull || statsLoading || isPurchasing;
 
             return (
               <div
@@ -93,7 +172,9 @@ export function ShopDialog({ isOpen, onOpenChange }: ShopDialogProps) {
                       Refill {item.hearts} Heart{item.hearts > 1 ? 's' : ''}
                     </span>
                   </div>
-                   {isFull && !isDisabled && <p className="text-xs text-muted-foreground">Your hearts are already full.</p>}
+                  {isFull && !isDisabled && <p className="text-xs text-muted-foreground">Your hearts are already full.</p>}
+                  {statsLoading && <p className="text-xs text-muted-foreground">Loading...</p>}
+                  {isPurchasing && <p className="text-xs text-muted-foreground">Processing...</p>}
                 </div>
                 <Button
                   onClick={() => handlePurchase(item.hearts, item.cost)}

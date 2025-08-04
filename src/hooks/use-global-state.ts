@@ -25,6 +25,7 @@ import {
   challengeData as initialChallengeData,
 } from "@/lib/initial-data";
 import { useAuth } from "@/contexts/auth-context-sqlite";
+import { useUserStats } from "@/hooks/use-user-stats";
 import type { CheckGrammarOutput } from "@/ai/flows/grammar-checker-flow";
 
 const USER_DATA_STORAGE_KEY_PREFIX = "nihongo-app-data";
@@ -150,6 +151,7 @@ const getInitialVariants = (): ActiveVariants => ({
 
 export const useGlobalStateData = () => {
   const { user } = useAuth();
+  const { userStats, updateHearts, updateDiamonds, updateChallengeLevel } = useUserStats();
   const [fullAppData, setFullAppData] = useState<FullAppData>({});
   const [activeVariants, setActiveVariants] = useState<ActiveVariants>(
     getInitialVariants()
@@ -159,6 +161,19 @@ export const useGlobalStateData = () => {
   const currentUserData = user
     ? fullAppData[user.id] || getInitialUserData()
     : getInitialUserData();
+
+  // Sync hearts, diamonds, and challenge level with database
+  useEffect(() => {
+    if (userStats) {
+      setCurrentUserData((prev) => ({
+        ...prev,
+        hearts: userStats.hearts,
+        diamonds: userStats.diamonds,
+        currentChallengeLevel: userStats.current_challenge_level as "N5" | "N4" | "N3" | "N2" | "N1",
+        lastHeartLossTimestamp: userStats.last_heart_loss_timestamp,
+      }));
+    }
+  }, [userStats]);
 
   // Load all data from localStorage on mount
   useEffect(() => {
@@ -226,21 +241,28 @@ export const useGlobalStateData = () => {
     [user]
   );
 
-  const addHeart = useCallback(() => {
-    setCurrentUserData((prev) => {
-      if (prev.hearts >= 5) {
-        return { ...prev, lastHeartLossTimestamp: null };
-      }
-      return {
-        ...prev,
-        hearts: prev.hearts + 1,
-        lastHeartLossTimestamp: Date.now(),
-      };
-    });
-  }, [setCurrentUserData]);
+  const addHeart = useCallback(async () => {
+    if (!userStats) return;
+
+    const newHearts = Math.min(5, userStats.hearts + 1);
+    const success = await updateHearts(newHearts);
+
+    if (success) {
+      setCurrentUserData((prev) => {
+        if (prev.hearts >= 5) {
+          return { ...prev, lastHeartLossTimestamp: null };
+        }
+        return {
+          ...prev,
+          hearts: newHearts,
+          lastHeartLossTimestamp: Date.now(),
+        };
+      });
+    }
+  }, [userStats, updateHearts, setCurrentUserData]);
 
   useEffect(() => {
-    if (!user || !currentUserData) return;
+    if (!user || !currentUserData || !userStats) return;
 
     const timer = setInterval(() => {
       if (
@@ -257,7 +279,7 @@ export const useGlobalStateData = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [user, currentUserData, addHeart]);
+  }, [user, currentUserData, userStats, addHeart]);
 
   const addDeck = useCallback(
     (deckData: Omit<Deck, "id" | "cards">) => {
@@ -630,11 +652,11 @@ export const useGlobalStateData = () => {
         quizzes: prev.quizzes.map((q) =>
           q.id === quizId
             ? {
-                ...q,
-                questions: q.questions.map((qu) =>
-                  qu.id === questionId ? { ...qu, ...questionData } : qu
-                ),
-              }
+              ...q,
+              questions: q.questions.map((qu) =>
+                qu.id === questionId ? { ...qu, ...questionData } : qu
+              ),
+            }
             : q
         ),
       }));
@@ -649,9 +671,9 @@ export const useGlobalStateData = () => {
         quizzes: prev.quizzes.map((q) =>
           q.id === quizId
             ? {
-                ...q,
-                questions: q.questions.filter((qu) => qu.id !== questionId),
-              }
+              ...q,
+              questions: q.questions.filter((qu) => qu.id !== questionId),
+            }
             : q
         ),
       }));
@@ -677,66 +699,75 @@ export const useGlobalStateData = () => {
     [setCurrentUserData]
   );
 
-  const loseHeart = useCallback(() => {
-    setCurrentUserData((prev) => {
-      if (prev.hearts === 0) return prev;
-      const newHearts = prev.hearts - 1;
-      let newTimestamp = prev.lastHeartLossTimestamp;
-      // Set timestamp only when the timer isn't already running (i.e., when going from 5 to 4 hearts)
-      if (prev.hearts === 5) {
-        newTimestamp = Date.now();
-      }
-      return {
-        ...prev,
-        hearts: newHearts,
-        lastHeartLossTimestamp: newTimestamp,
-      };
-    });
-  }, [setCurrentUserData]);
+  const loseHeart = useCallback(async () => {
+    if (!userStats) return;
 
-  const addDiamonds = useCallback(
-    (amount: number) => {
+    const newHearts = Math.max(0, userStats.hearts - 1);
+    const success = await updateHearts(newHearts);
+
+    if (success) {
+      setCurrentUserData((prev) => {
+        if (prev.hearts === 0) return prev;
+        const newTimestamp = prev.hearts === 5 ? Date.now() : prev.lastHeartLossTimestamp;
+        return {
+          ...prev,
+          hearts: newHearts,
+          lastHeartLossTimestamp: newTimestamp,
+        };
+      });
+    }
+  }, [userStats, updateHearts, setCurrentUserData]);
+
+  const addDiamonds = useCallback(async (amount: number) => {
+    if (!userStats) return;
+
+    const newDiamonds = userStats.diamonds + amount;
+    const success = await updateDiamonds(newDiamonds);
+
+    if (success) {
       setCurrentUserData((prev) => ({
         ...prev,
-        diamonds: (prev.diamonds || 0) + amount,
+        diamonds: newDiamonds,
       }));
-    },
-    [setCurrentUserData]
-  );
+    }
+  }, [userStats, updateDiamonds, setCurrentUserData]);
 
-  const purchaseHearts = useCallback(
-    (heartsToBuy: number, cost: number): boolean => {
-      let success = false;
-      setCurrentUserData((prev) => {
-        if (prev.diamonds >= cost && prev.hearts < 5) {
-          success = true;
-          const newHearts = Math.min(5, prev.hearts + heartsToBuy);
-          // If hearts are now full, clear the timer timestamp
-          const newTimestamp =
-            newHearts === 5 ? null : prev.lastHeartLossTimestamp;
+  const purchaseHearts = useCallback(async (heartsToBuy: number, cost: number): Promise<boolean> => {
+    if (!userStats) return false;
+
+    if (userStats.diamonds >= cost && userStats.hearts < 5) {
+      const newHearts = Math.min(5, userStats.hearts + heartsToBuy);
+      const newDiamonds = userStats.diamonds - cost;
+
+      const heartsSuccess = await updateHearts(newHearts);
+      const diamondsSuccess = await updateDiamonds(newDiamonds);
+
+      if (heartsSuccess && diamondsSuccess) {
+        setCurrentUserData((prev) => {
+          const newTimestamp = newHearts === 5 ? null : prev.lastHeartLossTimestamp;
           return {
             ...prev,
-            diamonds: prev.diamonds - cost,
+            diamonds: newDiamonds,
             hearts: newHearts,
             lastHeartLossTimestamp: newTimestamp,
           };
-        }
-        return prev;
-      });
-      return success;
-    },
-    [setCurrentUserData]
-  );
+        });
+        return true;
+      }
+    }
+    return false;
+  }, [userStats, updateHearts, updateDiamonds, setCurrentUserData]);
 
-  const setCurrentChallengeLevel = useCallback(
-    (level: "N5" | "N4" | "N3" | "N2" | "N1") => {
+  const setCurrentChallengeLevel = useCallback(async (level: "N5" | "N4" | "N3" | "N2" | "N1") => {
+    const success = await updateChallengeLevel(level);
+
+    if (success) {
       setCurrentUserData((prev) => ({
         ...prev,
         currentChallengeLevel: level,
       }));
-    },
-    [setCurrentUserData]
-  );
+    }
+  }, [updateChallengeLevel, setCurrentUserData]);
 
   const addGrammarCheckToHistory = useCallback(
     (item: GrammarCheckHistoryItem) => {

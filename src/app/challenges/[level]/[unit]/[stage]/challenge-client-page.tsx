@@ -12,6 +12,8 @@ import { useRouter, useParams } from 'next/navigation';
 import { Howl } from 'howler';
 import Image from 'next/image';
 import { useGlobalState } from '@/hooks/use-global-state';
+import { useUserStats } from '@/hooks/use-user-stats';
+import { useChallengeProgress } from '@/hooks/use-challenge-progress';
 import { useToast } from '@/hooks/use-toast';
 
 function WordButton({
@@ -39,8 +41,9 @@ function WordButton({
 export function ChallengeClientPage({ items, level, unitId }: { items: ChallengeItem[], level: string, unitId: string }) {
   const router = useRouter();
   const { toast } = useToast();
-  const { appData, loseHeart, addDiamonds, completeChallengeNode } = useGlobalState();
-  const { hearts } = appData;
+  const { appData, addDiamonds, completeChallengeNode } = useGlobalState();
+  const { userStats, updateHearts, hearts, loading: statsLoading } = useUserStats();
+  const { updateProgress } = useChallengeProgress();
   const params = useParams<{ level: string; unit: string; stage: string }>();
 
   const [sessionItems, setSessionItems] = useState<ChallengeItem[]>([]);
@@ -72,7 +75,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     const voices = window.speechSynthesis.getVoices();
     const japaneseVoice = voices.find(voice => voice.lang === 'ja-JP');
     if (japaneseVoice) {
-        utterance.voice = japaneseVoice;
+      utterance.voice = japaneseVoice;
     }
 
     window.speechSynthesis.speak(utterance);
@@ -84,11 +87,11 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     incorrectSoundRef.current = new Howl({ src: ['/sounds/wrong.mp3'], volume: 0.7 });
     // Cleanup sounds on component unmount
     return () => {
-        correctSoundRef.current?.unload();
-        incorrectSoundRef.current?.unload();
-        if (typeof window !== 'undefined' && window.speechSynthesis) {
-            window.speechSynthesis.cancel();
-        }
+      correctSoundRef.current?.unload();
+      incorrectSoundRef.current?.unload();
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
     }
   }, []);
 
@@ -111,21 +114,20 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
 
   }, [currentItem]);
 
-
-  // Check for no hearts
+  // Check for no hearts - now using database-backed hearts
   useEffect(() => {
-    if (hearts === 0 && !isAnswered) {
-        toast({
-            title: "You're out of hearts!",
-            description: "Refill your hearts or practice to earn more.",
-            variant: "destructive"
-        });
-        const timer = setTimeout(() => {
-            router.push(getRedirectUrl());
-        }, 2000);
-        return () => clearTimeout(timer);
+    if (hearts === 0 && !isAnswered && !statsLoading) {
+      toast({
+        title: "You're out of hearts!",
+        description: "Refill your hearts or practice to earn more.",
+        variant: "destructive"
+      });
+      const timer = setTimeout(() => {
+        router.push(getRedirectUrl());
+      }, 2000);
+      return () => clearTimeout(timer);
     }
-  }, [hearts, isAnswered, getRedirectUrl, router, toast]);
+  }, [hearts, isAnswered, statsLoading, getRedirectUrl, router, toast]);
 
   const handleSelectWord = (word: string) => {
     setSelectedWords((prev) => [...prev, word]);
@@ -148,7 +150,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     setWordBank((prev) => shuffle([...prev, word]));
   };
 
-  const checkAnswer = () => {
+  const checkAnswer = async () => {
     if (isAnswered) return;
     const userAnswer = selectedWords.join('').replace(/\s/g, '');
     const correctAnswer = currentItem.correct_japanese.replace(/\s/g, '');
@@ -161,7 +163,17 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
       correctSoundRef.current?.play();
     } else {
       incorrectSoundRef.current?.play();
-      loseHeart();
+      // Update hearts in database instead of global state
+      const newHearts = Math.max(0, hearts - 1);
+      const success = await updateHearts(newHearts);
+      if (!success) {
+        console.error('Failed to update hearts in database');
+        toast({
+          title: 'Error',
+          description: 'Failed to update hearts. Please try again.',
+          variant: 'destructive'
+        });
+      }
     }
   };
 
@@ -170,17 +182,17 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
 
     // Move the current item to the end of the queue
     setSessionItems(prevItems => {
-        const newItems = [...prevItems];
-        const skippedItem = newItems.splice(currentIndex, 1)[0];
-        newItems.push(skippedItem);
-        return newItems;
+      const newItems = [...prevItems];
+      const skippedItem = newItems.splice(currentIndex, 1)[0];
+      newItems.push(skippedItem);
+      return newItems;
     });
 
     // We don't increment the index here because the array re-orders,
     // so the item at the `currentIndex` will be the next item automatically.
     // If we're at the end, loop back to the start.
     if (currentIndex >= sessionItems.length - 1) {
-        setCurrentIndex(0);
+      setCurrentIndex(0);
     }
   }
 
@@ -192,22 +204,20 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
       if (newItems.length === 0) {
         // All items completed - save progress to database
         console.log('🎯 Challenge stage completed! Saving progress to database...');
-        
+
         const decodedUnitId = decodeURIComponent(params.unit as string);
         const stageId = params.stage as string;
         const levelId = params.level as 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
-        
+
         console.log('🎯 Challenge completion details:', { levelId, decodedUnitId, stageId });
-        
+
         try {
-          // Import the API service to save progress
-          const { apiService } = await import('@/lib/api');
-          
+          // Use the new hook to update progress
           console.log('🎯 Saving challenge progress as completed...');
-          const result = await apiService.updateChallengeProgress(levelId, decodedUnitId, stageId, 'completed');
-          
-          if (result.error) {
-            console.error('❌ Failed to save challenge progress:', result.error);
+          const success = await updateProgress(levelId, decodedUnitId, stageId, 'completed');
+
+          if (!success) {
+            console.error('❌ Failed to save challenge progress');
             toast({
               title: 'Progress Save Failed',
               description: 'Challenge completed but progress could not be saved.',
@@ -215,18 +225,18 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
             });
           } else {
             console.log('✅ Challenge progress saved successfully!');
-            
+
             // Also try to unlock the next stage
             const stageNum = parseInt(stageId.replace('stage', ''), 10);
             const nextStageId = `stage${stageNum + 1}`;
-            
+
             console.log('🎯 Attempting to unlock next stage:', nextStageId);
-            const nextResult = await apiService.updateChallengeProgress(levelId, decodedUnitId, nextStageId, 'active');
-            
-            if (!nextResult.error) {
+            const nextSuccess = await updateProgress(levelId, decodedUnitId, nextStageId, 'active');
+
+            if (nextSuccess) {
               console.log('✅ Next stage unlocked successfully!');
             } else {
-              console.log('ℹ️ Next stage unlock failed (may not exist):', nextResult.error);
+              console.log('ℹ️ Next stage unlock failed (may not exist)');
             }
           }
         } catch (error) {
@@ -237,7 +247,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
             variant: 'destructive',
           });
         }
-        
+
         // Continue with existing completion logic
         addDiamonds(25);
         completeChallengeNode(`${levelId}|${decodedUnitId}|${stageId}`);
@@ -298,7 +308,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
           <Progress value={progressPercentage} className="h-4 bg-gray-500 [&>div]:bg-green-400" />
           <div className="flex items-center gap-2">
             <Heart className="h-7 w-7 text-red-500 fill-red-500" />
-            <span className="text-xl font-bold">{hearts}</span>
+            <span className="text-xl font-bold">{statsLoading ? '...' : hearts}</span>
           </div>
         </div>
       </header>
@@ -307,29 +317,29 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
         <h1 className="text-2xl sm:text-3xl font-bold">Write this in Japanese</h1>
 
         <div className="flex items-center gap-4">
-           <div className="flex items-center gap-2">
-             <div className="text-2xl sm:text-4xl font-bold tracking-wider">
-               {currentItem.english_sentence}
-             </div>
-             <PronunciationButton text={currentItem.correct_japanese} />
-           </div>
+          <div className="flex items-center gap-2">
+            <div className="text-2xl sm:text-4xl font-bold tracking-wider">
+              {currentItem.english_sentence}
+            </div>
+            <PronunciationButton text={currentItem.correct_japanese} />
+          </div>
         </div>
 
         {/* Answer Area */}
         <div className="w-full max-w-2xl">
-            <div className="flex flex-wrap gap-2 p-4 border-b-2 border-dashed border-gray-500 min-h-[6rem]">
-                    {selectedWords.map((word, index) => (
-                        <Button
-                            key={`selected-${word}-${index}`} // Changed key to ensure uniqueness for identical words
-                            variant="outline"
-                            size="lg"
-                            onClick={() => handleDeselectWord(word, index)}
-                            className="h-14 text-lg bg-secondary/80 text-secondary-foreground hover:bg-secondary"
-                        >
-                        {word}
-                        </Button>
-                    ))}
-            </div>
+          <div className="flex flex-wrap gap-2 p-4 border-b-2 border-dashed border-gray-500 min-h-[6rem]">
+            {selectedWords.map((word, index) => (
+              <Button
+                key={`selected-${word}-${index}`} // Changed key to ensure uniqueness for identical words
+                variant="outline"
+                size="lg"
+                onClick={() => handleDeselectWord(word, index)}
+                className="h-14 text-lg bg-secondary/80 text-secondary-foreground hover:bg-secondary"
+              >
+                {word}
+              </Button>
+            ))}
+          </div>
         </div>
 
 
@@ -355,41 +365,41 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
       )}>
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           {!isAnswered ? (
-             <>
-               <Button variant="ghost" size="lg" className="hover:bg-white/10 text-lg" onClick={handleSkip}>SKIP</Button>
-               <Button
-                   size="lg"
-                   className="bg-green-500 hover:bg-green-600 text-white text-lg px-12"
-                   onClick={checkAnswer}
-                   disabled={selectedWords.length === 0}
-               >
-                   CHECK
-               </Button>
-             </>
-           ) : (
             <>
-                <div className="flex flex-col">
-                    <span className="text-lg font-bold">{isCorrect ? "Correct!" : "Incorrect"}</span>
-                    {!isCorrect && (
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm">{currentItem.hint}</span>
-                             <div className="text-sm font-semibold flex items-center gap-1">
-                                 {currentItem.correct_japanese}
-                                 <PronunciationButton text={currentItem.correct_japanese} />
-                            </div>
-                        </div>
-                    )}
-                </div>
-                   <Button
-                       size="lg"
-                       className={cn(
-                           "text-white text-lg px-12",
-                           isCorrect ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"
-                       )}
-                       onClick={handleContinue}
-                   >
-                       CONTINUE
-                   </Button>
+              <Button variant="ghost" size="lg" className="hover:bg-white/10 text-lg" onClick={handleSkip}>SKIP</Button>
+              <Button
+                size="lg"
+                className="bg-green-500 hover:bg-green-600 text-white text-lg px-12"
+                onClick={checkAnswer}
+                disabled={selectedWords.length === 0 || statsLoading}
+              >
+                CHECK
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="flex flex-col">
+                <span className="text-lg font-bold">{isCorrect ? "Correct!" : "Incorrect"}</span>
+                {!isCorrect && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">{currentItem.hint}</span>
+                    <div className="text-sm font-semibold flex items-center gap-1">
+                      {currentItem.correct_japanese}
+                      <PronunciationButton text={currentItem.correct_japanese} />
+                    </div>
+                  </div>
+                )}
+              </div>
+              <Button
+                size="lg"
+                className={cn(
+                  "text-white text-lg px-12",
+                  isCorrect ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"
+                )}
+                onClick={handleContinue}
+              >
+                CONTINUE
+              </Button>
             </>
           )}
         </div>

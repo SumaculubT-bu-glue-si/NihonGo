@@ -23,7 +23,7 @@ app.use(
     origin: process.env.CORS_ORIGIN?.split(",") || [
       "http://localhost:9002",
       "http://0.0.0.0:9002",
-      "http://192.168.1.11:9002",
+      "http://192.168.254.189:9002",
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -72,9 +72,9 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`📚 Deck endpoints: http://localhost:${PORT}/api/decks`);
   console.log(`📚 Upload endpoints: http://localhost:${PORT}/api/uploads`);
   console.log(`📚 Content endpoints: http://localhost:${PORT}/api/content`);
-  console.log(`🌐 Network access: http://192.168.1.11:${PORT}`);
+  console.log(`🌐 Network access: http://192.168.254.189:${PORT}`);
   console.log(
-    `📱 Others can access: http://192.168.1.11:${PORT}/api/auth/register`
+    `📱 Others can access: http://192.168.254.189:${PORT}/api/auth/register`
   );
 });
 
