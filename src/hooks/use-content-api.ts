@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiService } from '@/lib/api';
 import { useAuth } from '@/contexts/auth-context-sqlite';
 
@@ -53,11 +53,22 @@ export interface ChallengeProgress {
   };
 }
 
+export interface UserStats {
+  id: number;
+  user_id: string;
+  hearts: number;
+  diamonds: number;
+  current_challenge_level: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export function useContentApi() {
   const { user } = useAuth();
   const [grammarLessons, setGrammarLessons] = useState<GrammarLesson[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [challengeProgress, setChallengeProgress] = useState<ChallengeProgress>({});
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,6 +114,24 @@ export function useContentApi() {
     } catch (err) {
       setError('Failed to fetch challenge progress');
       console.error('Error fetching challenge progress:', err);
+    }
+  };
+
+  // Fetch user stats (hearts, diamonds)
+  const fetchUserStats = async () => {
+    try {
+      console.log('🔄 Fetching user stats from database...');
+      const response = await apiService.getUserStats();
+      if (response.data) {
+        console.log('✅ User stats fetched:', response.data);
+        setUserStats(response.data);
+      } else {
+        console.error('❌ Failed to fetch user stats:', response.error);
+        setError(response.error || 'Failed to fetch user stats');
+      }
+    } catch (err) {
+      console.error('❌ Error fetching user stats:', err);
+      setError('Failed to fetch user stats');
     }
   };
 
@@ -248,21 +277,50 @@ export function useContentApi() {
     }
   };
 
-  // Load all content on mount
-  useEffect(() => {
+  // Update user stats (hearts, diamonds)
+  const updateUserStats = async (stats: {
+    hearts?: number;
+    diamonds?: number;
+    currentChallengeLevel?: string;
+  }) => {
+    try {
+      console.log('🔄 Updating user stats...', stats);
+      const response = await apiService.updateUserStats(stats);
+      if (response.data) {
+        console.log('✅ User stats updated:', response.data.stats);
+        setUserStats(response.data.stats);
+        return true;
+      } else {
+        console.error('❌ Failed to update user stats:', response.error);
+        setError(response.error || 'Failed to update user stats');
+        return false;
+      }
+    } catch (err) {
+      console.error('❌ Error updating user stats:', err);
+      setError('Failed to update user stats');
+      return false;
+    }
+  };
+
+  // Memoized refetch function to prevent infinite loops
+  const refetch = useCallback(() => {
     if (user) {
       setLoading(true);
-      setError(null);
-      
       Promise.all([
         fetchGrammarLessons(),
         fetchQuizzes(),
-        fetchChallengeProgress()
+        fetchChallengeProgress(),
+        fetchUserStats()
       ]).finally(() => {
         setLoading(false);
       });
     }
   }, [user]);
+
+  // Load all content on mount
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   return {
     grammarLessons,
@@ -276,15 +334,6 @@ export function useContentApi() {
     getQuizWithQuestions,
     getGrammarLesson,
     getChallengeItems,
-    refetch: () => {
-      setLoading(true);
-      Promise.all([
-        fetchGrammarLessons(),
-        fetchQuizzes(),
-        fetchChallengeProgress()
-      ]).finally(() => {
-        setLoading(false);
-      });
-    }
+    refetch
   };
 } 

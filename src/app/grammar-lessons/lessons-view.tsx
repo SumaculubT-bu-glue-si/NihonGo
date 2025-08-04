@@ -29,98 +29,96 @@ const levelColors: { [key in LevelFilter]?: string } = {
 
 const LessonItem = ({ lesson, isFavorite, onToggleFavorite }: { lesson: GrammarLesson, isFavorite: boolean, onToggleFavorite: (id: string) => void }) => (
   <div className="flex items-center justify-between p-3 border-b last:border-b-0 hover:bg-muted/50 cursor-pointer group">
-      <Link href={`/grammar-lessons/${lesson.id}`} passHref className="flex-grow">
-        <div className="flex items-center gap-4">
-          {lesson.user_read ? (
-              <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-          ) : (
-              <BookOpen className="h-5 w-5 text-muted-foreground shrink-0" />
-          )}
-          <div className="flex-grow">
-            <p className="font-semibold">{lesson.title}</p>
-          </div>
+    <Link href={`/grammar-lessons/${lesson.id}`} passHref className="flex-grow">
+      <div className="flex items-center gap-4">
+        {lesson.user_read ? (
+          <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+        ) : (
+          <BookOpen className="h-5 w-5 text-muted-foreground shrink-0" />
+        )}
+        <div className="flex-grow">
+          <p className="font-semibold">{lesson.title}</p>
         </div>
-      </Link>
-      <div className="flex items-center gap-2">
-         <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={(e) => { e.stopPropagation(); onToggleFavorite(lesson.id); }}
-            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-        >
-            <Star
-                className={`h-5 w-5 transition-colors ${
-                isFavorite
-                    ? 'fill-yellow-400 text-yellow-500'
-                    : 'text-muted-foreground/50 group-hover:text-muted-foreground'
-                }`}
-            />
-        </Button>
-         <Badge className={cn(levelColors[lesson.level as LevelFilter] ?? 'bg-gray-100 text-gray-800', 'border-transparent')}>
-            {lesson.level}
-          </Badge>
-          <Link href={`/grammar-lessons/${lesson.id}`} passHref>
-            <Button size="sm" variant="ghost">
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
       </div>
+    </Link>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={(e) => { e.stopPropagation(); onToggleFavorite(lesson.id); }}
+        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+      >
+        <Star
+          className={`h-5 w-5 transition-colors ${isFavorite
+              ? 'fill-yellow-400 text-yellow-500'
+              : 'text-muted-foreground/50 group-hover:text-muted-foreground'
+            }`}
+        />
+      </Button>
+      <Badge className={cn(levelColors[lesson.level as LevelFilter] ?? 'bg-gray-100 text-gray-800', 'border-transparent')}>
+        {lesson.level}
+      </Badge>
+      <Link href={`/grammar-lessons/${lesson.id}`} passHref>
+        <Button size="sm" variant="ghost">
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </Link>
+    </div>
   </div>
 );
 
 const LessonCard = ({ lesson, isFavorite, onToggleFavorite }: { lesson: GrammarLesson, isFavorite: boolean, onToggleFavorite: (id: string) => void }) => (
-    <Card className="flex flex-col hover:shadow-lg transition-shadow">
-        <CardHeader>
-            <div className="flex justify-between items-start">
-                <Badge className={cn(levelColors[lesson.level as LevelFilter] ?? 'bg-gray-100 text-gray-800', 'border-transparent')}>
-                    {lesson.level}
-                </Badge>
-                <div className="flex items-center">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => onToggleFavorite(lesson.id)}
-                        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                    >
-                        <Star
-                            className={`h-5 w-5 transition-colors ${
-                            isFavorite
-                                ? 'fill-yellow-400 text-yellow-500'
-                                : 'text-muted-foreground/50 hover:text-muted-foreground'
-                            }`}
-                        />
-                    </Button>
-                  {lesson.user_read ? (
-                      <div className="flex items-center gap-1 text-xs text-green-600">
-                          <CheckCircle2 className="h-4 w-4" />
-                          <span>Completed</span>
-                      </div>
-                   ) : (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <BookOpen className="h-4 w-4" />
-                          <span>Not started</span>
-                      </div>
-                   )}
-                </div>
+  <Card className="flex flex-col hover:shadow-lg transition-shadow">
+    <CardHeader>
+      <div className="flex justify-between items-start">
+        <Badge className={cn(levelColors[lesson.level as LevelFilter] ?? 'bg-gray-100 text-gray-800', 'border-transparent')}>
+          {lesson.level}
+        </Badge>
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => onToggleFavorite(lesson.id)}
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <Star
+              className={`h-5 w-5 transition-colors ${isFavorite
+                  ? 'fill-yellow-400 text-yellow-500'
+                  : 'text-muted-foreground/50 hover:text-muted-foreground'
+                }`}
+            />
+          </Button>
+          {lesson.user_read ? (
+            <div className="flex items-center gap-1 text-xs text-green-600">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Completed</span>
             </div>
-            <CardTitle className="text-lg">{lesson.title}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex-grow">
-            <p className="text-sm text-muted-foreground line-clamp-3">
-                {lesson.explanation}
-            </p>
-        </CardContent>
-        <CardFooter>
-            <Link href={`/grammar-lessons/${lesson.id}`} className="w-full">
-                <Button className="w-full" variant="outline">
-                    Start Lesson
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-            </Link>
-        </CardFooter>
-    </Card>
+          ) : (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <BookOpen className="h-4 w-4" />
+              <span>Not started</span>
+            </div>
+          )}
+        </div>
+      </div>
+      <CardTitle className="text-lg">{lesson.title}</CardTitle>
+    </CardHeader>
+    <CardContent className="flex-grow">
+      <p className="text-sm text-muted-foreground line-clamp-3">
+        {lesson.explanation}
+      </p>
+    </CardContent>
+    <CardFooter>
+      <Link href={`/grammar-lessons/${lesson.id}`} className="w-full">
+        <Button className="w-full" variant="outline">
+          Start Lesson
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </Link>
+    </CardFooter>
+  </Card>
 );
 
 export function GrammarLessonsView() {
@@ -128,7 +126,7 @@ export function GrammarLessonsView() {
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('All');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
 
   // Load favorites from localStorage
@@ -152,14 +150,14 @@ export function GrammarLessonsView() {
   const filteredLessons = grammarLessons.filter(lesson => {
     // Level filter
     if (levelFilter !== 'All' && lesson.level !== levelFilter) return false;
-    
+
     // Status filter
     if (statusFilter === 'completed' && !lesson.user_read) return false;
     if (statusFilter === 'incomplete' && lesson.user_read) return false;
-    
+
     // Category filter (favorites)
     if (categoryFilter === 'Favorites' && !favorites.includes(lesson.id)) return false;
-    
+
     return true;
   });
 

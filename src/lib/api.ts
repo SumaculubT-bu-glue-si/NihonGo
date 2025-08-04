@@ -40,6 +40,14 @@ class ApiService {
     const url = `${API_BASE_URL}${endpoint}`;
     const token = this.getToken();
 
+    console.log('🌐 API Request Details:', {
+      url,
+      method: options.method || 'GET',
+      hasToken: !!token,
+      token: token ? `${token.substring(0, 20)}...` : 'None',
+      headers: options.headers
+    });
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -49,17 +57,35 @@ class ApiService {
       ...options,
     };
 
+    console.log('🌐 Final Request Config:', {
+      url,
+      method: config.method || 'GET',
+      headers: config.headers,
+      body: config.body
+    });
+
     try {
+      console.log('🌐 Making fetch request...');
       const response = await fetch(url, config);
+      console.log('🌐 Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+      
       const data = await response.json();
+      console.log('🌐 Response data:', data);
 
       if (!response.ok) {
+        console.error('🌐 Request failed:', data);
         return { error: data.error || 'Request failed' };
       }
 
+      console.log('🌐 Request successful!');
       return { data };
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('🌐 API request failed:', error);
       return { error: 'Network error' };
     }
   }
@@ -120,11 +146,6 @@ class ApiService {
       method: 'PUT',
       body: JSON.stringify(updateData),
     });
-  }
-
-  // User Stats methods
-  async getUserStats() {
-    return this.request<{ stats: any[] }>('/decks/stats');
   }
 
   // Deck methods
@@ -254,10 +275,17 @@ class ApiService {
   }
 
   async updateChallengeProgress(level: string, unitId: string, stageId: string, status: 'completed' | 'active' | 'locked') {
-    return this.request<{ message: string }>('/content/challenges/progress', {
+    console.log('🔧 API Service: updateChallengeProgress called with:', { level, unitId, stageId, status });
+    const payload = { level, unitId, stageId, status };
+    console.log('📦 API Service: Request payload:', payload);
+    
+    const result = await this.request<{ message: string }>('/content/challenges/progress', {
       method: 'POST',
-      body: JSON.stringify({ level, unitId, stageId, status }),
+      body: JSON.stringify(payload),
     });
+    
+    console.log('🔧 API Service: Response received:', result);
+    return result;
   }
 
   async getChallengeItems(level: string, unitId: string, stageId: string) {
@@ -297,6 +325,43 @@ class ApiService {
   async resetDeckProgress(deckId: string) {
     return this.request<{ message: string }>(`/decks/${deckId}/progress/reset`, {
       method: 'POST',
+    });
+  }
+
+  // User Stats Methods (Hearts, Diamonds)
+  async getUserStats() {
+    console.log('🌐 API: Getting user stats...');
+    return this.request<{
+      id: number;
+      user_id: string;
+      hearts: number;
+      diamonds: number;
+      current_challenge_level: string;
+      created_at: string;
+      updated_at: string;
+    }>('/content/user-stats');
+  }
+
+  async updateUserStats(stats: {
+    hearts?: number;
+    diamonds?: number;
+    currentChallengeLevel?: string;
+  }) {
+    console.log('🌐 API: Updating user stats...', stats);
+    return this.request<{
+      message: string;
+      stats: {
+        id: number;
+        user_id: string;
+        hearts: number;
+        diamonds: number;
+        current_challenge_level: string;
+        created_at: string;
+        updated_at: string;
+      };
+    }>('/content/user-stats', {
+      method: 'POST',
+      body: JSON.stringify(stats),
     });
   }
 }

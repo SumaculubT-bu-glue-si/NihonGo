@@ -11,7 +11,7 @@ const router = Router();
 router.get('/grammar-lessons', authenticateToken, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
-    
+
     const lessons = await database.all(
       `SELECT gl.*, 
               COALESCE(ugl.read, 0) as user_read,
@@ -88,7 +88,7 @@ router.post('/grammar-lessons/:lessonId/read', authenticateToken, async (req: Re
 router.get('/quizzes', authenticateToken, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
-    
+
     const quizzes = await database.all(
       `SELECT q.*, 
               COALESCE(qs.highest_score, 0) as user_highest_score,
@@ -178,7 +178,7 @@ router.post('/quizzes/:quizId/score', authenticateToken, async (req: Request, re
 router.get('/challenges/progress', authenticateToken, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
-    
+
     const progress = await database.all(
       'SELECT * FROM challenge_progress WHERE user_id = ? ORDER BY level, unit_id, stage_id',
       [userId]
@@ -205,24 +205,41 @@ router.get('/challenges/progress', authenticateToken, async (req: Request, res: 
 
 // Update challenge progress
 router.post('/challenges/progress', authenticateToken, async (req: Request, res: Response) => {
+  console.log('SERVER: POST /challenges/progress endpoint hit');
+
   try {
     const userId = req.user!.userId;
     const { level, unitId, stageId, status } = req.body;
 
+    console.log('SERVER: Request data:', {
+      userId,
+      level,
+      unitId,
+      stageId,
+      status,
+      body: req.body
+    });
+
     if (!level || !unitId || !stageId || !status) {
+      console.error('SERVER: Missing required fields:', { level, unitId, stageId, status });
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    await database.run(
+    console.log('SERVER: Executing database INSERT OR REPLACE...');
+    const result = await database.run(
       `INSERT OR REPLACE INTO challenge_progress (user_id, level, unit_id, stage_id, status, updated_at)
        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
       [userId, level, unitId, stageId, status]
     );
 
-    res.json({ message: 'Progress updated' });
+    console.log('SERVER: Database operation completed:', result);
+    console.log('SERVER: Rows affected:', result.changes);
+    console.log('SERVER: Last insert ID:', result.lastID);
+
+    res.json({ message: 'Progress updated', changes: result.changes, lastID: result.lastID });
   } catch (error) {
-    console.error('Update challenge progress error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('SERVER: Update challenge progress error:', error);
+    res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
@@ -230,7 +247,7 @@ router.post('/challenges/progress', authenticateToken, async (req: Request, res:
 router.get('/challenges/:level/:unitId/:stageId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { level, unitId, stageId } = req.params;
-    
+
     const items = await database.all(
       'SELECT * FROM challenge_items WHERE level = ? AND unit_id = ? AND stage_id = ? ORDER BY item_order',
       [level, unitId, stageId]
@@ -249,7 +266,7 @@ router.get('/challenges/:level/:unitId/:stageId', authenticateToken, async (req:
 router.get('/admin/user-progress/:userId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    
+
     // Check if current user is admin
     const currentUser = await database.get(
       'SELECT role FROM users WHERE id = ?',
@@ -339,6 +356,121 @@ router.get('/admin/users-progress', authenticateToken, async (req: Request, res:
   } catch (error) {
     console.error('Get users progress error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update user game stats (hearts, diamonds)
+router.post('/user-stats', authenticateToken, async (req: Request, res: Response) => {
+  console.log('🔥 SERVER: POST /user-stats endpoint hit');
+  
+  try {
+    const userId = req.user!.userId;
+    const { hearts, diamonds, currentChallengeLevel } = req.body;
+    
+    console.log('🔥 SERVER: Request data:', {
+      userId,
+      hearts,
+      diamonds,
+      currentChallengeLevel,
+      body: req.body
+    });
+
+    if (hearts === undefined && diamonds === undefined && !currentChallengeLevel) {
+      console.error('❌ SERVER: No fields to update');
+      return res.status(400).json({ error: 'At least one field must be provided' });
+    }
+
+    // Build dynamic query based on provided fields
+    const updates = [];
+    const values = [];
+    
+    if (hearts !== undefined) {
+      updates.push('hearts = ?');
+      values.push(hearts);
+    }
+    if (diamonds !== undefined) {
+      updates.push('diamonds = ?');
+      values.push(diamonds);
+    }
+    if (currentChallengeLevel) {
+      updates.push('current_challenge_level = ?');
+      values.push(currentChallengeLevel);
+    }
+    
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(userId);
+
+    console.log('💾 SERVER: Executing database UPDATE...');
+    const result = await database.run(
+      `UPDATE user_game_stats SET ${updates.join(', ')} WHERE user_id = ?`,
+      values
+    );
+    
+    console.log('✅ SERVER: Database operation completed:', result);
+    console.log('💾 SERVER: Rows affected:', result.changes);
+
+    if (result.changes === 0) {
+      // If no rows were updated, create a new record
+      console.log('💾 SERVER: Creating new user_game_stats record...');
+      const insertResult = await database.run(
+        `INSERT INTO user_game_stats (user_id, hearts, diamonds, current_challenge_level)
+         VALUES (?, ?, ?, ?)`,
+        [userId, hearts || 5, diamonds || 0, currentChallengeLevel || 'N5']
+      );
+      console.log('✅ SERVER: New record created:', insertResult);
+    }
+
+    // Fetch updated stats to return
+    const updatedStats = await database.get(
+      'SELECT * FROM user_game_stats WHERE user_id = ?',
+      [userId]
+    );
+
+    res.json({ message: 'User stats updated', stats: updatedStats });
+  } catch (error) {
+    console.error('❌ SERVER: Update user stats error:', error);
+    res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Get user game stats
+router.get('/user-stats', authenticateToken, async (req: Request, res: Response) => {
+  console.log('🔥 SERVER: GET /user-stats endpoint hit');
+  
+  try {
+    const userId = req.user!.userId;
+    
+    console.log('🔥 SERVER: Fetching stats for user:', userId);
+
+    const stats = await database.get(
+      'SELECT * FROM user_game_stats WHERE user_id = ?',
+      [userId]
+    );
+    
+    console.log('📥 SERVER: Retrieved stats:', stats);
+
+    // If no stats exist, create default stats
+    if (!stats) {
+      console.log('💾 SERVER: Creating default user stats...');
+      await database.run(
+        `INSERT INTO user_game_stats (user_id, hearts, diamonds, current_challenge_level)
+         VALUES (?, ?, ?, ?)`,
+        [userId, 5, 0, 'N5']
+      );
+      
+      const newStats = await database.get(
+        'SELECT * FROM user_game_stats WHERE user_id = ?',
+        [userId]
+      );
+      
+      console.log('✅ SERVER: Default stats created:', newStats);
+      return res.json(newStats);
+    }
+
+    res.json(stats);
+  } catch (error) {
+    console.error('❌ SERVER: Get user stats error:', error);
+    res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 

@@ -184,19 +184,66 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
     }
   }
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (isCorrect) {
       const newItems = sessionItems.filter((_, i) => i !== currentIndex);
       setSessionItems(newItems);
 
       if (newItems.length === 0) {
-        // All items completed
-        addDiamonds(25);
+        // All items completed - save progress to database
+        console.log('🎯 Challenge stage completed! Saving progress to database...');
+        
         const decodedUnitId = decodeURIComponent(params.unit as string);
-        completeChallengeNode(`${params.level}|${decodedUnitId}|${params.stage}`);
+        const stageId = params.stage as string;
+        const levelId = params.level as 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+        
+        console.log('🎯 Challenge completion details:', { levelId, decodedUnitId, stageId });
+        
+        try {
+          // Import the API service to save progress
+          const { apiService } = await import('@/lib/api');
+          
+          console.log('🎯 Saving challenge progress as completed...');
+          const result = await apiService.updateChallengeProgress(levelId, decodedUnitId, stageId, 'completed');
+          
+          if (result.error) {
+            console.error('❌ Failed to save challenge progress:', result.error);
+            toast({
+              title: 'Progress Save Failed',
+              description: 'Challenge completed but progress could not be saved.',
+              variant: 'destructive',
+            });
+          } else {
+            console.log('✅ Challenge progress saved successfully!');
+            
+            // Also try to unlock the next stage
+            const stageNum = parseInt(stageId.replace('stage', ''), 10);
+            const nextStageId = `stage${stageNum + 1}`;
+            
+            console.log('🎯 Attempting to unlock next stage:', nextStageId);
+            const nextResult = await apiService.updateChallengeProgress(levelId, decodedUnitId, nextStageId, 'active');
+            
+            if (!nextResult.error) {
+              console.log('✅ Next stage unlocked successfully!');
+            } else {
+              console.log('ℹ️ Next stage unlock failed (may not exist):', nextResult.error);
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error saving challenge progress:', error);
+          toast({
+            title: 'Progress Save Error',
+            description: 'An error occurred while saving your progress.',
+            variant: 'destructive',
+          });
+        }
+        
+        // Continue with existing completion logic
+        addDiamonds(25);
+        completeChallengeNode(`${levelId}|${decodedUnitId}|${stageId}`);
         toast({
           title: "Stage Complete!",
-          description: "You earned 25 diamonds!",
+          description: "You earned 25 diamonds! Progress saved.",
         });
         router.push(getRedirectUrl());
       } else {

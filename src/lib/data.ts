@@ -75,9 +75,11 @@ export interface Unit {
 }
 
 export interface ChallengeData {
-    [level: string]: {
-        [unitId: string]: Unit;
-    }
+    N5: { [unitId: string]: Unit };
+    N4: { [unitId: string]: Unit };
+    N3: { [unitId: string]: Unit };
+    N2: { [unitId: string]: Unit };
+    N1: { [unitId: string]: Unit };
 }
 
 

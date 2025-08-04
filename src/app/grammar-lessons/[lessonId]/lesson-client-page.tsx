@@ -131,13 +131,69 @@ export function LessonClientPage() {
     }
   };
 
-  const handleCompleteQuiz = () => {
+  const handleCompleteQuiz = async () => {
+    console.log('🎯 Quiz completed! challengeNodeId:', challengeNodeId);
+    
     toast({ title: "Lesson Completed!", description: "Great job on the quiz." });
+    
     if (challengeNodeId) {
-      // TODO: Update challenge progress when challenge system is implemented
-      console.log('Challenge node completed:', challengeNodeId);
+      try {
+        // Parse challengeNodeId to extract level, unitId, and stageId
+        // Expected format: "level:unitId:stageId" (e.g., "N5:Unit 1\: Greetings:stage1")
+        const parts = challengeNodeId.split(':');
+        if (parts.length >= 3) {
+          const level = parts[0] as 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+          const unitId = parts.slice(1, -1).join(':'); // Handle unit names with colons
+          const stageId = parts[parts.length - 1];
+          
+          console.log('🎯 Parsed challenge info:', { level, unitId, stageId });
+          
+          // Import the API service to save progress
+          const { apiService } = await import('@/lib/api');
+          
+          console.log('🎯 Saving challenge progress...');
+          const result = await apiService.updateChallengeProgress(level, unitId, stageId, 'completed');
+          
+          if (result.error) {
+            console.error('❌ Failed to save challenge progress:', result.error);
+            toast({
+              title: 'Progress Save Failed',
+              description: 'Could not save your challenge progress.',
+              variant: 'destructive',
+            });
+          } else {
+            console.log('✅ Challenge progress saved successfully!');
+            toast({
+              title: 'Challenge Completed!',
+              description: `Stage ${stageId.replace('stage', '')} completed successfully!`,
+            });
+            
+            // Also try to unlock the next stage
+            const stageNum = parseInt(stageId.replace('stage', ''), 10);
+            const nextStageId = `stage${stageNum + 1}`;
+            
+            console.log('🎯 Attempting to unlock next stage:', nextStageId);
+            const nextResult = await apiService.updateChallengeProgress(level, unitId, nextStageId, 'active');
+            
+            if (!nextResult.error) {
+              console.log('✅ Next stage unlocked successfully!');
+            } else {
+              console.log('ℹ️ Next stage unlock failed (may not exist):', nextResult.error);
+            }
+          }
+        } else {
+          console.error('❌ Invalid challengeNodeId format:', challengeNodeId);
+        }
+      } catch (error) {
+        console.error('❌ Error saving challenge progress:', error);
+        toast({
+          title: 'Progress Save Error',
+          description: 'An error occurred while saving your progress.',
+          variant: 'destructive',
+        });
+      }
     }
-  }
+  };
 
   const handleGenerateQuiz = async () => {
     if (!lesson) return;
