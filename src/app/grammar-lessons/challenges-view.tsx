@@ -491,26 +491,26 @@ export function ChallengesView() {
                 </NodeWrapper>
                 <div className="flex flex-col items-center">
                   <p
-                    className="mt-2 w-32 text-xl text-center text-sm font-bold text-white uppercase tracking-wider"
+                    className="mt-2 w-32 text-xl text-center font-bold text-white uppercase tracking-wider"
                     style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.8)' }}
                   >
                     {stageId.replace('stage', 'Stage ')}
                   </p>
                   {finalStatus === 'active' && user && (
-                    <button
-                      onClick={(e) => {
-                        alert('BUTTON CLICKED! Check console for details.');
-                        console.log('🎯 BUTTON CLICKED! Stage:', stageId, 'Level:', currentChallengeLevel, 'Unit:', currentUnitId);
-                        e.preventDefault();
-                        console.log('🎯 Calling markStageCompleted...');
-                        markStageCompleted(currentChallengeLevel, currentUnitId, stageId);
-                        console.log('🎯 markStageCompleted call completed');
-                      }}
+                    <div
+                      // onClick={(e) => {
+                      //   alert('BUTTON CLICKED! Check console for details.');
+                      //   console.log('🎯 BUTTON CLICKED! Stage:', stageId, 'Level:', currentChallengeLevel, 'Unit:', currentUnitId);
+                      //   e.preventDefault();
+                      //   console.log('🎯 Calling markStageCompleted...');
+                      //   markStageCompleted(currentChallengeLevel, currentUnitId, stageId);
+                      //   console.log('🎯 markStageCompleted call completed');
+                      // }}
                       className="mt-1 px-2 py-1 text-xs bg-green-500 hover:bg-green-600 text-white rounded transition-colors"
                       title="Mark as completed"
                     >
                       🔓 Unlocked
-                    </button>
+                    </div>
                   )}
                   {finalStatus === 'completed' && (
                     <div className="mt-1 text-xs text-green-400 font-semibold">

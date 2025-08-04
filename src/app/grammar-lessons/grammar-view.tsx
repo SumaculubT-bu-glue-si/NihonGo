@@ -7,6 +7,7 @@ import { ChallengesView } from './challenges-view';
 import { GrammarCheckerTool } from './checker-view';
 import { useSearchParams } from 'next/navigation';
 import { useGlobalState } from '@/hooks/use-global-state';
+import { useUserStats } from '@/hooks/use-user-stats';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { BookCheck, BarChart3, Trophy, Heart, Gem, Store } from 'lucide-react';
 import { useMemo, useState, useEffect, useRef } from 'react';
@@ -18,8 +19,7 @@ import { Howl } from 'howler';
 import { useContentApi } from '@/hooks/use-content-api';
 
 const CooldownTimer = () => {
-  const { appData } = useGlobalState();
-  const { hearts, lastHeartLossTimestamp } = appData;
+  const { hearts, lastHeartLossTimestamp } = useUserStats();
   const [timeLeft, setTimeLeft] = useState('');
   const HEART_REGEN_MINUTES = 30;
 
@@ -57,7 +57,7 @@ export function GrammarView() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'library';
   const { appData } = useGlobalState();
-  const { hearts, diamonds } = appData;
+  const { hearts, diamonds } = useUserStats();
   const [isShopOpen, setIsShopOpen] = useState(false);
   const { grammarLessons, loading: lessonsLoading } = useContentApi();
 

@@ -7,6 +7,7 @@ export interface UserStats {
   user_id: string;
   hearts: number;
   diamonds: number;
+  last_heart_loss_timestamp: number | null;
   current_challenge_level: string;
   created_at: string;
   updated_at: string;
@@ -52,6 +53,7 @@ export function useUserStats() {
     hearts?: number;
     diamonds?: number;
     currentChallengeLevel?: string;
+    lastHeartLossTimestamp?: number | null;
   }) => {
     if (!user) {
       console.error('❌ User not authenticated');
@@ -109,6 +111,7 @@ export function useUserStats() {
     // Convenience getters
     hearts: userStats?.hearts ?? 5,
     diamonds: userStats?.diamonds ?? 0,
+    lastHeartLossTimestamp: userStats?.last_heart_loss_timestamp ?? null,
     currentChallengeLevel: userStats?.current_challenge_level ?? 'N5',
   };
 }

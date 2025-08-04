@@ -336,6 +336,7 @@ class ApiService {
       user_id: string;
       hearts: number;
       diamonds: number;
+      last_heart_loss_timestamp: number | null;
       current_challenge_level: string;
       created_at: string;
       updated_at: string;
@@ -346,6 +347,7 @@ class ApiService {
     hearts?: number;
     diamonds?: number;
     currentChallengeLevel?: string;
+    lastHeartLossTimestamp?: number | null;
   }) {
     console.log('🌐 API: Updating user stats...', stats);
     return this.request<{
@@ -355,6 +357,7 @@ class ApiService {
         user_id: string;
         hearts: number;
         diamonds: number;
+        last_heart_loss_timestamp: number | null;
         current_challenge_level: string;
         created_at: string;
         updated_at: string;

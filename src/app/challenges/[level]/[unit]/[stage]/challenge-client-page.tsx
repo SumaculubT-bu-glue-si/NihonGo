@@ -114,7 +114,7 @@ export function ChallengeClientPage({ items, level, unitId }: { items: Challenge
 
   // Check for no hearts
   useEffect(() => {
-    if (hearts === 0 && !isAnswered) { // Only show toast if they haven't just answered
+    if (hearts === 0 && !isAnswered) {
         toast({
             title: "You're out of hearts!",
             description: "Refill your hearts or practice to earn more.",

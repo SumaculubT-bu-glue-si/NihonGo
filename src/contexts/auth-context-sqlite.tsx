@@ -75,12 +75,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const token = apiService.getToken();
         if (token) {
           const response = await apiService.getProfile();
-          if (response.data && response.data.user) {
+          if (response.data) {
             setUser({
-              ...response.data.user,
-              is_active: response.data.user.is_active ?? true,
-              last_active: response.data.user.last_active ?? new Date().toISOString()
-            } as User);
+              id: response.data.id,
+              email: response.data.email,
+              display_name: response.data.display_name,
+              photo_url: response.data.photo_url,
+              role: response.data.role,
+              is_active: response.data.is_active ?? true,
+              last_active: response.data.last_active ?? new Date().toISOString()
+            });
           } else {
             // Token is invalid, clear it
             apiService.clearToken();
@@ -107,7 +111,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.data) {
         setUser({
-          ...response.data.user,
+          id: response.data.user.id,
+          email: response.data.user.email,
+          display_name: response.data.user.display_name,
+          photo_url: response.data.user.photo_url,
+          role: response.data.user.role,
           is_active: response.data.user.is_active ?? true,
           last_active: response.data.user.last_active ?? new Date().toISOString()
         });
@@ -136,8 +144,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (response.data) {
           setUser({
-            ...response.data.user,
-            is_active: response.data.user.is_active?? true,
+            id: response.data.user.id,
+            email: response.data.user.email,
+            display_name: response.data.user.display_name,
+            photo_url: response.data.user.photo_url,
+            role: response.data.user.role,
+            is_active: response.data.user.is_active ?? true,
             last_active: response.data.user.last_active ?? new Date().toISOString()
           });
           toast({
@@ -179,7 +191,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.data) {
         setUser({
-          ...response.data,
+          id: response.data.id,
+          email: response.data.email,
+          display_name: response.data.display_name,
+          photo_url: response.data.photo_url,
+          role: response.data.role,
           is_active: response.data.is_active ?? true,
           last_active: response.data.last_active ?? new Date().toISOString()
         });
